@@ -1,12 +1,24 @@
+// const config = {
+//   server: '192.168.200.221',
+//   port: 1433,
+//   user: 'aajuria',
+//   password: 'Ihtt2024_',
+//   database: 'IHTT_PROVEEDURIA',
+//   options: {
+//       encrypt: true, // Encrypt data
+//       trustServerCertificate: true // Ignore self-signed certificate errors
+//   }
+// };
+
 const config = {
-  server: '192.168.200.221',
+  server: 'localhost',
   port: 1433,
-  user: 'aajuria',
-  password: 'Ihtt2024_',
-  database: 'IHTT_PROVEEDURIA',
+  user: 'ajuria',
+  password: 'aju123',
+  database: 'ajuDB',
   options: {
-      encrypt: true, // Encrypt data
-      trustServerCertificate: true // Ignore self-signed certificate errors
+      encrypt: true,
+      trustServerCertificate: true
   }
 };
 

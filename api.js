@@ -21,7 +21,7 @@ router.use((request, response, next) => {
 });
 
 router.route('/inventory').get((request, response) => {
-  queries.getInventory().then((data) => {
+  queries.getInventoryItems().then((data) => {
     response.json(data);
   })
 })

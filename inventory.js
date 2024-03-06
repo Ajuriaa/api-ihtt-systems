@@ -1,8 +1,10 @@
 class  Inventory {
-  constructor(Cantidad, Costo, Sistema_Usuario){
+  constructor(Nombre_Articulo, Descripcion, Unidad, Cantidad, Cantidad_Minima){
+    this.Nombre_Articulo = Nombre_Articulo;
+    this.Descripcion = Descripcion;
+    this.Unidad = Unidad;
     this.Cantidad = Cantidad;
-    this.Costo = Costo;
-    this.Sistema_Usuario = Sistema_Usuario;
+    this.Cantidad_Minima = Cantidad_Minima;
   }
 }
 
