@@ -17,8 +17,8 @@ const config = {
   password: 'aju123',
   database: 'ajuDB',
   options: {
-      encrypt: true,
-      trustServerCertificate: true
+    encrypt: true,
+    trustServerCertificate: true
   }
 };
 

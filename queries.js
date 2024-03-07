@@ -1,4 +1,4 @@
-var  config = require('./db-config');
+let  config = require('./db-config');
 const  sql = require('mssql');
 
 // async  function  getInventoryItems() {
