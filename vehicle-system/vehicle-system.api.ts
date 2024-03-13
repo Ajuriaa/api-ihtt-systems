@@ -4,7 +4,7 @@ import { getDrivers } from './requests';
 export const router = express.Router();
 
 router.use((req, res, next) => {
-  console.log('middleware');
+  console.log('vehicle system middleware');
   next();
 });
 
