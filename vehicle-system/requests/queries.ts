@@ -1,6 +1,6 @@
-import { config } from '.';
+import { config } from '../config';
+import { IDriversQuery } from '../interfaces';
 import * as sql from 'mssql';
-import { IDriversQuery } from './interfaces/';
 
 export async function getDrivers(): Promise<IDriversQuery> {
   try {

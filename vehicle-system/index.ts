@@ -1,2 +1,1 @@
-export * from './db-config';
-export * from './queries';
+export * from './vehicle-system.api';

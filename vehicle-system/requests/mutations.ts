@@ -1,0 +1,1 @@
+export const x = 0; // This is just to avoid TS error for no exports
