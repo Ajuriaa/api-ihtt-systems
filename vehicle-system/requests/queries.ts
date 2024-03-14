@@ -1,4 +1,4 @@
-import { IDriversQuery, IVehicle, IVehiclesQuery } from '../interfaces';
+import { IDriversQuery, IVehicle, IVehicleBrandsQuery, IVehicleModelsQuery, IVehiclesQuery } from '../interfaces';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -32,6 +32,31 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
       }}
     });
     return { data: vehicles, maintenance: maintenance[0] };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
+    throw error;
+  }
+}
+
+export async function getVehicleModels(): Promise<IVehicleModelsQuery> {
+  try {
+    const models = await prisma.tB_Modelo.findMany({
+      include: {
+        TB_Marca_Vehiculo: { select: { Marca: true } },
+        TB_Tipo_Vehiculo: { select: { Tipo_Vehiculo: true } }
+      }
+    });
+    return { data: models };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
+    throw error;
+  }
+}
+
+export async function getVehicleBrands(): Promise<IVehicleBrandsQuery> {
+  try {
+    const brands = await prisma.tB_Marca_Vehiculo.findMany();
+    return { data: brands };
   } catch (error) {
     console.error('Error retrieving vehicle info:', error);
     throw error;
