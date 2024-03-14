@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model TB_Conductores {
+  ID_Conductor    Int              @id(map: "PK__TB_Condu__24F451ABD0774D34") @default(autoincrement())
+  Nombre          String           @db.NVarChar(100)
+  Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Conduc__Siste__3D5E1FD2") @db.DateTime
+  Sistema_Usuario String?          @db.NVarChar(25)
+  TB_Solicitudes  TB_Solicitudes[]
+}
+
+model TB_Vehiculos {
+  ID_Vehiculo               Int                @id(map: "PK__TB_Vehic__FEFD7E3336229443") @default(autoincrement())
+  Placa                     String             @db.NVarChar(20)
+  Kilometraje               Int
+  Chasis                    String             @db.NVarChar(50)
+  Motor                     String             @db.NVarChar(50)
+  KPG                       Float
+  Imagen_URL                String             @db.NVarChar(Max)
+  Anio                      Int
+  Kilometraje_Mantenimiento Int
+  Color                     String             @db.NVarChar(50)
+  ID_Modelo                 Int
+  Sistema_Fecha             DateTime           @default(now(), map: "DF__TB_Vehicu__Siste__5165187F") @db.DateTime
+  Sistema_Usuario           String?            @db.NVarChar(25)
+  ID_Estado_Vehiculo        Int                @default(3, map: "DF__TB_Vehicu__ID_Es__6B24EA82")
+  TB_Bitacoras              TB_Bitacoras[]
+  TB_Solicitudes            TB_Solicitudes[]
+  TB_Modelo                 TB_Modelo          @relation(fields: [ID_Modelo], references: [ID_Modelo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Vehicu__ID_Mo__5070F446")
+  TB_Estado_Vehiculo        TB_Estado_Vehiculo @relation(fields: [ID_Estado_Vehiculo], references: [ID_Estado_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK_TB_Vehiculos_TB_Estado_Vehiculo")
+}
+
+model TB_Modelo {
+  ID_Modelo         Int               @id(map: "PK__TB_Model__813C2372DD6B8554") @default(autoincrement())
+  Modelo            String            @db.NVarChar(50)
+  ID_Marca_Vehiculo Int
+  ID_Tipo_Vehiculo  Int
+  Sistema_Fecha     DateTime          @default(now(), map: "DF__TB_Modelo__Siste__4D94879B") @db.DateTime
+  Sistema_Usuario   String?           @db.NVarChar(25)
+  TB_Marca_Vehiculo TB_Marca_Vehiculo @relation(fields: [ID_Marca_Vehiculo], references: [ID_Marca_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Modelo__ID_Ma__4BAC3F29")
+  TB_Tipo_Vehiculo  TB_Tipo_Vehiculo  @relation(fields: [ID_Tipo_Vehiculo], references: [ID_Tipo_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Modelo__ID_Ti__4CA06362")
+  TB_Vehiculos      TB_Vehiculos[]
+}
+
+model TB_Marca_Vehiculo {
+  ID_Marca_Vehiculo Int         @id(map: "PK__TB_Marca__50E781D8E0B6F9D2") @default(autoincrement())
+  Marca             String      @db.NVarChar(50)
+  Sistema_Fecha     DateTime    @default(now(), map: "DF__TB_Marca___Siste__37A5467C") @db.DateTime
+  Sistema_Usuario   String?     @db.NVarChar(25)
+  TB_Modelo         TB_Modelo[]
+}
+
+model TB_Estado_Vehiculo {
+  ID_Estado_Vehiculo Int            @id(map: "PK__TB_Estad__8EA01B3F6AA8F875") @default(autoincrement())
+  Estado_Vehiculo    String         @db.NVarChar(50)
+  TB_Vehiculos       TB_Vehiculos[]
+}
+
+model TB_Ciudades {
+  ID_Ciudad       Int              @id(map: "PK__TB_Ciuda__05C00C1C43BAB5C6") @default(autoincrement())
+  Nombre          String           @db.NVarChar(100)
+  Kms             Int
+  Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Ciudad__Siste__4316F928") @db.DateTime
+  Sistema_Usuario String?          @db.NVarChar(25)
+  TB_Solicitudes  TB_Solicitudes[]
+}
+
+model TB_Solicitudes {
+  ID_Solicitud        Int                    @id(map: "PK__TB_Solic__ED71123AB0654863") @default(autoincrement())
+  ID_Empleado         Int
+  Destino             String                 @db.NVarChar(100)
+  Motivo              String                 @db.NVarChar(100)
+  Fecha               DateTime               @db.Date
+  Hora_Salida         DateTime               @db.Time
+  Hora_Regreso        DateTime               @db.Time
+  ID_Ciudad           Int
+  ID_Vehiculo         Int?
+  ID_Estado_Solicitud Int
+  ID_Tipo_Solicitud   Int
+  ID_Conductor        Int?
+  Sistema_Fecha       DateTime               @default(now(), map: "DF__TB_Solici__Siste__59063A47") @db.DateTime
+  Sistema_Usuario     String?                @db.NVarChar(25)
+  TB_Pasajeros        TB_Pasajeros[]
+  TB_Bitacoras        TB_Bitacoras[]
+  TB_Ciudad           TB_Ciudades            @relation(fields: [ID_Ciudad], references: [ID_Ciudad], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ci__5441852A")
+  TB_Conductores      TB_Conductores?        @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Co__5812160E")
+  TB_Estado_Solicitud TB_Estado_Solicitudes  @relation(fields: [ID_Estado_Solicitud], references: [ID_Estado_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Es__5629CD9C")
+  TB_Tipo_Solicitudes TB_Tipo_Solicitudes    @relation(fields: [ID_Tipo_Solicitud], references: [ID_Tipo_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ti__571DF1D5")
+  TB_Vehiculos        TB_Vehiculos?          @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ve__5535A963")
+}
+
+model TB_Bitacoras {
+  ID_Bitacora                Int                      @id(map: "PK__TB_Bitac__1D88869D47DCAEC3") @default(autoincrement())
+  ID_Solicitud               Int?
+  ID_Vehiculo                Int
+  Kilometraje_Entrada        Int
+  Kilometraje_Salida         Int
+  Hora_Salida                DateTime                 @db.Time
+  Hora_Entrada               DateTime                 @db.Time
+  Fecha                      DateTime                 @db.Date
+  Observaciones              String                   @db.NVarChar(Max)
+  Sistema_Fecha              DateTime                 @default(now(), map: "DF__TB_Bitaco__Siste__5CD6CB2B") @db.DateTime
+  Sistema_Usuario            String?                  @db.NVarChar(25)
+  TB_Vehiculos               TB_Vehiculos             @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Bitaco__ID_Ve__5BE2A6F2")
+  TB_Llenado_Combustible     TB_Llenado_Combustible[]
+  TB_Solicitudes             TB_Solicitudes?          @relation(fields: [ID_Solicitud], references: [ID_Solicitud])
+}
+
+model TB_Llenado_Combustible {
+  ID_Llenado_Combustible Int                   @id(map: "PK__TB_Llena__C5A00FBE358B980D") @default(autoincrement())
+  ID_Bitacora            Int
+  Cantidad               Float
+  Estacion_Combustible   String                @db.NVarChar(100)
+  Kilometraje_Recarga    Int
+  Fecha                  DateTime              @db.Date
+  Precio                 Float
+  ID_Unidad_Combustible  Int
+  Sistema_Fecha          DateTime              @default(now(), map: "DF__TB_Llenad__Siste__619B8048") @db.DateTime
+  Sistema_Usuario        String?               @db.NVarChar(25)
+  TB_Bitacoras           TB_Bitacoras          @relation(fields: [ID_Bitacora], references: [ID_Bitacora], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Llenad__ID_Bi__5FB337D6")
+  TB_Unidad_Combustible  TB_Unidad_Combustible @relation(fields: [ID_Unidad_Combustible], references: [ID_Unidad_Combustible], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Llenad__ID_Un__60A75C0F")
+}
+
+model TB_Unidad_Combustible {
+  ID_Unidad_Combustible  Int                      @id(map: "PK__TB_Unida__344CAD22C20BB9CD") @default(autoincrement())
+  Unidad                 String                   @db.NVarChar(50)
+  Sistema_Fecha          DateTime                 @default(now(), map: "DF__TB_Unidad__Siste__48CFD27E") @db.DateTime
+  Sistema_Usuario        String?                  @db.NVarChar(25)
+  TB_Llenado_Combustible TB_Llenado_Combustible[]
+}
+
+model TB_Estado_Solicitudes {
+  ID_Estado_Solicitud Int              @id(map: "PK__TB_Estad__05F5F637D9EAF494") @default(autoincrement())
+  Estado              String           @db.NVarChar(50)
+  Sistema_Fecha       DateTime         @default(now(), map: "DF__TB_Estado__Siste__45F365D3") @db.DateTime
+  Sistema_Usuario     String?          @db.NVarChar(25)
+  TB_Solicitudes      TB_Solicitudes[]
+}
+
+model TB_Pasajeros {
+  ID_Pasajero     Int            @id(map: "PK__TB_Pasaj__A3E2FDAC4DF043BA") @default(autoincrement())
+  ID_Solicitud    Int
+  ID_Empleado     Int
+  Sistema_Fecha   DateTime       @default(now(), map: "DF__TB_Pasaje__Siste__656C112C") @db.DateTime
+  Sistema_Usuario String?        @db.NVarChar(25)
+  TB_Solicitudes  TB_Solicitudes @relation(fields: [ID_Solicitud], references: [ID_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Pasaje__ID_So__6477ECF3")
+}
+
+model TB_Tipo_Solicitudes {
+  ID_Tipo_Solicitud Int              @id(map: "PK__TB_Tipo___8149CB57F06A07B5") @default(autoincrement())
+  Tipo_Solicitud    String           @db.NVarChar(50)
+  Sistema_Fecha     DateTime         @default(now(), map: "DF__TB_Tipo_S__Siste__403A8C7D") @db.DateTime
+  Sistema_Usuario   String?          @db.NVarChar(25)
+  TB_Solicitudes    TB_Solicitudes[]
+}
+
+model TB_Tipo_Vehiculo {
+  ID_Tipo_Vehiculo Int         @id(map: "PK__TB_Tipo___CFD9891656410980") @default(autoincrement())
+  Tipo_Vehiculo    String      @db.NVarChar(50)
+  Sistema_Fecha    DateTime    @default(now(), map: "DF__TB_Tipo_V__Siste__3A81B327") @db.DateTime
+  Sistema_Usuario  String?     @db.NVarChar(25)
+  TB_Modelo        TB_Modelo[]
+}

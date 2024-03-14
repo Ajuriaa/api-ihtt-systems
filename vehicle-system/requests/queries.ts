@@ -1,49 +1,26 @@
-import { config } from '../config';
 import { IDriversQuery, IVehiclesQuery } from '../interfaces';
-import * as sql from 'mssql';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export async function getDrivers(): Promise<IDriversQuery> {
-  const QUERY = "SELECT ID_Conductor, Nombre from TB_Conductores";
   try {
-    let  pool = await  sql.connect(config);
-    let  result = await  pool.request().query(QUERY);
-    return { data: result.recordset };
-  }
-  catch (error) {
-    console.log(error);
+    const drivers = await prisma.tB_Conductores.findMany();
+    return { data: drivers };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
     throw error;
   }
 }
 
 export async function getVehicles(): Promise<IVehiclesQuery> {
-  const QUERY = `
-    SELECT
-      V.ID_Vehiculo,
-      V.Placa,
-      V.Kilometraje,
-      V.Chasis,
-      V.Motor,
-      V.KPG,
-      V.Imagen_URL,
-      V.Anio,
-      V.Kilometraje_Mantenimiento,
-      V.Color,
-      M.Modelo,
-      MV.Marca
-    FROM
-      TB_Vehiculos V
-    INNER JOIN
-      TB_Modelo M ON V.ID_Modelo = M.ID_Modelo
-    INNER JOIN
-      TB_Marca_Vehiculo MV ON M.ID_Marca_Vehiculo = MV.ID_Marca_Vehiculo;
-  `
   try {
-    let  pool = await  sql.connect(config);
-    let  result = await  pool.request().query(QUERY);
-    return { data: result.recordset };
-  }
-  catch (error) {
-    console.log(error);
+    const vehicles = await prisma.tB_Vehiculos.findMany({
+      include: { TB_Modelo: { select: { Modelo: true, TB_Marca_Vehiculo: { select: { Marca: true } } } } }
+    });
+    return { data: vehicles };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
     throw error;
   }
 }

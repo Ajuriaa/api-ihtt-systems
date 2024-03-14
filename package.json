@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "npx eslint ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^5.11.0",
     "@types/express": "^4.17.21",
     "cors": "^2.8.5",
     "express": "^4.18.3",
@@ -20,6 +21,10 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
-    "@types/mssql": "^9.1.5"
+    "@types/mssql": "^9.1.5",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "eslint": "^8.57.0",
+    "prisma": "^5.11.0"
   }
 }
