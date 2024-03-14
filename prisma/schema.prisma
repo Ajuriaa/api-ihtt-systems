@@ -13,6 +13,7 @@ model TB_Conductores {
   Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Conduc__Siste__3D5E1FD2") @db.DateTime
   Sistema_Usuario String?          @db.NVarChar(25)
   TB_Solicitudes  TB_Solicitudes[]
+  deleted_at      DateTime?        @db.DateTime
 }
 
 model TB_Vehiculos {
@@ -34,6 +35,7 @@ model TB_Vehiculos {
   TB_Solicitudes            TB_Solicitudes[]
   TB_Modelo                 TB_Modelo          @relation(fields: [ID_Modelo], references: [ID_Modelo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Vehicu__ID_Mo__5070F446")
   TB_Estado_Vehiculo        TB_Estado_Vehiculo @relation(fields: [ID_Estado_Vehiculo], references: [ID_Estado_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK_TB_Vehiculos_TB_Estado_Vehiculo")
+  deleted_at      DateTime?                     @db.DateTime
 }
 
 model TB_Modelo {
@@ -46,6 +48,7 @@ model TB_Modelo {
   TB_Marca_Vehiculo TB_Marca_Vehiculo @relation(fields: [ID_Marca_Vehiculo], references: [ID_Marca_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Modelo__ID_Ma__4BAC3F29")
   TB_Tipo_Vehiculo  TB_Tipo_Vehiculo  @relation(fields: [ID_Tipo_Vehiculo], references: [ID_Tipo_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Modelo__ID_Ti__4CA06362")
   TB_Vehiculos      TB_Vehiculos[]
+  deleted_at        DateTime?         @db.DateTime
 }
 
 model TB_Marca_Vehiculo {
@@ -54,12 +57,14 @@ model TB_Marca_Vehiculo {
   Sistema_Fecha     DateTime    @default(now(), map: "DF__TB_Marca___Siste__37A5467C") @db.DateTime
   Sistema_Usuario   String?     @db.NVarChar(25)
   TB_Modelo         TB_Modelo[]
+  deleted_at        DateTime?   @db.DateTime
 }
 
 model TB_Estado_Vehiculo {
   ID_Estado_Vehiculo Int            @id(map: "PK__TB_Estad__8EA01B3F6AA8F875") @default(autoincrement())
   Estado_Vehiculo    String         @db.NVarChar(50)
   TB_Vehiculos       TB_Vehiculos[]
+  deleted_at         DateTime?      @db.DateTime
 }
 
 model TB_Ciudades {
@@ -69,6 +74,7 @@ model TB_Ciudades {
   Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Ciudad__Siste__4316F928") @db.DateTime
   Sistema_Usuario String?          @db.NVarChar(25)
   TB_Solicitudes  TB_Solicitudes[]
+  deleted_at      DateTime?        @db.DateTime
 }
 
 model TB_Solicitudes {
@@ -93,6 +99,7 @@ model TB_Solicitudes {
   TB_Estado_Solicitud TB_Estado_Solicitudes  @relation(fields: [ID_Estado_Solicitud], references: [ID_Estado_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Es__5629CD9C")
   TB_Tipo_Solicitudes TB_Tipo_Solicitudes    @relation(fields: [ID_Tipo_Solicitud], references: [ID_Tipo_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ti__571DF1D5")
   TB_Vehiculos        TB_Vehiculos?          @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ve__5535A963")
+  deleted_at          DateTime?              @db.DateTime
 }
 
 model TB_Bitacoras {
@@ -110,6 +117,7 @@ model TB_Bitacoras {
   TB_Vehiculos               TB_Vehiculos             @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Bitaco__ID_Ve__5BE2A6F2")
   TB_Llenado_Combustible     TB_Llenado_Combustible[]
   TB_Solicitudes             TB_Solicitudes?          @relation(fields: [ID_Solicitud], references: [ID_Solicitud])
+  deleted_at                 DateTime?                @db.DateTime
 }
 
 model TB_Llenado_Combustible {
@@ -125,6 +133,7 @@ model TB_Llenado_Combustible {
   Sistema_Usuario        String?               @db.NVarChar(25)
   TB_Bitacoras           TB_Bitacoras          @relation(fields: [ID_Bitacora], references: [ID_Bitacora], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Llenad__ID_Bi__5FB337D6")
   TB_Unidad_Combustible  TB_Unidad_Combustible @relation(fields: [ID_Unidad_Combustible], references: [ID_Unidad_Combustible], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Llenad__ID_Un__60A75C0F")
+  deleted_at             DateTime?             @db.DateTime
 }
 
 model TB_Unidad_Combustible {
@@ -133,6 +142,7 @@ model TB_Unidad_Combustible {
   Sistema_Fecha          DateTime                 @default(now(), map: "DF__TB_Unidad__Siste__48CFD27E") @db.DateTime
   Sistema_Usuario        String?                  @db.NVarChar(25)
   TB_Llenado_Combustible TB_Llenado_Combustible[]
+  deleted_at             DateTime?                @db.DateTime
 }
 
 model TB_Estado_Solicitudes {
@@ -141,6 +151,7 @@ model TB_Estado_Solicitudes {
   Sistema_Fecha       DateTime         @default(now(), map: "DF__TB_Estado__Siste__45F365D3") @db.DateTime
   Sistema_Usuario     String?          @db.NVarChar(25)
   TB_Solicitudes      TB_Solicitudes[]
+  deleted_at          DateTime?        @db.DateTime
 }
 
 model TB_Pasajeros {
@@ -150,6 +161,7 @@ model TB_Pasajeros {
   Sistema_Fecha   DateTime       @default(now(), map: "DF__TB_Pasaje__Siste__656C112C") @db.DateTime
   Sistema_Usuario String?        @db.NVarChar(25)
   TB_Solicitudes  TB_Solicitudes @relation(fields: [ID_Solicitud], references: [ID_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Pasaje__ID_So__6477ECF3")
+  deleted_at      DateTime?      @db.DateTime
 }
 
 model TB_Tipo_Solicitudes {
@@ -158,6 +170,7 @@ model TB_Tipo_Solicitudes {
   Sistema_Fecha     DateTime         @default(now(), map: "DF__TB_Tipo_S__Siste__403A8C7D") @db.DateTime
   Sistema_Usuario   String?          @db.NVarChar(25)
   TB_Solicitudes    TB_Solicitudes[]
+  deleted_at        DateTime?        @db.DateTime
 }
 
 model TB_Tipo_Vehiculo {
@@ -166,4 +179,5 @@ model TB_Tipo_Vehiculo {
   Sistema_Fecha    DateTime    @default(now(), map: "DF__TB_Tipo_V__Siste__3A81B327") @db.DateTime
   Sistema_Usuario  String?     @db.NVarChar(25)
   TB_Modelo        TB_Modelo[]
+  deleted_at       DateTime?   @db.DateTime
 }

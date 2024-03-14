@@ -6,4 +6,5 @@ export interface IDriversQuery {
 
 export interface IVehiclesQuery {
   data: IVehicle[];
+  maintenance: { id: number, kms: number };
 }
