@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { createVehicle, createVehicleBrands, createVehicleModels, deleteVehicle, getDrivers, getVehicleBrands, getVehicleModels, getVehicles, updateVehicle } from './requests';
+import { createVehicle, createVehicleBrands, createVehicleModels, deleteVehicle, getDrivers, getVehicle, getVehicleBrands, getVehicleModels, getVehicles, updateVehicle } from './requests';
 
 export const router = express.Router();
 
@@ -17,6 +17,12 @@ router.get('/drivers', (req, res: Response) => {
 
 router.get('/vehicles', (req, res: Response) => {
   getVehicles().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/vehicle/:id', (req, res: Response) => {
+  getVehicle(req.params.id).then((data) => {
     res.json(data);
   });
 });

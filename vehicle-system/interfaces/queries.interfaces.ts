@@ -9,6 +9,10 @@ export interface IVehiclesQuery {
   maintenance: { id: number, kms: number };
 }
 
+export interface IVehicleQuery {
+  data: IVehicle;
+}
+
 export interface IVehicleModelsQuery {
   data: IModel[];
 }
