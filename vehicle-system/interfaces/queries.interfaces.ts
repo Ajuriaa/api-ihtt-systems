@@ -1,4 +1,4 @@
-import { IBrand, IDriver, IModel, IVehicle } from ".";
+import { IBrand, IDriver, IModel, IVehicle, IVehicleState, IVehicleType } from ".";
 
 export interface IDriversQuery {
   data: IDriver[];
@@ -15,6 +15,14 @@ export interface IVehicleQuery {
 
 export interface IVehicleModelsQuery {
   data: IModel[];
+}
+
+export interface IVehicleStatusesQuery {
+  data: IVehicleState[];
+}
+
+export interface IVehicleTypesQuery {
+  data: IVehicleType[];
 }
 
 export interface IVehicleBrandsQuery {

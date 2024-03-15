@@ -11,7 +11,7 @@ export async function deleteVehicle(id: number) {
     });
 
     if(deleted_vehicle) {
-      true;
+      return true;
     }
 
     return false;
@@ -22,9 +22,10 @@ export async function deleteVehicle(id: number) {
 }
 
 export async function createVehicle(data: IVehicle ) {
+  const { ID_Vehiculo, ...createData } = data;
   try {
     const new_vehicle = await prisma.tB_Vehiculos.create({
-      data: data
+      data: createData
     });
 
     if(new_vehicle) {
@@ -38,11 +39,12 @@ export async function createVehicle(data: IVehicle ) {
   }
 }
 
-export async function updateVehicle(id: number, data: IVehicle) {
+export async function updateVehicle(data: IVehicle) {
+  const { ID_Vehiculo, ...updateData } = data;
   try {
     const updated_vehicle = await prisma.tB_Vehiculos.update({
-      where: { ID_Vehiculo: id },
-      data: data
+      where: { ID_Vehiculo: data.ID_Vehiculo },
+      data: updateData
     });
 
     if(updated_vehicle) {

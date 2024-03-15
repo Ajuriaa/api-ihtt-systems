@@ -1,4 +1,4 @@
-import { IDriversQuery, IVehicleBrandsQuery, IVehicleModelsQuery, IVehicleQuery, IVehiclesQuery } from '../interfaces';
+import { IDriversQuery, IVehicleBrandsQuery, IVehicleModelsQuery, IVehicleQuery, IVehicleState, IVehicleStatusesQuery, IVehicleTypesQuery, IVehiclesQuery } from '../interfaces';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -52,10 +52,10 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
     const vehicles = await prisma.tB_Vehiculos.findMany({
       where: { deleted_at: null },
       include: { 
-        TB_Estado_Vehiculo: { select: { Estado_Vehiculo: true } },
-        TB_Modelo: { select: { Modelo: true, 
-          TB_Marca_Vehiculo: { select: { Marca: true } },
-          TB_Tipo_Vehiculo: { select: { Tipo_Vehiculo: true } }
+        TB_Estado_Vehiculo: true,
+        TB_Modelo: { include: { 
+          TB_Marca_Vehiculo: true,
+          TB_Tipo_Vehiculo: true
         }
       }}
     });
@@ -70,8 +70,8 @@ export async function getVehicleModels(): Promise<IVehicleModelsQuery> {
   try {
     const models = await prisma.tB_Modelo.findMany({
       include: {
-        TB_Marca_Vehiculo: { select: { Marca: true } },
-        TB_Tipo_Vehiculo: { select: { Tipo_Vehiculo: true } }
+        TB_Marca_Vehiculo: true,
+        TB_Tipo_Vehiculo: true
       }
     });
     return { data: models };
@@ -80,6 +80,27 @@ export async function getVehicleModels(): Promise<IVehicleModelsQuery> {
     throw error;
   }
 }
+
+export async function getVehicleStatuses(): Promise<IVehicleStatusesQuery> {
+  try {
+    const status = await prisma.tB_Estado_Vehiculo.findMany();
+    return { data: status };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
+    throw error;
+  }
+}
+
+export async function getVehicleTypes(): Promise<IVehicleTypesQuery> {
+  try {
+    const status = await prisma.tB_Tipo_Vehiculo.findMany();
+    return { data: status };
+  } catch (error) {
+    console.error('Error retrieving vehicle info:', error);
+    throw error;
+  }
+}
+
 
 export async function getVehicleBrands(): Promise<IVehicleBrandsQuery> {
   try {

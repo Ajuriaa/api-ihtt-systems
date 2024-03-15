@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { createVehicle, createVehicleBrands, createVehicleModels, deleteVehicle, getDrivers, getVehicle, getVehicleBrands, getVehicleModels, getVehicles, updateVehicle } from './requests';
+import { createVehicle, createVehicleBrands, createVehicleModels, deleteVehicle, getDrivers, getVehicle, getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes, getVehicles, updateVehicle } from './requests';
 
 export const router = express.Router();
 
@@ -39,6 +39,18 @@ router.get('/vehicle-brands', (req, res: Response) => {
   });
 });
 
+router.get('/vehicle-statuses', (req, res: Response) => {
+  getVehicleStatuses().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/vehicle-types', (req, res: Response) => {
+  getVehicleTypes().then((data) => {
+    res.json(data);
+  });
+});
+
 // Mutations
 router.post('/delete-vehicle', (req, res: Response) => {
   deleteVehicle(req.body.id).then((data) => {
@@ -53,7 +65,7 @@ router.post('/create-vehicle', (req, res: Response) => {
 });
 
 router.post('/update-vehicle', (req, res: Response) => {
-  updateVehicle(req.body.id, req.body.data).then((data) => {
+  updateVehicle(req.body.data).then((data) => {
     res.json(data);
   });
 });
