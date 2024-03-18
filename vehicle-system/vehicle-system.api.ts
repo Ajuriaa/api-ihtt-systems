@@ -3,7 +3,7 @@ import {
   createDriver,
   createVehicle, createVehicleBrands, createVehicleModels,
   deleteDriver,
-  deleteVehicle, getDrivers, getVehicle, getVehicleBrands,
+  deleteVehicle, getDriver, getDrivers, getVehicle, getVehicleBrands,
   getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle
 } from './requests';
@@ -24,6 +24,12 @@ router.get('/drivers', (req, res: Response) => {
 
 router.get('/vehicles', (req, res: Response) => {
   getVehicles().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/driver/:id', (req, res: Response) => {
+  getDriver(req.params.id).then((data) => {
     res.json(data);
   });
 });
