@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/client/vehicles';
 import { IBrand, IModel, IVehicle } from '../interfaces/interfaces';
 
 const prisma = new PrismaClient();

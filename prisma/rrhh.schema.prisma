@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client/rrhh"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("RRHH_DATABASE_URL")
+}
+
+model TB_Empleados {
+  ID_Empleado             Int                       @id(map: "PK__TB_Emple__B7872C902D27B809")
+  Nombres                 String                    @db.VarChar(255)
+  Apellidos               String                    @db.VarChar(255)
+  ID_Categoria            String?                   @db.VarChar(3)
+  Genero                  String                    @db.VarChar(255)
+  RTN                     String                    @db.VarChar(20)
+  Identidad               String?                   @db.VarChar(20)
+  Direccion               String?                   @db.VarChar(255)
+  Codigo_Ciudad           String                    @db.VarChar(6)
+  SistemaFecha            DateTime                  @db.DateTime
+  SistemaUsuario          String                    @db.VarChar(50)
+  FotoPerfil              String?                   @db.NVarChar(4000)
+  ID_Contratacion         Int?
+  Fecha_Ingreso           DateTime?                 @db.Date
+  Horario_Empleado        String?                   @db.VarChar(20)
+  curriculum_vitae        String?                   @db.VarChar(200)
+  ID_Estado               Int
+  Cod_img                 String?                   @db.VarChar(100)
+  Cuenta_Contable         String?                   @db.VarChar(20)
+  Cuenta_Contable2        String?                   @db.VarChar(20)
+  ID_Organizacion         Int?
+  Fecha_ingresoC          DateTime?                 @db.Date
+  TB_RRHH_Encargados      TB_RRHH_Encargados[]
+}
+
+model TB_RRHH_Encargados {
+  ID_Empleado  Int
+  TipoCargo    String?      @db.VarChar(20)
+  ID_Cod       Int          @id(map: "PK__TB_RRHH___B7872C9001AC9A99")
+  TB_Empleados TB_Empleados @relation(fields: [ID_Empleado], references: [ID_Empleado], onDelete: Cascade, map: "FK__TB_RRHH_E__ID_Em__0AF29B96")
+}

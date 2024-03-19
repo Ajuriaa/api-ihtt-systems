@@ -1,10 +1,11 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./client/vehicles"  
 }
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
+  url      = env("VEHICLE_DATABASE_URL")
 }
 
 model TB_Conductores {

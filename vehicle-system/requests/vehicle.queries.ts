@@ -2,7 +2,7 @@ import {
   IVehicleBrandsQuery, IVehicleModelsQuery, IVehicleQuery,
   IVehicleStatusesQuery, IVehicleTypesQuery, IVehiclesQuery
 } from '../interfaces';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/client/vehicles';
 
 const prisma = new PrismaClient();
 

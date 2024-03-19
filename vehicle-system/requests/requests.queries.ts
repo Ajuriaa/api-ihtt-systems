@@ -1,5 +1,5 @@
 import { IRequestsQuery } from '../interfaces';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../prisma/client/vehicles';
 
 const prisma = new PrismaClient();
 
