@@ -29,6 +29,30 @@ export async function updateRequest(data: IRequest) {
       data: updateData
     });
 
+    const requestState = await prisma.tB_Estado_Solicitudes.findUniqueOrThrow({
+      where: { ID_Estado_Solicitud: data.ID_Estado_Solicitud }
+    });
+
+    const usedVehicleState = await prisma.tB_Estado_Vehiculo.findFirst({
+      where: { Estado_Vehiculo:  'En Uso' }
+    });
+
+    const availableVehicleState = await prisma.tB_Estado_Vehiculo.findFirst({
+      where: { Estado_Vehiculo:  'Disponible' }
+    });
+
+    if(requestState.Estado === 'Activo') {
+      await prisma.tB_Vehiculos.update({
+        where: { ID_Vehiculo: data.ID_Vehiculo || 0},
+        data: { ID_Estado_Vehiculo: usedVehicleState?.ID_Estado_Vehiculo }
+      });
+    } else {
+      await prisma.tB_Vehiculos.update({
+        where: { ID_Vehiculo: data.ID_Vehiculo || 0},
+        data: { ID_Estado_Vehiculo: availableVehicleState?.ID_Estado_Vehiculo }
+      });
+    }
+
     if(updated_request) {
       return true;
     }
