@@ -1,11 +1,9 @@
 import express, { Response } from 'express';
 import { 
-  createDriver,
-  createVehicle, createVehicleBrands, createVehicleModels,
-  deleteDriver,
-  deleteVehicle, getDriver, getDrivers, getVehicle, getVehicleBrands,
-  getVehicleModels, getVehicleStatuses, getVehicleTypes,
-  getVehicles, updateDriver, updateVehicle
+  createDriver, createVehicle, createVehicleBrands, createVehicleModels,
+  deleteDriver, deleteVehicle, getDriver, getDrivers, getVehicle, 
+  getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
+  getVehicles, updateDriver, updateVehicle, getRequests
 } from './requests';
 
 export const router = express.Router();
@@ -18,6 +16,12 @@ router.use((req, res, next) => {
 // Queries
 router.get('/drivers', (req, res: Response) => {
   getDrivers().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/requests', (req, res: Response) => {
+  getRequests().then((data) => {
     res.json(data);
   });
 });
