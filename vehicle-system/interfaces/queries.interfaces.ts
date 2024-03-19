@@ -40,3 +40,6 @@ export interface IRequestsQuery {
   data: IRequest[];
 }
 
+export interface IRequestQuery {
+  data: IRequest;
+}
