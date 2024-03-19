@@ -4,8 +4,7 @@ import {
   deleteDriver, deleteVehicle, getDriver, getDrivers, getVehicle, 
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle, getRequests,
-  updateRequest,createRequest,
-  getRequest
+  updateRequest,createRequest, getRequest, availableForRequest
 } from './requests';
 
 export const router = express.Router();
@@ -42,6 +41,12 @@ router.get('/driver/:id', (req, res: Response) => {
 
 router.get('/request/:id', (req, res: Response) => {
   getRequest(req.params.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/available-request/:id', (req, res: Response) => {
+  availableForRequest(req.params.id).then((data) => {
     res.json(data);
   });
 });

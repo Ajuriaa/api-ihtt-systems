@@ -1,6 +1,6 @@
 import { 
   IBrand, IDriver, IModel, IRequest,
-  IVehicle, IVehicleState, IVehicleType
+  IRequestState, IVehicle, IVehicleState, IVehicleType
 } from ".";
 
 export interface IDriversQuery {
@@ -40,6 +40,16 @@ export interface IRequestsQuery {
   data: IRequest[];
 }
 
+export interface IRequestStatusQuery {
+  data: IRequestState[];
+}
+
 export interface IRequestQuery {
   data: IRequest;
+}
+
+export interface IAvailableForRequestQuery {
+  vehicles: IVehicle[];
+  drivers: IDriver[];
+  states: IRequestState[];
 }
