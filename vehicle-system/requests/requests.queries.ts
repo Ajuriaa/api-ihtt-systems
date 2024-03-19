@@ -13,10 +13,11 @@ export async function getRequests(): Promise<IRequestsQuery> {
         TB_Pasajeros: true,
         TB_Conductores: true,
         TB_Estado_Solicitud: true,
-        TB_Vehiculos: true,
+        TB_Vehiculos: {include: { TB_Modelo: { include: { TB_Marca_Vehiculo: true }}}},
         TB_Tipo_Solicitudes: true,
         TB_Ciudad: true
-      }
+      },
+      orderBy: { Fecha: 'desc' }
     });
 
     const requestsWithEmployee = await Promise.all(requests.map(async (request) => {
