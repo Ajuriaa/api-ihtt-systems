@@ -1,7 +1,9 @@
 import { IRequestsQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
+import { PrismaClient as rrhhPrisma } from '../../prisma/client/rrhh';
 
 const prisma = new PrismaClient();
+const rrhh = new rrhhPrisma();
 
 export async function getRequests(): Promise<IRequestsQuery> {
   try {
@@ -16,7 +18,15 @@ export async function getRequests(): Promise<IRequestsQuery> {
         TB_Ciudad: true
       }
     });
-    return { data: requests };
+
+    const requestsWithEmployee = await Promise.all(requests.map(async (request) => {
+      const empleado = await rrhh.tB_Empleados.findUnique({
+        where: { ID_Empleado: request.ID_Empleado }
+      });
+      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos };
+    }));
+
+    return { data: requestsWithEmployee };
   } catch (error) {
     console.error('Error retrieving drivers info:', error);
     throw error;

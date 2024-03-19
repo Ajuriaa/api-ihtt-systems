@@ -46,6 +46,7 @@ export interface ICity {
 export interface IRequest {
   ID_Solicitud: number;
   ID_Empleado: number;
+  Nombre_Empleado?: string;
   Destino: string;
   Motivo: string;
   Fecha: Date;

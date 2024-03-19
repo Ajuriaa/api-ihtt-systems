@@ -3,7 +3,8 @@ import {
   createDriver, createVehicle, createVehicleBrands, createVehicleModels,
   deleteDriver, deleteVehicle, getDriver, getDrivers, getVehicle, 
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
-  getVehicles, updateDriver, updateVehicle, getRequests
+  getVehicles, updateDriver, updateVehicle, getRequests,
+  updateRequest,createRequest
 } from './requests';
 
 export const router = express.Router();
@@ -113,6 +114,18 @@ router.post('/create-driver', (req, res: Response) => {
 
 router.post('/update-driver', (req, res: Response) => {
   updateDriver(req.body.data).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/create-request', (req, res: Response) => {
+  createRequest(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/update-request', (req, res: Response) => {
+  updateRequest(req.body.data).then((data) => {
     res.json(data);
   });
 });
