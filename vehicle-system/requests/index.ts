@@ -5,3 +5,4 @@ export * from './driver.mutations';
 export * from './request.queries';
 export * from './request.mutations';
 export * from  './maintenance.queries';
+export * from './maintenance.mutations';

@@ -5,7 +5,8 @@ import {
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
-  getMaintenances
+  getMaintenances,
+  createMaintenance
 } from './requests';
 
 export const router = express.Router();
@@ -91,6 +92,12 @@ router.get('/vehicle-types', (req, res: Response) => {
 // Mutations
 router.post('/delete-vehicle', (req, res: Response) => {
   deleteVehicle(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/create-maintenance', (req, res: Response) => {
+  createMaintenance(req.body.id).then((data) => {
     res.json(data);
   });
 });
