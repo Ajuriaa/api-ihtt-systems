@@ -26,7 +26,6 @@ model TB_Vehiculos {
   KPG                       Float
   Imagen_URL                String             @db.NVarChar(Max)
   Anio                      Int
-  Kilometraje_Mantenimiento Int
   Color                     String             @db.NVarChar(50)
   ID_Modelo                 Int
   Sistema_Fecha             DateTime           @default(now(), map: "DF__TB_Vehicu__Siste__5165187F") @db.DateTime
@@ -34,9 +33,20 @@ model TB_Vehiculos {
   ID_Estado_Vehiculo        Int                @default(3, map: "DF__TB_Vehicu__ID_Es__6B24EA82")
   TB_Bitacoras              TB_Bitacoras[]
   TB_Solicitudes            TB_Solicitudes[]
+  TB_Mantenimientos         TB_Mantenimientos[]
   TB_Modelo                 TB_Modelo          @relation(fields: [ID_Modelo], references: [ID_Modelo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Vehicu__ID_Mo__5070F446")
   TB_Estado_Vehiculo        TB_Estado_Vehiculo @relation(fields: [ID_Estado_Vehiculo], references: [ID_Estado_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK_TB_Vehiculos_TB_Estado_Vehiculo")
   deleted_at      DateTime?                     @db.DateTime
+}
+
+model TB_Mantenimientos {
+  ID_Mantenimiento   Int           @id(map: "PK__TB_Mante__BD4C405AD6F91255") @default(autoincrement())
+  ID_Vehiculo        Int
+  Kilometraje        Int
+  Tipo_Mantenimiento String        @db.VarChar(20)
+  Fecha              DateTime      @db.Date
+  Vehiculo           TB_Vehiculos  @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Manten__ID_Ve__70DDC3D8")
+  deleted_at         DateTime?                     @db.DateTime
 }
 
 model TB_Modelo {

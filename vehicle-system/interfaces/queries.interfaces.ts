@@ -1,5 +1,5 @@
 import { 
-  IBrand, IDriver, IModel, IRequest,
+  IBrand, IDriver, IMaintenance, IModel, IRequest,
   IRequestState, IVehicle, IVehicleState, IVehicleType
 } from ".";
 
@@ -38,6 +38,10 @@ export interface IVehicleBrandsQuery {
 
 export interface IRequestsQuery {
   data: IRequest[];
+}
+
+export interface IMaintenanceQuery {
+  data: IMaintenance[];
 }
 
 export interface IRequestStatusQuery {

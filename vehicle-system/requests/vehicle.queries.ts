@@ -37,10 +37,14 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
 export async function getVehicles(): Promise<IVehiclesQuery> {
   try {
     const maintenance: [{id: number, kms: number}]= await prisma.$queryRaw`
-      SELECT TOP 1 ID_Vehiculo as id, Kilometraje - Kilometraje_Mantenimiento AS kms
-      FROM TB_Vehiculos
-      WHERE deleted_at IS NULL
-      ORDER BY kms ASC;
+      SELECT TOP 1 v.ID_Vehiculo AS id, 
+             (m.Kilometraje + 5000) - v.Kilometraje AS kms
+      FROM TB_Vehiculos v
+      JOIN TB_Mantenimientos m ON v.ID_Vehiculo = m.ID_Vehiculo
+      WHERE v.deleted_at IS NULL
+            AND m.Tipo_Mantenimiento = 'Preventivo'
+            AND m.Kilometraje <= v.Kilometraje
+      ORDER BY (m.Kilometraje + 5000) - v.Kilometraje ASC;
     `;
     const vehicles = await prisma.tB_Vehiculos.findMany({
       where: { deleted_at: null },

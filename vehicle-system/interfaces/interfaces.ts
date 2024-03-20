@@ -14,10 +14,17 @@ export interface IVehicle {
   KPG: number;
   Imagen_URL: string;
   Anio: number;
-  Kilometraje_Mantenimiento: number;
   Color: string;
   ID_Estado_Vehiculo: number;
   ID_Modelo: number;
+}
+
+export interface IMaintenance {
+  ID_Mantenimiento: number;
+  ID_Vehiculo: number;
+  Kilometraje: number;
+  Tipo_Mantenimiento: string;
+  Fecha: Date;
 }
 
 export interface IModel {
