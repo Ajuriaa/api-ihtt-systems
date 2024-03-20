@@ -49,6 +49,9 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
     const vehicles = await prisma.tB_Vehiculos.findMany({
       where: { deleted_at: null },
       include: { 
+        Mantenimientos: {
+          orderBy: { Fecha: 'desc' }
+        },
         Estado_Vehiculo: true,
         Modelo: { include: { 
           Marca_Vehiculo: true,
