@@ -10,12 +10,12 @@ export async function getRequests(): Promise<IRequestsQuery> {
     const requests = await prisma.tB_Solicitudes.findMany({
       where: { deleted_at: null },
       include: {
-        TB_Pasajeros: true,
-        TB_Conductores: true,
-        TB_Estado_Solicitud: true,
-        TB_Vehiculos: {include: { TB_Modelo: { include: { TB_Marca_Vehiculo: true }}}},
-        TB_Tipo_Solicitudes: true,
-        TB_Ciudad: true
+        Pasajeros: true,
+        Conductor: true,
+        Estado_Solicitud: true,
+        Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
+        Tipo_Solicitud: true,
+        Ciudad: true
       },
       orderBy: { Fecha: 'desc' }
     });
@@ -39,12 +39,12 @@ export async function getRequest(id: string): Promise<IRequestQuery> {
     const request = await prisma.tB_Solicitudes.findUniqueOrThrow({
       where: { ID_Solicitud: +id },
       include: {
-        TB_Pasajeros: true,
-        TB_Conductores: true,
-        TB_Estado_Solicitud: true,
-        TB_Vehiculos: {include: { TB_Modelo: { include: { TB_Marca_Vehiculo: true }}}},
-        TB_Tipo_Solicitudes: true,
-        TB_Ciudad: true
+        Pasajeros: true,
+        Conductor: true,
+        Estado_Solicitud: true,
+        Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
+        Tipo_Solicitud: true,
+        Ciudad: true
       }
     });
 
@@ -69,26 +69,26 @@ export async function availableForRequest(id: string): Promise<IAvailableForRequ
     const request = await prisma.tB_Solicitudes.findUniqueOrThrow({
       where: { ID_Solicitud: +id },
       include: {
-        TB_Conductores: true,
-        TB_Estado_Solicitud: true,
-        TB_Vehiculos: {include: { TB_Modelo: { include: { TB_Marca_Vehiculo: true }}}},
+        Conductor: true,
+        Estado_Solicitud: true,
+        Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
       }
     });
 
     let allVehicles = await prisma.tB_Vehiculos.findMany({
-      where: { deleted_at: null, TB_Estado_Vehiculo: { Estado_Vehiculo: 'Disponible'}},
+      where: { deleted_at: null, Estado_Vehiculo: { Estado_Vehiculo: 'Disponible'}},
     });
 
     let allDrivers = await prisma.tB_Conductores.findMany({
-      where: { deleted_at: null, TB_Solicitudes: { every: { TB_Estado_Solicitud:{ Estado: { not: 'Activo'}}}}}
+      where: { deleted_at: null, Solicitudes: { every: { Estado_Solicitud:{ Estado: { not: 'Activo'}}}}}
     });
 
-    if(request.TB_Conductores && !allDrivers.includes(request.TB_Conductores)) {
-      allDrivers.push(request.TB_Conductores);
+    if(request.Conductor && !allDrivers.includes(request.Conductor)) {
+      allDrivers.push(request.Conductor);
     }
 
-    if(request.TB_Vehiculos && !allVehicles.includes(request.TB_Vehiculos)) {
-      allVehicles.push(request.TB_Vehiculos);
+    if(request.Vehiculo && !allVehicles.includes(request.Vehiculo)) {
+      allVehicles.push(request.Vehiculo);
     }
 
     const allStates = await prisma.tB_Estado_Solicitudes.findMany();

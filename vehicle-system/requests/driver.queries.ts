@@ -8,10 +8,10 @@ export async function getDriver(id: string): Promise<IDriverQuery> {
     const driver = await prisma.tB_Conductores.findUniqueOrThrow({ 
       where: { ID_Conductor: +id },
       include: {
-        TB_Solicitudes: {
+        Solicitudes: {
           include: {
-            TB_Estado_Solicitud: true,
-            TB_Vehiculos: true
+            Estado_Solicitud: true,
+            Vehiculo: true
           }
         }
       }
@@ -19,8 +19,8 @@ export async function getDriver(id: string): Promise<IDriverQuery> {
 
     const driverInfo = {
       ...driver,
-      Solicitudes_Finalizadas: driver.TB_Solicitudes.filter(s => s.TB_Estado_Solicitud.Estado === 'Finalizada').length,
-      Disponible: driver.TB_Solicitudes.filter(s => s.TB_Estado_Solicitud.Estado === 'Activo').length === 0
+      Solicitudes_Finalizadas: driver.Solicitudes.filter(s => s.Estado_Solicitud.Estado === 'Finalizada').length,
+      Disponible: driver.Solicitudes.filter(s => s.Estado_Solicitud.Estado === 'Activo').length === 0
     }
     return { data: driverInfo };
   } catch (error) {
@@ -33,12 +33,12 @@ export async function getDrivers(): Promise<IDriversQuery> {
   try {
     const drivers = await prisma.tB_Conductores.findMany({
       where: { deleted_at: null },
-      include: { TB_Solicitudes: { select: { TB_Estado_Solicitud: { select: {Estado: true}}}}}
+      include: { Solicitudes: { select: { Estado_Solicitud: { select: {Estado: true}}}}}
     });
 
     const driverInfo = drivers.map(driver => ({
-      ...driver, Solicitudes_Finalizadas: driver.TB_Solicitudes.filter(s => s.TB_Estado_Solicitud.Estado === 'Finalizada').length,
-      Disponible: driver.TB_Solicitudes.filter(s => s.TB_Estado_Solicitud.Estado === 'Activo').length === 0
+      ...driver, Solicitudes_Finalizadas: driver.Solicitudes.filter(s => s.Estado_Solicitud.Estado === 'Finalizada').length,
+      Disponible: driver.Solicitudes.filter(s => s.Estado_Solicitud.Estado === 'Activo').length === 0
     }));
     return { data: driverInfo };
   } catch (error) {

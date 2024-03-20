@@ -11,17 +11,17 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
     const vehicle = await prisma.tB_Vehiculos.findUniqueOrThrow({ 
       where: { ID_Vehiculo: +id },
       include: {
-        TB_Estado_Vehiculo: true,
-        TB_Modelo: {
+        Estado_Vehiculo: true,
+        Modelo: {
           include: {
-            TB_Marca_Vehiculo: true,
-            TB_Tipo_Vehiculo: true
+            Marca_Vehiculo: true,
+            Tipo_Vehiculo: true
           }
         },
-        TB_Bitacoras: {
+        Bitacoras: {
           include: {
-            TB_Llenado_Combustible: {
-              include: { TB_Unidad_Combustible: true }
+            Llenados_Combustible: {
+              include: { Unidad_Combustible: true }
             }
           }
         }
@@ -49,10 +49,10 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
     const vehicles = await prisma.tB_Vehiculos.findMany({
       where: { deleted_at: null },
       include: { 
-        TB_Estado_Vehiculo: true,
-        TB_Modelo: { include: { 
-          TB_Marca_Vehiculo: true,
-          TB_Tipo_Vehiculo: true
+        Estado_Vehiculo: true,
+        Modelo: { include: { 
+          Marca_Vehiculo: true,
+          Tipo_Vehiculo: true
         }
       }}
     });
@@ -67,8 +67,8 @@ export async function getVehicleModels(): Promise<IVehicleModelsQuery> {
   try {
     const models = await prisma.tB_Modelo.findMany({
       include: {
-        TB_Marca_Vehiculo: true,
-        TB_Tipo_Vehiculo: true
+        Marca_Vehiculo: true,
+        Tipo_Vehiculo: true
       }
     });
     return { data: models };
