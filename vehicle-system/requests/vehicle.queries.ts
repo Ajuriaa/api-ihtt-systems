@@ -52,6 +52,9 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
         Mantenimientos: {
           orderBy: { Fecha: 'desc' }
         },
+        Bitacoras: {
+          orderBy: { Fecha: 'desc' }
+        },
         Estado_Vehiculo: true,
         Modelo: { include: { 
           Marca_Vehiculo: true,
