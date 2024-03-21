@@ -97,7 +97,7 @@ router.post('/delete-vehicle', (req, res: Response) => {
 });
 
 router.post('/create-maintenance', (req, res: Response) => {
-  createMaintenance(req.body.id).then((data) => {
+  createMaintenance(req.body).then((data) => {
     res.json(data);
   });
 });
