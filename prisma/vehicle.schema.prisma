@@ -119,6 +119,7 @@ model TB_Bitacoras {
   ID_Conductor               Int
   Kilometraje_Entrada        Int
   Kilometraje_Salida         Int
+  Destino                    String                   @db.NVarChar(100)
   Hora_Salida                DateTime                 @db.Time
   Hora_Entrada               DateTime                 @db.Time
   Fecha                      DateTime                 @db.Date
