@@ -124,6 +124,7 @@ model TB_Bitacoras {
   Hora_Entrada               DateTime                 @db.Time
   Fecha                      DateTime                 @db.Date
   Observaciones              String                   @db.NVarChar(Max)
+  Pasajeros                  String                   @db.VarChar(Max)
   Sistema_Fecha              DateTime                 @default(now(), map: "DF__TB_Bitaco__Siste__5CD6CB2B") @db.DateTime
   Sistema_Usuario            String?                  @db.NVarChar(25)
   Conductor                  TB_Conductores           @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK_TB_Bitacoras_TB_Conductores")

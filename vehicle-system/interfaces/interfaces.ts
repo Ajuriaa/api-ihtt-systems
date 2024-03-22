@@ -77,6 +77,7 @@ export interface ILog {
   Hora_Entrada: Date;
   Fecha: Date;
   Observaciones: string;
+  Pasajeros: string;
 }
 
 export interface IFuelRefill {
