@@ -1,5 +1,5 @@
 import { 
-  IBrand, IDriver, IMaintenance, IModel, IRequest,
+  IBrand, IDriver, ILog, IMaintenance, IModel, IRequest,
   IRequestState, IVehicle, IVehicleState, IVehicleType
 } from ".";
 
@@ -18,6 +18,10 @@ export interface IVehiclesQuery {
 
 export interface IVehicleQuery {
   data: IVehicle;
+}
+
+export interface IVehicleLogQuery {
+  data: ILog[];
 }
 
 export interface IVehicleModelsQuery {

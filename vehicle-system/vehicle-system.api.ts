@@ -5,8 +5,7 @@ import {
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
-  getMaintenances,
-  createMaintenance
+  getMaintenances, createMaintenance, getVehicleLogs
 } from './requests';
 
 export const router = express.Router();
@@ -85,6 +84,12 @@ router.get('/vehicle-statuses', (req, res: Response) => {
 
 router.get('/vehicle-types', (req, res: Response) => {
   getVehicleTypes().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/logs/:id', (req, res: Response) => {
+  getVehicleLogs(req.params.id).then((data) => {
     res.json(data);
   });
 });

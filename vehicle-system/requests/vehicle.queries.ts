@@ -22,7 +22,8 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
           include: {
             Llenados_Combustible: {
               include: { Unidad_Combustible: true }
-            }
+            },
+            Conductor: true
           }
         }
       }
@@ -53,6 +54,7 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
           orderBy: { Fecha: 'desc' }
         },
         Bitacoras: {
+          include: { Conductor: true },
           orderBy: { Fecha: 'desc' }
         },
         Estado_Vehiculo: true,

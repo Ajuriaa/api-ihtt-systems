@@ -66,10 +66,10 @@ export interface IRequest {
   ID_Conductor: number | null;
 }
 
-export interface ILogs {
+export interface ILog {
   ID_Bitacora: number;
-  ID_Solicitud: number | null;
   ID_Vehiculo: number;
+  ID_Conductor: number;
   Kilometraje_Entrada: number;
   Kilometraje_Salida: number;
   Hora_Salida: Date;

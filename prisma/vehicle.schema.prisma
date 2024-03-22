@@ -14,6 +14,7 @@ model TB_Conductores {
   Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Conduc__Siste__3D5E1FD2") @db.DateTime
   Sistema_Usuario String?          @db.NVarChar(25)
   Solicitudes     TB_Solicitudes[]
+  Bitacoras       TB_Bitacoras[]
   deleted_at      DateTime?        @db.DateTime
 }
 
@@ -104,7 +105,6 @@ model TB_Solicitudes {
   Sistema_Fecha       DateTime               @default(now(), map: "DF__TB_Solici__Siste__59063A47") @db.DateTime
   Sistema_Usuario     String?                @db.NVarChar(25)
   Pasajeros           TB_Pasajeros[]
-  Bitacoras           TB_Bitacoras[]
   Ciudad              TB_Ciudades            @relation(fields: [ID_Ciudad], references: [ID_Ciudad], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ci__5441852A")
   Conductor           TB_Conductores?        @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Co__5812160E")
   Estado_Solicitud    TB_Estado_Solicitudes  @relation(fields: [ID_Estado_Solicitud], references: [ID_Estado_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Es__5629CD9C")
@@ -115,8 +115,8 @@ model TB_Solicitudes {
 
 model TB_Bitacoras {
   ID_Bitacora                Int                      @id(map: "PK__TB_Bitac__1D88869D47DCAEC3") @default(autoincrement())
-  ID_Solicitud               Int?
   ID_Vehiculo                Int
+  ID_Conductor               Int
   Kilometraje_Entrada        Int
   Kilometraje_Salida         Int
   Hora_Salida                DateTime                 @db.Time
@@ -125,9 +125,9 @@ model TB_Bitacoras {
   Observaciones              String                   @db.NVarChar(Max)
   Sistema_Fecha              DateTime                 @default(now(), map: "DF__TB_Bitaco__Siste__5CD6CB2B") @db.DateTime
   Sistema_Usuario            String?                  @db.NVarChar(25)
-  Vehiculos                  TB_Vehiculos             @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Bitaco__ID_Ve__5BE2A6F2")
+  Conductor                  TB_Conductores           @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK_TB_Bitacoras_TB_Conductores")
+  Vehiculo                   TB_Vehiculos             @relation(fields: [ID_Vehiculo], references: [ID_Vehiculo], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Bitaco__ID_Ve__5BE2A6F2")
   Llenados_Combustible       TB_Llenado_Combustible[]
-  Solicitud                  TB_Solicitudes?          @relation(fields: [ID_Solicitud], references: [ID_Solicitud])
   deleted_at                 DateTime?                @db.DateTime
 }
 
