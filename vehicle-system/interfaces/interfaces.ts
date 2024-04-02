@@ -116,3 +116,10 @@ export interface IVehicleType {
   ID_Tipo_Vehiculo: number;
   Tipo_Vehiculo: string;
 }
+
+export interface IUser {
+  ID_Empleado: number;
+  Nombres: string;
+  Apellidos: string;
+  ID_Estado: number;
+}

@@ -5,7 +5,8 @@ import {
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
-  getMaintenances, createMaintenance, getVehicleLogs
+  getMaintenances, createMaintenance, getVehicleLogs,
+  getAllUsers
 } from './requests';
 
 export const router = express.Router();
@@ -18,6 +19,12 @@ router.use((req, res, next) => {
 // Queries
 router.get('/drivers', (req, res: Response) => {
   getDrivers().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/users', (req, res: Response) => {
+  getAllUsers().then((data) => {
     res.json(data);
   });
 });
