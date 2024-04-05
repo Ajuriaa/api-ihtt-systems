@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { PrismaClient as PrismaRRHHClient } from '../../prisma/client/rrhh';
-import { IUsersQuery, IVehicleLogQuery } from '../interfaces';
+import { IGasUnitsQuery, IUsersQuery, IVehicleLogQuery } from '../interfaces';
 
 const prisma = new PrismaClient();
 const rrhh_prisma = new PrismaRRHHClient();
@@ -26,6 +26,17 @@ export async function getAllUsers(): Promise<IUsersQuery> {
     return { data: users };
   } catch (error) {
     console.error('Error retrieving users info:', error);
+    throw error;
+  }
+}
+
+export async function getGasUnits(): Promise<IGasUnitsQuery> {
+  try {
+    const units = await prisma.tB_Unidad_Combustible.findMany();
+
+    return { data: units };
+  } catch (error) {
+    console.error('Error retrieving units info:', error);
     throw error;
   }
 }

@@ -6,7 +6,7 @@ import {
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
   getMaintenances, createMaintenance, getVehicleLogs,
-  getAllUsers
+  getAllUsers, getGasUnits
 } from './requests';
 
 export const router = express.Router();
@@ -19,6 +19,12 @@ router.use((req, res, next) => {
 // Queries
 router.get('/drivers', (req, res: Response) => {
   getDrivers().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/gas-units', (req, res: Response) => {
+  getGasUnits().then((data) => {
     res.json(data);
   });
 });

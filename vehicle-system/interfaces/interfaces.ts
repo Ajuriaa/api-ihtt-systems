@@ -5,6 +5,11 @@ export interface IDriver {
   Disponible?: boolean;
 }
 
+export interface IGasUnit {
+  ID_Unidad_Combustible: number;
+  Unidad: string;
+}
+
 export interface IVehicle {
   ID_Vehiculo: number;
   Placa: string;
