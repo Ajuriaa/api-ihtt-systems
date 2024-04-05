@@ -1,4 +1,4 @@
-import { IAvailableForRequestQuery, IRequestQuery, IRequestsQuery } from '../interfaces';
+import { IAvailableForRequestQuery, IRequestQuery, IRequestsQuery, IRequestTypesQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { PrismaClient as rrhhPrisma } from '../../prisma/client/rrhh';
 
@@ -10,7 +10,6 @@ export async function getRequests(): Promise<IRequestsQuery> {
     const requests = await prisma.tB_Solicitudes.findMany({
       where: { deleted_at: null },
       include: {
-        Pasajeros: true,
         Conductor: true,
         Estado_Solicitud: true,
         Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
@@ -39,7 +38,6 @@ export async function getRequest(id: string): Promise<IRequestQuery> {
     const request = await prisma.tB_Solicitudes.findUniqueOrThrow({
       where: { ID_Solicitud: +id },
       include: {
-        Pasajeros: true,
         Conductor: true,
         Estado_Solicitud: true,
         Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
@@ -58,6 +56,17 @@ export async function getRequest(id: string): Promise<IRequestQuery> {
     };
 
     return { data: requestWithEmployee };
+  } catch (error) {
+    console.error('Error retrieving request info:', error);
+    throw error;
+  }
+}
+
+export async function getRequestTypes(): Promise<IRequestTypesQuery> {
+  try {
+    const types = await prisma.tB_Tipo_Solicitudes.findMany();
+
+    return { data: types };
   } catch (error) {
     console.error('Error retrieving request info:', error);
     throw error;

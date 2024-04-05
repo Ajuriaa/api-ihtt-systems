@@ -1,6 +1,6 @@
 import { 
-  IBrand, IDriver, IGasUnit, ILog, IMaintenance, IModel, IRequest,
-  IRequestState, IUser, IVehicle, IVehicleState, IVehicleType
+  IBrand, ICity, IDriver, IGasUnit, ILog, IMaintenance, IModel, IRequest,
+  IRequestState, IRequestType, IUser, IVehicle, IVehicleState, IVehicleType
 } from ".";
 
 export interface IDriversQuery {
@@ -52,6 +52,10 @@ export interface IRequestsQuery {
   data: IRequest[];
 }
 
+export interface IRequestTypesQuery {
+  data: IRequestType[];
+}
+
 export interface IMaintenanceQuery {
   data: IMaintenance[];
 }
@@ -68,4 +72,8 @@ export interface IAvailableForRequestQuery {
   vehicles: IVehicle[];
   drivers: IDriver[];
   states: IRequestState[];
+}
+
+export interface ICitiesQuery {
+  data: ICity[];
 }

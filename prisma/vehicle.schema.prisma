@@ -93,6 +93,7 @@ model TB_Solicitudes {
   ID_Solicitud        Int                    @id(map: "PK__TB_Solic__ED71123AB0654863") @default(autoincrement())
   ID_Empleado         Int
   Destino             String                 @db.NVarChar(100)
+  Pasajeros           String                 @db.NVarChar(Max)
   Motivo              String                 @db.NVarChar(100)
   Fecha               DateTime               @db.Date
   Hora_Salida         DateTime               @db.Time
@@ -104,7 +105,6 @@ model TB_Solicitudes {
   ID_Conductor        Int?
   Sistema_Fecha       DateTime               @default(now(), map: "DF__TB_Solici__Siste__59063A47") @db.DateTime
   Sistema_Usuario     String?                @db.NVarChar(25)
-  Pasajeros           TB_Pasajeros[]
   Ciudad              TB_Ciudades            @relation(fields: [ID_Ciudad], references: [ID_Ciudad], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ci__5441852A")
   Conductor           TB_Conductores?        @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Co__5812160E")
   Estado_Solicitud    TB_Estado_Solicitudes  @relation(fields: [ID_Estado_Solicitud], references: [ID_Estado_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Es__5629CD9C")
@@ -165,16 +165,6 @@ model TB_Estado_Solicitudes {
   Sistema_Usuario     String?          @db.NVarChar(25)
   Solicitudes         TB_Solicitudes[]
   deleted_at          DateTime?        @db.DateTime
-}
-
-model TB_Pasajeros {
-  ID_Pasajero     Int            @id(map: "PK__TB_Pasaj__A3E2FDAC4DF043BA") @default(autoincrement())
-  ID_Solicitud    Int
-  ID_Empleado     Int
-  Sistema_Fecha   DateTime       @default(now(), map: "DF__TB_Pasaje__Siste__656C112C") @db.DateTime
-  Sistema_Usuario String?        @db.NVarChar(25)
-  Solicitud       TB_Solicitudes @relation(fields: [ID_Solicitud], references: [ID_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Pasaje__ID_So__6477ECF3")
-  deleted_at      DateTime?      @db.DateTime
 }
 
 model TB_Tipo_Solicitudes {

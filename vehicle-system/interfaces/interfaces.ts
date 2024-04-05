@@ -65,6 +65,7 @@ export interface IRequest {
   Hora_Salida: Date;
   Hora_Regreso: Date;
   ID_Ciudad: number;
+  Pasajeros: string;
   ID_Vehiculo: number | null;
   ID_Estado_Solicitud: number;
   ID_Tipo_Solicitud: number;

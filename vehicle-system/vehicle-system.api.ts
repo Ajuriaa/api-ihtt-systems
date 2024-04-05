@@ -6,7 +6,9 @@ import {
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
   getMaintenances, createMaintenance, getVehicleLogs,
-  getAllUsers, getGasUnits
+  getAllUsers, getGasUnits,
+  getRequestTypes,
+  getCities
 } from './requests';
 
 export const router = express.Router();
@@ -25,6 +27,18 @@ router.get('/drivers', (req, res: Response) => {
 
 router.get('/gas-units', (req, res: Response) => {
   getGasUnits().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/request-types', (req, res: Response) => {
+  getRequestTypes().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/cities', (req, res: Response) => {
+  getCities().then((data) => {
     res.json(data);
   });
 });
