@@ -3,11 +3,24 @@ import { IRequest } from '../interfaces';
 
 const prisma = new PrismaClient();
 
-export async function createRequest(data: IRequest ) {
-  const { ID_Solicitud, ...createData } = data;
+export async function createRequest(data: any ) {
+  const requestState = await prisma.tB_Estado_Solicitudes.findUniqueOrThrow({ where: { ID_Estado_Solicitud: 1 }});
+
   try {
     const new_request = await prisma.tB_Solicitudes.create({
-      data: createData
+      data: {
+        ID_Empleado: data.ID_Empleado,
+        Destino: data.Destino,
+        Motivo: data.Motivo,
+        Fecha: data.Fecha,
+        Hora_Regreso: data.Hora_Regreso,
+        Hora_Salida: data.Hora_Salida,
+        ID_Ciudad: data.Ciudad.ID_Ciudad,
+        ID_Estado_Solicitud: requestState.ID_Estado_Solicitud,
+        ID_Tipo_Solicitud: data.Tipo_Solicitud.ID_Tipo_Solicitud,
+        Sistema_Usuario: data.Sistema_Usuario,
+        Pasajeros: data.Pasajeros
+      }
     });
 
     if(new_request) {
