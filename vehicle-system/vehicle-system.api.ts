@@ -8,7 +8,8 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits,
   getRequestTypes,
-  getCities
+  getCities,
+  createLogs
 } from './requests';
 
 export const router = express.Router();
@@ -178,6 +179,12 @@ router.post('/update-driver', (req, res: Response) => {
 
 router.post('/create-request', (req, res: Response) => {
   createRequest(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/create-logs', (req, res: Response) => {
+  createLogs(req.body).then((data) => {
     res.json(data);
   });
 });

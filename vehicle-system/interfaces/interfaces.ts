@@ -76,7 +76,7 @@ export interface ILog {
   ID_Bitacora: number;
   ID_Vehiculo: number;
   ID_Conductor: number;
-  Destino: String;
+  Destino: string;
   Kilometraje_Entrada: number;
   Kilometraje_Salida: number;
   Hora_Salida: Date;
@@ -84,6 +84,7 @@ export interface ILog {
   Fecha: Date;
   Observaciones: string;
   Pasajeros: string;
+  Llenados_Combustible?: IFuelRefill[];
 }
 
 export interface IFuelRefill {
