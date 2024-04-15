@@ -71,7 +71,7 @@ export interface IRequestQuery {
 export interface IAvailableForRequestQuery {
   vehicles: IVehicle[];
   drivers: IDriver[];
-  states: IRequestState[];
+  employees: IUser[];
 }
 
 export interface ICitiesQuery {

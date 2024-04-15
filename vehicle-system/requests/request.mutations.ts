@@ -34,16 +34,12 @@ export async function createRequest(data: any ) {
   }
 }
 
-export async function updateRequest(data: IRequest) {
-  const { ID_Solicitud, ...updateData } = data;
+export async function updateRequest(data: any) {
+  const { ID_Solicitud, pastVehicle, ...updateData } = data;
   try {
     const updated_request = await prisma.tB_Solicitudes.update({
       where: { ID_Solicitud: data.ID_Solicitud },
       data: updateData
-    });
-
-    const requestState = await prisma.tB_Estado_Solicitudes.findUniqueOrThrow({
-      where: { ID_Estado_Solicitud: data.ID_Estado_Solicitud }
     });
 
     const usedVehicleState = await prisma.tB_Estado_Vehiculo.findFirst({
@@ -54,14 +50,14 @@ export async function updateRequest(data: IRequest) {
       where: { Estado_Vehiculo:  'Disponible' }
     });
 
-    if(requestState.Estado === 'Activo') {
+    const vehicle = await prisma.tB_Vehiculos.update({
+      where: { ID_Vehiculo: data.ID_Vehiculo },
+      data: { ID_Estado_Vehiculo: usedVehicleState?.ID_Estado_Vehiculo }
+    });
+
+    if(pastVehicle) {
       await prisma.tB_Vehiculos.update({
-        where: { ID_Vehiculo: data.ID_Vehiculo || 0},
-        data: { ID_Estado_Vehiculo: usedVehicleState?.ID_Estado_Vehiculo }
-      });
-    } else {
-      await prisma.tB_Vehiculos.update({
-        where: { ID_Vehiculo: data.ID_Vehiculo || 0},
+        where: { ID_Vehiculo: pastVehicle },
         data: { ID_Estado_Vehiculo: availableVehicleState?.ID_Estado_Vehiculo }
       });
     }
