@@ -74,6 +74,10 @@ export interface IAvailableForRequestQuery {
   employees: IUser[];
 }
 
+export interface IRequestStatusQuery {
+  data: IRequestState[];
+}
+
 export interface ICitiesQuery {
   data: ICity[];
 }

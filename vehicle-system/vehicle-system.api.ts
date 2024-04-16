@@ -6,10 +6,9 @@ import {
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
   getMaintenances, createMaintenance, getVehicleLogs,
-  getAllUsers, getGasUnits,
-  getRequestTypes,
-  getCities,
-  createLogs
+  getAllUsers, getGasUnits, getRequestTypes,
+  getCities, createLogs, getResquestStatus,
+  cancelRequest
 } from './requests';
 
 export const router = express.Router();
@@ -116,6 +115,12 @@ router.get('/vehicle-types', (req, res: Response) => {
   });
 });
 
+router.get('/request-status', (req, res: Response) => {
+  getResquestStatus().then((data) => {
+    res.json(data);
+  });
+});
+
 router.get('/logs/:id', (req, res: Response) => {
   getVehicleLogs(req.params.id).then((data) => {
     res.json(data);
@@ -125,6 +130,12 @@ router.get('/logs/:id', (req, res: Response) => {
 // Mutations
 router.post('/delete-vehicle', (req, res: Response) => {
   deleteVehicle(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/cancel-request', (req, res: Response) => {
+  cancelRequest(req.body.id).then((data) => {
     res.json(data);
   });
 });

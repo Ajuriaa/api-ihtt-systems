@@ -3,8 +3,34 @@ import { IRequest } from '../interfaces';
 
 const prisma = new PrismaClient();
 
+export async function cancelRequest(id: string) {
+  const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Cancelada' }});
+  if(!requestState) {
+    throw new Error('Request state not found');
+  }
+
+  try {
+    const updated_request = await prisma.tB_Solicitudes.update({
+      where: { ID_Solicitud: +id },
+      data: { ID_Estado_Solicitud: requestState.ID_Estado_Solicitud }
+    });
+
+    if(updated_request) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error cancelling request:', error);
+    throw error;
+  }
+}
+
 export async function createRequest(data: any ) {
-  const requestState = await prisma.tB_Estado_Solicitudes.findUniqueOrThrow({ where: { ID_Estado_Solicitud: 1 }});
+  const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Pendiente por jefe' }});
+  if(!requestState) {
+    throw new Error('Request state not found');
+  }
 
   try {
     const new_request = await prisma.tB_Solicitudes.create({
@@ -49,20 +75,24 @@ export async function updateRequest(data: any) {
     const availableVehicleState = await prisma.tB_Estado_Vehiculo.findFirst({
       where: { Estado_Vehiculo:  'Disponible' }
     });
-
-    const vehicle = await prisma.tB_Vehiculos.update({
-      where: { ID_Vehiculo: data.ID_Vehiculo },
-      data: { ID_Estado_Vehiculo: usedVehicleState?.ID_Estado_Vehiculo }
-    });
+    
+    if(!usedVehicleState || !availableVehicleState) {
+      throw new Error('Vehicle state not found');
+    }
 
     if(pastVehicle) {
       await prisma.tB_Vehiculos.update({
         where: { ID_Vehiculo: pastVehicle },
-        data: { ID_Estado_Vehiculo: availableVehicleState?.ID_Estado_Vehiculo }
+        data: { ID_Estado_Vehiculo: availableVehicleState.ID_Estado_Vehiculo }
       });
     }
 
-    if(updated_request) {
+    const vehicle = await prisma.tB_Vehiculos.update({
+      where: { ID_Vehiculo: data.ID_Vehiculo },
+      data: { ID_Estado_Vehiculo: usedVehicleState.ID_Estado_Vehiculo }
+    });
+
+    if(updated_request && vehicle) {
       return true;
     }
 

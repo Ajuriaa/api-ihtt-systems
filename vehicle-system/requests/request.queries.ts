@@ -1,4 +1,4 @@
-import { IAvailableForRequestQuery, IRequestQuery, IRequestsQuery, IRequestTypesQuery } from '../interfaces';
+import { IAvailableForRequestQuery, IRequestQuery, IRequestsQuery, IRequestStatusQuery, IRequestTypesQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { PrismaClient as rrhhPrisma } from '../../prisma/client/rrhh';
 
@@ -134,6 +134,17 @@ export async function availableForRequest(id: string): Promise<IAvailableForRequ
     return { vehicles: allVehicles, drivers: allDrivers, employees: users };
   } catch (error) {
     console.error('Error retrieving request info:', error);
+    throw error;
+  }
+}
+
+export async function getResquestStatus(): Promise<IRequestStatusQuery> {
+  try {
+    const status = await prisma.tB_Estado_Solicitudes.findMany();
+
+    return { data: status };
+  } catch (error) {
+    console.error('Error retrieving request status info:', error);
     throw error;
   }
 }
