@@ -8,7 +8,8 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
-  cancelRequest
+  cancelRequest,
+  test
 } from './requests';
 
 export const router = express.Router();
@@ -16,6 +17,12 @@ export const router = express.Router();
 router.use((req, res, next) => {
   console.log('vehicle system middleware');
   next();
+});
+
+router.get('/test', (req, res: Response) => {
+  test().then((data) => {
+    res.json(data);
+  });
 });
 
 // Queries
