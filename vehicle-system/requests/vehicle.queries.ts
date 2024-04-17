@@ -39,13 +39,15 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
   try {
     const maintenance: [{id: number, kms: number}]= await prisma.$queryRaw`
       SELECT TOP 1 v.ID_Vehiculo AS id, 
-             (m.Kilometraje + 5000) - v.Kilometraje AS kms
+        (m.Kilometraje + 5000) - v.Kilometraje AS kms
       FROM TB_Vehiculos v
       JOIN TB_Mantenimientos m ON v.ID_Vehiculo = m.ID_Vehiculo
       WHERE v.deleted_at IS NULL
-            AND m.Tipo_Mantenimiento = 'Preventivo'
-            AND m.Kilometraje = (SELECT MAX(Kilometraje) FROM TB_Mantenimientos 
-                                  WHERE ID_Vehiculo = v.ID_Vehiculo AND Fecha <= GETDATE())
+        AND m.Tipo_Mantenimiento = 'Preventivo'
+        AND m.Kilometraje = (
+          SELECT MAX(Kilometraje) FROM TB_Mantenimientos 
+          WHERE ID_Vehiculo = v.ID_Vehiculo AND Fecha <= GETDATE()
+        )
       ORDER BY (m.Kilometraje + 5000) - v.Kilometraje ASC;
     `;
     const vehicles = await prisma.tB_Vehiculos.findMany({
