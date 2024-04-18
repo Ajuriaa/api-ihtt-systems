@@ -85,6 +85,7 @@ model TB_Ciudades {
   Kms             Int
   Sistema_Fecha   DateTime         @default(now(), map: "DF__TB_Ciudad__Siste__4316F928") @db.DateTime
   Sistema_Usuario String?          @db.NVarChar(25)
+  Coordenadas     String           @db.NVarChar(Max)
   Solicitudes     TB_Solicitudes[]
   deleted_at      DateTime?        @db.DateTime
 }

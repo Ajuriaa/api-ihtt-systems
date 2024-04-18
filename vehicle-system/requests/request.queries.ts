@@ -50,9 +50,16 @@ export async function getRequest(id: string): Promise<IRequestQuery> {
       where: { ID_Empleado: request.ID_Empleado }
     });
 
+    const passengers = await rrhh.tB_Empleados.findMany({
+      where: { ID_Empleado: { in: request.Pasajeros.split(',').map(Number) }}
+    });
+
+    const passengerNames = passengers.map((passenger) => passenger.Nombres + ' ' + passenger.Apellidos).join(', ');
+
     const requestWithEmployee = {
       ...request,
-      Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos
+      Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos,
+      Nombres_Pasajeros: passengerNames
     };
 
     return { data: requestWithEmployee };
