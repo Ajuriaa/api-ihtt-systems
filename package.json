@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "npx prisma generate --schema prisma/vehicle.schema.prisma && npx prisma generate --schema prisma/rrhh.schema.prisma",
-    "lint": "npx eslint .",
-    "dev": "nodemon api.ts"
+    "generate": "bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma",
+    "lint": "bunx eslint .",
+    "dev": "nodemon api.ts",
+    "start": "nodemon --watch package.json --exec 'npm run i && npm run start -- --host 0.0.0.0'"
   },
   "keywords": [],
   "author": "",

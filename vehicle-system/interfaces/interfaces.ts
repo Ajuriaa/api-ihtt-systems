@@ -77,6 +77,7 @@ export interface ILog {
   ID_Bitacora: number;
   ID_Vehiculo: number;
   ID_Conductor: number;
+  ID_Ciudad: number | null;
   Destino: string;
   Kilometraje_Entrada: number;
   Kilometraje_Salida: number;
