@@ -1,4 +1,4 @@
-import { ICitiesQuery, IDriverQuery, IDriversQuery } from '../interfaces';
+import { ICitiesQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
 
 const prisma = new PrismaClient();

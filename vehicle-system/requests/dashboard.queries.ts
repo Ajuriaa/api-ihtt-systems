@@ -1,10 +1,11 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
+import { IDashboardQuery } from '../interfaces';
 
 const prisma = new PrismaClient();
 
-export async function test(): Promise<any> {
+export async function test(): Promise<IDashboardQuery[]> {
   const fechaInicioMesActual = new Date();
-  fechaInicioMesActual.setDate(1); // Establecer la fecha al primer día del mes actual
+  fechaInicioMesActual.setDate(1);
 
   const vehiculos = await prisma.tB_Vehiculos.findMany({
     select: {
@@ -29,7 +30,6 @@ export async function test(): Promise<any> {
     },
   });
 
-  // Calcular los kilómetros recorridos para cada vehículo
   const vehiculosConKilometraje = vehiculos.map(vehiculo => {
     let KilometrosRecorridos = 0;
     vehiculo.Bitacoras.forEach(bitacora => {
@@ -41,7 +41,6 @@ export async function test(): Promise<any> {
     };
   });
 
-  // Ordenar los vehículos por kilómetros recorridos y obtener los tres primeros
   const top3Vehiculos = vehiculosConKilometraje.sort((a, b) => b.KilometrosRecorridos - a.KilometrosRecorridos).slice(0, 3);
 
   return top3Vehiculos;

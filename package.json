@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate": "bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma",
-    "lint": "bunx eslint .",
+    "lint": "bunx eslint . --fix",
     "dev": "nodemon api.ts",
     "start": "nodemon --watch package.json --exec 'npm run i && npm run start -- --host 0.0.0.0'"
   },

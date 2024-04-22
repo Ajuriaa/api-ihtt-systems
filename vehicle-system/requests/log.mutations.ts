@@ -20,7 +20,7 @@ interface Data {
 const prisma = new PrismaClient();
 
 export async function createLogs(data: Data) {
-  let refills = data.refills;
+  const refills = data.refills;
   const logs = data.logs;
   const vehicleId = data.logs[0].ID_Vehiculo;
   const fuels: IFuelRefill[] = [];

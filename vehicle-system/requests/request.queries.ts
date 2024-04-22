@@ -106,7 +106,7 @@ export async function availableForRequest(id: string): Promise<IAvailableForRequ
       }
     });
 
-    let allVehicles = await prisma.tB_Vehiculos.findMany({
+    const allVehicles = await prisma.tB_Vehiculos.findMany({
       where: { deleted_at: null, Estado_Vehiculo: { Estado_Vehiculo: 'Disponible'}},
       include: { 
         Mantenimientos: {
@@ -124,7 +124,7 @@ export async function availableForRequest(id: string): Promise<IAvailableForRequ
       }}
     });
 
-    let allDrivers = await prisma.tB_Conductores.findMany({
+    const allDrivers = await prisma.tB_Conductores.findMany({
       where: { deleted_at: null, Solicitudes: { every: { Estado_Solicitud:{ Estado: { not: 'Activo'}}}}}
     });
 
