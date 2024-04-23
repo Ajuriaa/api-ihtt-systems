@@ -8,9 +8,9 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
-  cancelRequest,
-  test
+  cancelRequest, test, uploadFile
 } from './requests';
+import { upload } from '../services';
 
 export const router = express.Router();
 
@@ -179,6 +179,13 @@ router.post('/create-vehicle-brand', (req, res: Response) => {
 
 router.post('/delete-driver', (req, res: Response) => {
   deleteDriver(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/upload', upload.single('file'), (req, res: Response) => {
+  if(!req.file) return res.status(400).json({ message: 'No file uploaded' });
+  uploadFile(req.file.filename, req.body.type).then((data) => {
     res.json(data);
   });
 });
