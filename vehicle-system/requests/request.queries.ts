@@ -33,6 +33,34 @@ export async function getRequests(): Promise<IRequestsQuery> {
   }
 }
 
+export async function getVehicleRequests(vehicleId: string): Promise<IRequestsQuery> {
+  try {
+    const requests = await prisma.tB_Solicitudes.findMany({
+      where: { deleted_at: null, ID_Vehiculo: +vehicleId },
+      include: {
+        Conductor: true,
+        Estado_Solicitud: true,
+        Vehiculo: {include: { Modelo: { include: { Marca_Vehiculo: true }}}},
+        Tipo_Solicitud: true,
+        Ciudad: true
+      },
+      orderBy: { Fecha: 'desc' }
+    });
+
+    const requestsWithEmployee = await Promise.all(requests.map(async (request) => {
+      const empleado = await rrhh.tB_Empleados.findUnique({
+        where: { ID_Empleado: request.ID_Empleado }
+      });
+      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos };
+    }));
+
+    return { data: requestsWithEmployee };
+  } catch (error) {
+    console.error('Error retrieving requests info:', error);
+    throw error;
+  }
+}
+
 export async function getRequest(id: string): Promise<IRequestQuery> {
   try {
     const request = await prisma.tB_Solicitudes.findUniqueOrThrow({

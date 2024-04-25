@@ -8,7 +8,8 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
-  cancelRequest, test, uploadFile
+  cancelRequest, test, uploadFile,
+  getVehicleRequests
 } from './requests';
 import { upload } from '../services';
 
@@ -64,6 +65,12 @@ router.get('/maintenances', (req, res: Response) => {
 
 router.get('/requests', (req, res: Response) => {
   getRequests().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/requests/:id', (req, res: Response) => {
+  getVehicleRequests(req.params.id).then((data) => {
     res.json(data);
   });
 });
