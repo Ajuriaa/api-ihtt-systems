@@ -11,6 +11,7 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
     const vehicle = await prisma.tB_Vehiculos.findUniqueOrThrow({ 
       where: { ID_Vehiculo: +id },
       include: {
+        Solicitudes: { include: { Ciudad: true }, orderBy: { Fecha: 'desc' } },
         Estado_Vehiculo: true,
         Modelo: {
           include: {
