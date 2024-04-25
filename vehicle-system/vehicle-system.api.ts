@@ -9,7 +9,7 @@ import {
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
   cancelRequest, test, uploadFile,
-  getVehicleRequests
+  getVehicleRequests, getVehicleInfo
 } from './requests';
 import { upload } from '../services';
 
@@ -101,6 +101,12 @@ router.get('/available-request/:id', (req, res: Response) => {
 
 router.get('/vehicle/:id', (req, res: Response) => {
   getVehicle(req.params.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/vehicle-info/:id', (req, res: Response) => {
+  getVehicleInfo(req.params.id).then((data) => {
     res.json(data);
   });
 });

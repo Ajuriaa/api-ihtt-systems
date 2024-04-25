@@ -40,6 +40,20 @@ export interface IVehicleBrandsQuery {
   data: IBrand[];
 }
 
+export interface IVehicleInfo {
+  kms: number;
+  gas: number;
+  cost: number;
+  kpg: number;
+  cpk: number;
+}
+
+export interface IVehicleInfoQuery {
+  current: IVehicleInfo;
+  last: IVehicleInfo;
+  maintenance: { date: string, kms: number };
+}
+
 export interface IUsersQuery {
   data: IUser[];
 }
