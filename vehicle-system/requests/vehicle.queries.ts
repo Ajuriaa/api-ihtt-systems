@@ -125,12 +125,12 @@ export async function getVehicleInfo(vehicleId: string): Promise<IVehicleInfoQue
     const maintenance: any = await prisma.$queryRaw`
     DECLARE @VehicleId INT = ${vehicleId};
     SELECT
-      (SELECT MAX(Fecha) FROM TB_Mantenimientos WHERE ID_Vehiculo = @VehicleId AND Tipo_Mantenimiento = 'Preventivo') AS maintenanceDate,
+      (SELECT MAX(Fecha) FROM TB_Mantenimientos WHERE ID_Vehiculo = @VehicleId AND Tipo_Mantenimiento = 'Preventivo') AS date,
       (SELECT TOP 1 (m.Kilometraje + 5000) - v.Kilometraje
       FROM TB_Mantenimientos m
       JOIN TB_Vehiculos v ON m.ID_Vehiculo = v.ID_Vehiculo
       WHERE m.ID_Vehiculo = @VehicleId AND m.Tipo_Mantenimiento = 'Preventivo' AND m.Kilometraje + 5000 > v.Kilometraje 
-      ORDER BY m.Fecha DESC) AS maintenanceKm
+      ORDER BY m.Fecha DESC) AS km
     `;
 
     const last: any= await prisma.$queryRaw`
