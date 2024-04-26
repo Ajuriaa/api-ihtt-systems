@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
-import { IBrand, IModel, IVehicle } from '../interfaces/interfaces';
+import { IModel, IVehicle } from '../interfaces/interfaces';
 
 const prisma = new PrismaClient();
 
@@ -59,9 +59,10 @@ export async function updateVehicle(data: IVehicle) {
 }
 
 export async function createVehicleModels(data: IModel) {
+  const { ID_Modelo, ...createData } = data;
   try {
     const updated_vehicle = await prisma.tB_Modelo.create({
-      data: data
+      data: createData
     });
 
     if(updated_vehicle) {
@@ -75,10 +76,10 @@ export async function createVehicleModels(data: IModel) {
   }
 }
 
-export async function createVehicleBrands(data: IBrand) {
+export async function createVehicleBrands(data: string) {
   try {
     const updated_vehicle = await prisma.tB_Marca_Vehiculo.create({
-      data: data
+      data: { Marca: data }
     });
 
     if(updated_vehicle) {
