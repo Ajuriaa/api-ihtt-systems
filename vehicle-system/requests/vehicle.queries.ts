@@ -123,6 +123,21 @@ export async function getVehicleBrands(): Promise<IVehicleBrandsQuery> {
 
 export async function getVehicleInfo(vehicleId: string): Promise<IVehicleInfoQuery> {
   try {
+    const kmsHistory: { month: string, kms: number }[] = await prisma.$queryRaw`
+    DECLARE @VehicleId INT = ${vehicleId};
+    WITH Meses AS (
+    SELECT TOP 5 DATEADD(MONTH, -ROW_NUMBER() OVER (ORDER BY (SELECT NULL)), DATEADD(DAY, 1, EOMONTH(GETDATE()))) AS month
+    FROM sys.objects
+    )
+    SELECT
+      FORMAT(M.month, 'MMMM') AS month,
+      COALESCE(SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida), 0) AS kms
+    FROM Meses M
+    LEFT JOIN TB_Bitacoras b ON MONTH(b.Fecha) = MONTH(M.month) AND YEAR(b.Fecha) = YEAR(M.month) AND b.ID_Vehiculo = @VehicleId
+    GROUP BY M.month
+    ORDER BY M.month;
+    `;
+
     const maintenance: any = await prisma.$queryRaw`
     DECLARE @VehicleId INT = ${vehicleId};
     SELECT
@@ -176,32 +191,42 @@ export async function getVehicleInfo(vehicleId: string): Promise<IVehicleInfoQue
     const current: any= await prisma.$queryRaw`
     DECLARE @VehicleId INT = ${vehicleId};
     SELECT
+    COALESCE(
       CASE 
         WHEN SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida) <= 0 THEN 0 
         ELSE SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida) 
-      END AS kms,
-      ROUND(SUM(CASE WHEN uc.Unidad = 'Litro' THEN lc.Cantidad * 0.264172 ELSE lc.Cantidad END), 2) AS gas,
-      ROUND(SUM(lc.Precio), 2) AS cost,
+      END, 0) AS kms,
+    COALESCE(
+      ROUND(SUM(CASE WHEN uc.Unidad = 'Litro' THEN lc.Cantidad * 0.264172 ELSE lc.Cantidad END), 2), 0) AS gas,
+    COALESCE(
+      ROUND(SUM(lc.Precio), 2), 0) AS cost,
+    COALESCE(
       CASE 
         WHEN SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida) <= 0 THEN 0 
         ELSE ROUND(SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida) / 
           SUM(CASE WHEN uc.Unidad = 'Litro' THEN lc.Cantidad * 0.264172 ELSE lc.Cantidad END), 2) 
-      END AS kpg,
+      END, 0) AS kpg,
+    COALESCE(
       CASE 
         WHEN SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida) <= 0 THEN 0 
         ELSE ROUND(SUM(lc.Precio) / SUM(b.Kilometraje_Entrada - b.Kilometraje_Salida), 2) 
-      END AS cpk
+      END, 0) AS cpk
     FROM TB_Bitacoras b
-    JOIN TB_Vehiculos v ON b.ID_Vehiculo = v.ID_Vehiculo
-    JOIN TB_Llenado_Combustible lc ON b.ID_Bitacora = lc.ID_Bitacora
-    JOIN TB_Unidad_Combustible uc ON lc.ID_Unidad_Combustible  = uc.ID_Unidad_Combustible 
+    LEFT JOIN TB_Vehiculos v ON b.ID_Vehiculo = v.ID_Vehiculo
+    LEFT JOIN TB_Llenado_Combustible lc ON b.ID_Bitacora = lc.ID_Bitacora
+    LEFT JOIN TB_Unidad_Combustible uc ON lc.ID_Unidad_Combustible  = uc.ID_Unidad_Combustible 
     WHERE b.ID_Vehiculo = @VehicleId
       AND b.Fecha >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)
       AND b.Fecha < DATEADD(day, DATEDIFF(day, 0, GETDATE()) + 1, 0)
-      AND lc.Fecha >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)
-      AND lc.Fecha < DATEADD(day, DATEDIFF(day, 0, GETDATE()) + 1, 0)
+      AND (lc.Fecha >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) OR lc.Fecha IS NULL)
+      AND (lc.Fecha < DATEADD(day, DATEDIFF(day, 0, GETDATE()) + 1, 0) OR lc.Fecha IS NULL);
     `;
-    return { maintenance: maintenance[0], current: current[0], last: last[0] };
+
+    const kms = kmsHistory.map(h => h.kms);
+    const months = kmsHistory.map(h => h.month);
+    const history: { months: string[], kms: number[] } = { months, kms };
+    
+    return { maintenance: maintenance[0], current: current[0], last: last[0], history };
   } catch (error) {
     console.error('Error retrieving vehicle info:', error);
     throw error;

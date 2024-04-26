@@ -52,6 +52,7 @@ export interface IVehicleInfoQuery {
   current: IVehicleInfo;
   last: IVehicleInfo;
   maintenance: { date: string, kms: number };
+  history: { months: string[], kms: number[] };
 }
 
 export interface IUsersQuery {
