@@ -1,9 +1,30 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
-import { IRequest } from '../interfaces';
-
 const prisma = new PrismaClient();
 
-export async function cancelRequest(id: string) {
+export async function finishRequest(id: string): Promise<boolean> {
+  const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Finalizada' }});
+  if(!requestState) {
+    throw new Error('Request state not found');
+  }
+
+  try {
+    const updated_request = await prisma.tB_Solicitudes.update({
+      where: { ID_Solicitud: +id },
+      data: { ID_Estado_Solicitud: requestState.ID_Estado_Solicitud }
+    });
+
+    if(updated_request) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error finishing request:', error);
+    throw error;
+  }
+}
+
+export async function cancelRequest(id: string): Promise<boolean> {
   const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Cancelada' }});
   if(!requestState) {
     throw new Error('Request state not found');

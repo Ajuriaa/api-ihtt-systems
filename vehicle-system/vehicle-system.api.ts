@@ -9,7 +9,7 @@ import {
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
   cancelRequest, test, uploadFile,
-  getVehicleRequests, getVehicleInfo
+  getVehicleRequests, getVehicleInfo, finishRequest
 } from './requests';
 import { upload } from '../services';
 
@@ -156,6 +156,12 @@ router.post('/delete-vehicle', (req, res: Response) => {
 
 router.post('/cancel-request', (req, res: Response) => {
   cancelRequest(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/finish-request', (req, res: Response) => {
+  finishRequest(req.body.id).then((data) => {
     res.json(data);
   });
 });
