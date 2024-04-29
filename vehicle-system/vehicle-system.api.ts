@@ -184,14 +184,14 @@ router.post('/update-vehicle', (req, res: Response) => {
   });
 });
 
-router.post('/create-vehicle-model', (req, res: Response) => {
+router.post('/create-model', (req, res: Response) => {
   createVehicleModels(req.body).then((data) => {
     res.json(data);
   });
 });
 
-router.post('/create-vehicle-brand', (req, res: Response) => {
-  createVehicleBrands(req.body).then((data) => {
+router.post('/create-brand', (req, res: Response) => {
+  createVehicleBrands(req.body.brand).then((data) => {
     res.json(data);
   });
 });
