@@ -96,8 +96,3 @@ export interface IRequestStatusQuery {
 export interface ICitiesQuery {
   data: ICity[];
 }
-
-export interface IDashboardQuery {
-  vehiculo: Partial<IVehicle>;
-  KilometrosRecorridos: number;
-}

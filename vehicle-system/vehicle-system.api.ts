@@ -8,8 +8,9 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
-  cancelRequest, test, uploadFile,
-  getVehicleRequests, getVehicleInfo, finishRequest
+  cancelRequest, uploadFile, getVehicleRequests,
+  getVehicleInfo, finishRequest,
+  dashboardQuery
 } from './requests';
 import { upload } from '../services';
 
@@ -20,15 +21,15 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get('/test', (req, res: Response) => {
-  test().then((data) => {
+// Queries
+router.get('/drivers', (req, res: Response) => {
+  getDrivers().then((data) => {
     res.json(data);
   });
 });
 
-// Queries
-router.get('/drivers', (req, res: Response) => {
-  getDrivers().then((data) => {
+router.get('/dashboard', (req, res: Response) => {
+  dashboardQuery().then((data) => {
     res.json(data);
   });
 });
