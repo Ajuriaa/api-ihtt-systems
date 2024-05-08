@@ -25,7 +25,8 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
             Llenados_Combustible: {
               include: { Unidad_Combustible: true }
             },
-            Conductor: true
+            Conductor: true,
+            Ciudad: true
           }
         }
       }
