@@ -123,3 +123,26 @@ export async function updateRequest(data: any) {
     throw error;
   }
 }
+
+export async function acceptRequest(id: string): Promise<boolean> {
+  const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Pendiente por admin' }});
+  if(!requestState) {
+    throw new Error('Request state not found');
+  }
+
+  try {
+    const updated_request = await prisma.tB_Solicitudes.update({
+      where: { ID_Solicitud: +id },
+      data: { ID_Estado_Solicitud: requestState.ID_Estado_Solicitud }
+    });
+
+    if(updated_request) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error accepting request:', error);
+    throw error;
+  }
+}
