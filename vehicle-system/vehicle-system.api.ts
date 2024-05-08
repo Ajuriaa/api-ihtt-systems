@@ -8,9 +8,8 @@ import {
   getMaintenances, createMaintenance, getVehicleLogs,
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
-  cancelRequest, uploadFile, getVehicleRequests,
-  getVehicleInfo, finishRequest,
-  dashboardQuery
+  cancelRequest, getVehicleRequests, getVehicleInfo,
+  finishRequest, dashboardQuery
 } from './requests';
 import { upload } from '../services';
 
@@ -203,11 +202,8 @@ router.post('/delete-driver', (req, res: Response) => {
   });
 });
 
-router.post('/upload', upload.single('file'), (req, res: Response) => {
-  if(!req.file) return res.status(400).json({ message: 'No file uploaded' });
-  uploadFile(req.file.filename, req.body.type).then((data) => {
-    res.json(data);
-  });
+router.post('/upload', upload.single('file'), (req, res) => {
+  res.json(true);
 });
 
 router.post('/create-driver', (req, res: Response) => {
