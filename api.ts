@@ -10,7 +10,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
-app.use('/api', vehicleSystemRouter);
+app.use('/api/vehicle-system', vehicleSystemRouter);
 app.use(express.json());
 
 const httpsOptions = {
