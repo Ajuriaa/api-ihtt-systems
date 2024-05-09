@@ -15,7 +15,7 @@ This system is related to the [Vehicle System](https://github.com/Ajuriaa/vehicl
 
 ## Development server
 
-Run `bun run dev` for a dev server. Navigate to `http://localhost:300/api/`. The application will automatically reload if you change any of the source files.
+Run `bun run dev` for a dev server. Navigate to `http://localhost:5700/api/`. The application will automatically reload if you change any of the source files.
 
 ## Running linter
 
