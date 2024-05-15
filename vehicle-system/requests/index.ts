@@ -10,3 +10,4 @@ export * from './log.queries';
 export * from './log.mutations';
 export * from './cities.queries';
 export * from './dashboard.queries';
+export * from './satt.queries';

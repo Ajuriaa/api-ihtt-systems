@@ -9,7 +9,8 @@ import {
   getAllUsers, getGasUnits, getRequestTypes,
   getCities, createLogs, getResquestStatus,
   cancelRequest, getVehicleRequests, getVehicleInfo,
-  finishRequest, dashboardQuery, acceptRequest
+  finishRequest, dashboardQuery, acceptRequest,
+  getRequestByBoss
 } from './requests';
 import { upload } from '../services';
 
@@ -23,6 +24,12 @@ router.use((req, res, next) => {
 // Queries
 router.get('/drivers', (req, res: Response) => {
   getDrivers().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/request-list/:id', (req, res: Response) => {
+  getRequestByBoss(req.params.id).then((data) => {
     res.json(data);
   });
 });
