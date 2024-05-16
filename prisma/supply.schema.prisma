@@ -1,0 +1,107 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./client/supply"
+  binaryTargets = ["native", "rhel-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("SUPPLY_DATABASE_URL")
+}
+
+model Entry {
+  id             Int             @id(map: "PK__TB_Entra__F1CA629DF41CADBC") @map("ID_Entrada")
+  supplier_id    Int?                                                       @map("ID_Proveedor")
+  date           DateTime?       @db.Date                                   @map("Fecha")
+  supplier       Supplier?       @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
+  products_entry ProductEntry[]
+
+  @@map("TB_Entradas")
+}
+
+model State {
+  id           Int                @id(map: "PK__TB_Estad__9CF49395F21AB298") @map("ID_Estado")
+  state        String?            @db.VarChar(100)                           @map("Estado")
+  requisitions Requisition[]
+
+  @@map("TB_Estados")
+}
+
+model Group {
+  id           Int            @id(map: "PK__TB_Grupo__886D5DEE11E69508") @map("ID_Grupo")
+  name         String?        @db.VarChar(100)                           @map("Nombre")
+  description  String?        @db.Text                                   @map("Descripcion")
+  products     Product[]
+
+  @@map("TB_Grupos")
+}
+
+model Product {
+  id                   Int                   @id(map: "PK__TB_Produ__9B4120E250B01A8B") @map("ID_Producto")
+  name                 String?               @db.VarChar(100) @map("Nombre")
+  group_id             Int?                                                             @map("ID_Grupo")
+  due                  DateTime?             @db.Date @map("Vencimiento")
+  price                Decimal?              @db.Decimal(10, 2) @map("Precio")
+  unit                 String?               @db.VarChar(50) @map("Unidad")
+  quantity             Int?                                                             @map("Cantidad")
+  group                Group?                @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
+  product_entries      ProductEntry[]
+  product_requisitions ProductRequisition[]
+  outputs              Output[]
+
+  @@map("TB_Productos")
+}
+
+model ProductEntry {
+  id          Int      @id(map: "PK__TB_Produ__B51C951B179FAEBF") @map("ID_Producto_Entrada")
+  product_id  Int?                                                @map("ID_Producto")
+  entry_id    Int?                                                @map("ID_Entrada")
+  quantity    Int?                                                @map("Cantidad")
+  entry       Entry?   @relation(fields: [entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__078C1F06")
+  product     Product? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0697FACD")
+  
+  @@map("TB_Productos_Entrada")
+}
+
+model ProductRequisition {
+  id              Int          @id(map: "PK__TB_Produ__AE98D6173C9D0F3E") @map("ID_Producto_Requisicion")
+  product_id      Int?                                                    @map("ID_Producto")
+  requisition_id  Int?                                                    @map("ID_Requisicion")
+  product         Product?     @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0A688BB1")
+  requisition     Requisition? @relation(fields: [requisition_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Re__0B5CAFEA")
+  
+  @@map("TB_Productos_Requisicion")
+}
+
+model Supplier {
+  id       Int           @id(map: "PK__TB_Prove__7D65272FD6DCC9A8") @map("ID_Proveedor")
+  name     String?       @db.VarChar(100)                           @map("Nombre")
+  entries  Entry[]
+
+  @@map("TB_Proveedores")
+}
+
+model Requisition {
+  id                   Int                   @id(map: "PK__TB_Requi__02EDAEB4A2F9FF3F") @map("ID_Requisicion")
+  employee_id          Int?                                                             @map("ID_Empleado")
+  department           String?               @db.VarChar(100)                           @map("Departamento")
+  state_id            Int?                                                             @map("ID_Estado")
+  products_requisition ProductRequisition[]
+  state                State?                @relation(fields: [state_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Requis__ID_Es__7C1A6C5A")
+  outputs              Output[]
+
+  @@map("TB_Requisiciones")
+}
+
+model Output {
+  id              Int          @id(map: "PK__TB_Salid__2ECAEE390DD8A4C9") @map("ID_Salida")
+  product_id      Int?                                                    @map("ID_Producto")
+  observation     String?      @db.Text @map("Observacion")
+  quantity        Int?                                                    @map("Cantidad")
+  requisition_id  Int?                                                    @map("ID_Requisicion")
+  reason          String?      @db.VarChar(20) @map("razon")
+  product         Product?     @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
+  requisition     Requisition? @relation(fields: [requisition_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
+
+  @@map("TB_Salidas")
+}

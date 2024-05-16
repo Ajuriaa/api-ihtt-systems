@@ -1,5 +1,6 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
+import { test } from './queries/test.queries';
 
 export const router = express.Router();
 
@@ -10,5 +11,7 @@ router.use((req, res, next) => {
 
 // Initial commit
 router.get('/test', (req, res: Response) => {
-  res.json('This is the Supply System API');
+  test().then((data) => {
+    res.json(data);
+  });
 });
