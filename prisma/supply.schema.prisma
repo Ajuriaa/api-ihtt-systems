@@ -41,7 +41,6 @@ model Product {
   id                  Int                  @id(map: "PK__TB_Produ__9B4120E2141A4341") @default(autoincrement()) @map("ID_Producto")
   name                String               @map("Nombre") @db.VarChar(100)
   groupId             Int                  @map("ID_Grupo")
-  price               Decimal              @map("Precio") @db.Decimal(10, 2)
   unit                String               @map("Unidad") @db.VarChar(50)
   imageUrl            String?              @map("Url_Imagen") @db.VarChar(255)
   batch               ProductBatch[]
@@ -114,6 +113,7 @@ model ProductBatch {
   productId Int      @map("ID_Producto")
   due       DateTime @map("Vencimiento") @db.Date
   quantity  Int      @map("Cantidad")
+  price     Decimal  @map("Precio") @db.Decimal(10, 2)
   product   Product  @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Lotes___ID_Pr__373B3228")
 
   @@map("TB_Lotes_Productos")
