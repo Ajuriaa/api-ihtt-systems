@@ -11,11 +11,11 @@ datasource db {
 
 model Entry {
   id             Int            @id(map: "PK__TB_Entra__F1CA629D5400E4AD") @default(autoincrement()) @map("ID_Entrada")
-  supplier_id    Int            @map("ID_Proveedor")
+  supplierId    Int            @map("ID_Proveedor")
   date           DateTime       @map("Fecha") @db.Date
-  invoice_url    String?        @map("Url_Factura") @db.VarChar(255)
-  supplier       Supplier       @relation(fields: [supplier_id], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
-  products_entry ProductEntry[]
+  invoiceUrl    String?        @map("Url_Factura") @db.VarChar(255)
+  supplier       Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
+  productsEntry ProductEntry[]
 
   @@map("TB_Entradas")
 }
@@ -40,14 +40,14 @@ model Group {
 model Product {
   id                   Int                  @id(map: "PK__TB_Produ__9B4120E2141A4341") @default(autoincrement()) @map("ID_Producto")
   name                 String               @map("Nombre") @db.VarChar(100)
-  group_id             Int                  @map("ID_Grupo")
+  groupId             Int                  @map("ID_Grupo")
   price                Decimal              @map("Precio") @db.Decimal(10, 2)
   unit                 String               @map("Unidad") @db.VarChar(50)
-  image_url           String?               @map("Url_Imagen") @db.VarChar(255)
-  batch   ProductBatch[]
-  group                Group                @relation(fields: [group_id], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
-  product_entries      ProductEntry[]
-  product_requisitions ProductRequisition[]
+  imageUrl            String?              @map("Url_Imagen") @db.VarChar(255)
+  batch                ProductBatch[]
+  group                Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
+  productEntries      ProductEntry[]
+  productRequisitions ProductRequisition[]
   outputs              Output[]
 
   @@map("TB_Productos")
@@ -55,22 +55,22 @@ model Product {
 
 model ProductEntry {
   id         Int     @id(map: "PK__TB_Produ__B51C951B0C6D1D9F") @default(autoincrement()) @map("ID_Producto_Entrada")
-  product_id Int     @map("ID_Producto")
-  entry_id   Int     @map("ID_Entrada")
+  productId Int     @map("ID_Producto")
+  entryId   Int     @map("ID_Entrada")
   quantity   Int     @map("Cantidad")
-  entry      Entry   @relation(fields: [entry_id], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_En__078C1F06")
-  product    Product @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0697FACD")
+  entry      Entry   @relation(fields: [entryId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_En__078C1F06")
+  product    Product @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0697FACD")
 
   @@map("TB_Productos_Entrada")
 }
 
 model ProductRequisition {
   id             Int         @id(map: "PK__TB_Produ__AE98D61718340486") @default(autoincrement()) @map("ID_Producto_Requisicion")
-  product_id     Int         @map("ID_Producto")
-  requisition_id Int         @map("ID_Requisicion")
+  productId     Int         @map("ID_Producto")
+  requisitionId Int         @map("ID_Requisicion")
   quantity       Int         @map("Cantidad")
-  product        Product     @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0A688BB1")
-  requisition    Requisition @relation(fields: [requisition_id], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Re__0B5CAFEA")
+  product        Product     @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0A688BB1")
+  requisition    Requisition @relation(fields: [requisitionId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Re__0B5CAFEA")
 
   @@map("TB_Productos_Requisicion")
 }
@@ -85,12 +85,12 @@ model Supplier {
 
 model Requisition {
   id                   Int                  @id(map: "PK__TB_Requi__02EDAEB45F003963") @default(autoincrement()) @map("ID_Requisicion")
-  employee_id          Int                  @map("ID_Empleado")
+  employeeId          Int                  @map("ID_Empleado")
   department           String               @map("Departamento") @db.VarChar(100)
-  state_id             Int                  @map("ID_Estado")
-  documentUrl        String?                @map("Url_Documento") @db.VarChar(255)
-  products_requisition ProductRequisition[]
-  state                State                @relation(fields: [state_id], references: [id], onUpdate: NoAction, map: "FK__TB_Requis__ID_Es__7C1A6C5A")
+  stateId             Int                  @map("ID_Estado")
+  documentUrl          String?              @map("Url_Documento") @db.VarChar(255)
+  productsRequisition ProductRequisition[]
+  state                State                @relation(fields: [stateId], references: [id], onUpdate: NoAction, map: "FK__TB_Requis__ID_Es__7C1A6C5A")
   outputs              Output[]
 
   @@map("TB_Requisiciones")
@@ -98,21 +98,23 @@ model Requisition {
 
 model Output {
   id             Int          @id(map: "PK__TB_Salid__2ECAEE39581A4223") @default(autoincrement()) @map("ID_Salida")
-  product_id     Int          @map("ID_Producto")
+  productId     Int          @map("ID_Producto")
   observation    String?      @map("Observacion") @db.VarChar(255)
   quantity       Int          @map("Cantidad")
-  requisition_id Int?         @map("ID_Requisicion")
+  requisitionId Int?         @map("ID_Requisicion")
   motive         String?      @map("Razon") @db.VarChar(50)
-  product        Product      @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
-  requisition    Requisition? @relation(fields: [requisition_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
+  product        Product      @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
+  requisition    Requisition? @relation(fields: [requisitionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
 
   @@map("TB_Salidas")
 }
 
 model ProductBatch {
-  id      Int      @id(map: "PK__TB_Lotes__914CB9C70CDAEB2D") @default(autoincrement()) @map("ID_Lote")
-  product_id  Int     @map("ID_Producto")
-  due  DateTime @db.Date @map("Vencimiento")
-  quantity     Int    @map("Cantidad")
-  product Product  @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "FK__TB_Lotes___ID_Pr__373B3228")
+  id         Int      @id(map: "PK__TB_Lotes__914CB9C70CDAEB2D") @default(autoincrement()) @map("ID_Lote")
+  productId Int      @map("ID_Producto")
+  due        DateTime @map("Vencimiento") @db.Date
+  quantity   Int      @map("Cantidad")
+  product    Product  @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Lotes___ID_Pr__373B3228")
+
+  @@map("TB_Lotes_Productos")
 }
