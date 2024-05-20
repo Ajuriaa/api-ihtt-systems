@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function test(): Promise<IProductsQuery> {
   try {
-    const product = await prisma.product.findMany();
+    const product = await prisma.product.findMany({include: {group: true}});
     return { data: product };
   } catch (error) {
     console.error('Error retrieving products info:', error);

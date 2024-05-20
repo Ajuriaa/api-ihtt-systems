@@ -10,14 +10,14 @@ datasource db {
 }
 
 model Entry {
-  id            Int            @id(map: "PK__TB_Entra__F1CA629D5400E4AD") @default(autoincrement()) @map("ID_Entrada")
-  supplierId    Int            @map("ID_Proveedor")
-  date          DateTime       @map("Fecha") @db.Date
-  invoiceUrl    String?        @map("Url_Factura") @db.VarChar(255)
-  systemUser    String?        @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate    DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
-  supplier      Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
-  productsEntry ProductEntry[]
+  id         Int            @id(map: "PK__TB_Entra__F1CA629D5400E4AD") @default(autoincrement()) @map("ID_Entrada")
+  supplierId Int            @map("ID_Proveedor")
+  date       DateTime       @map("Fecha") @db.Date
+  invoiceUrl String?        @map("Url_Factura") @db.VarChar(255)
+  systemUser String?        @map("Sistema_Usuario") @db.VarChar(100)
+  systemDate DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  supplier   Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
+  batches    ProductBatch[]
 
   @@map("TB_Entradas")
 }
@@ -53,24 +53,10 @@ model Product {
   systemDate          DateTime?            @default(now(), map: "DF_TB_Productos_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
   batches             ProductBatch[]
   group               Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
-  productEntries      ProductEntry[]
   productRequisitions ProductRequisition[]
   outputs             Output[]
 
   @@map("TB_Productos")
-}
-
-model ProductEntry {
-  id         Int       @id(map: "PK__TB_Produ__B51C951B0C6D1D9F") @default(autoincrement()) @map("ID_Producto_Entrada")
-  productId  Int       @map("ID_Producto")
-  entryId    Int       @map("ID_Entrada")
-  quantity   Int       @map("Cantidad")
-  systemUser String?   @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate DateTime? @default(now(), map: "DF_TB_Productos_Entrada_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
-  entry      Entry     @relation(fields: [entryId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_En__078C1F06")
-  product    Product   @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0697FACD")
-
-  @@map("TB_Productos_Entrada")
 }
 
 model ProductRequisition {
@@ -134,7 +120,9 @@ model ProductBatch {
   price      Decimal   @map("Precio") @db.Decimal(10, 2)
   systemUser String?   @map("Sistema_Usuario") @db.VarChar(100)
   systemDate DateTime? @default(now(), map: "DF_TB_Lotes_Productos_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  entryId    Int?      @map("ID_Entrada")
   product    Product   @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Lotes___ID_Pr__373B3228")
+  entry      Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_Lotes_Productos_Entradas")
 
   @@map("TB_Lotes_Productos")
 }
