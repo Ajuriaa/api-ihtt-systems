@@ -1,6 +1,6 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
-import { test } from './queries/test.queries';
+import { getProduct, getProducts } from './queries';
 
 export const router = express.Router();
 
@@ -9,9 +9,15 @@ router.use((req, res, next) => {
   next();
 });
 
-// Initial commit
-router.get('/test', (req, res: Response) => {
-  test().then((data) => {
+// Queries
+router.get('/products', async (req, res) => {
+  getProducts().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/product/:id', async (req, res) => {
+  getProduct(req.params.id).then((data) => {
     res.json(data);
   });
 });

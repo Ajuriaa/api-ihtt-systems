@@ -1,4 +1,4 @@
-import { IEntry, IGroup, IOutput, IProduct, IProductBatch, IProductEntry, IProductRequisition, IRequisition, IState, ISupplier } from ".";
+import { IEntry, IGroup, IOutput, IProduct, IBatch, IProductRequisition, IRequisition, IState, ISupplier } from ".";
 
 export interface IEntriesQuery {
   data: Partial<IEntry>[];
@@ -30,14 +30,6 @@ export interface IProductsQuery {
 
 export interface IProductQuery {
   data: Partial<IProduct>;
-}
-
-export interface IProductEntriesQuery {
-  data: Partial<IProductEntry>[];
-}
-
-export interface IProductEntryQuery {
-  data: Partial<IProductEntry>;
 }
 
 export interface IProductRequisitionsQuery {
@@ -72,10 +64,10 @@ export interface IOutputQuery {
   data: Partial<IOutput>;
 }
 
-export interface IProductBatchesQuery {
-  data: Partial<IProductBatch>[];
+export interface IBatchesQuery {
+  data: Partial<IBatch>[];
 }
 
-export interface IProductBatchQuery {
-  data: Partial<IProductBatch>;
+export interface IBatchQuery {
+  data: Partial<IBatch>;
 }

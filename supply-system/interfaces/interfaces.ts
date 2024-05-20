@@ -24,13 +24,6 @@ export interface IProduct {
   imageUrl?: string | null;
 }
 
-export interface IProductEntry {
-  id: number;
-  productId: number;
-  entryId: number;
-  quantity: number;
-}
-
 export interface IProductRequisition {
   id: number;
   productId: number;
@@ -60,9 +53,10 @@ export interface IOutput {
   motive: string | null;
 }
 
-export interface IProductBatch {
+export interface IBatch {
   id: number;
   productId: number;
+  entryId: number;
   due: Date;
   quantity: number;
   price: number;
