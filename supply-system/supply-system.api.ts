@@ -1,6 +1,6 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
-import { getProduct, getProducts } from './queries';
+import { getProduct, getProducts, getSupplier, getSuppliers } from './queries';
 
 export const router = express.Router();
 
@@ -18,6 +18,18 @@ router.get('/products', async (req, res) => {
 
 router.get('/product/:id', async (req, res) => {
   getProduct(req.params.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/suppliers', async (req, res) => {
+  getSuppliers().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/supplier/:id', async (req, res) => {
+  getSupplier(req.params.id).then((data) => {
     res.json(data);
   });
 });
