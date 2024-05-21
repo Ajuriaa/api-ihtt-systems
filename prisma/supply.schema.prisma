@@ -79,6 +79,10 @@ model Supplier {
   name       String    @map("Nombre") @db.VarChar(100)
   systemUser String?   @map("Sistema_Usuario") @db.VarChar(100)
   systemDate DateTime? @default(now(), map: "DF_TB_Proveedores_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  phone      String?   @map("Telefono") @db.VarChar(100)
+  email      String?   @map("Correo") @db.VarChar(100)
+  address    String?   @map("Direccion") @db.VarChar(200)
+  rtn        String?   @map("RTN") @db.VarChar(100)
   entries    Entry[]
 
   @@map("TB_Proveedores")
