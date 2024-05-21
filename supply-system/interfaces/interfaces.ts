@@ -41,7 +41,7 @@ export interface IRequisition {
   employeeId: number;
   department: string;
   stateId: number;
-  documentUrl: string;
+  documentUrl?: string | null;
 }
 
 export interface IOutput {

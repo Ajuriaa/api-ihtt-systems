@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function getSuppliers(): Promise<ISuppliersQuery> {
   try {
-    const product = await prisma.supplier.findMany({
+    const data = await prisma.supplier.findMany({
       include: {
         entries: { 
           include: { productsEntry: true, batches: true },
@@ -13,7 +13,7 @@ export async function getSuppliers(): Promise<ISuppliersQuery> {
         }
       }
     });
-    return { data: product };
+    return { data };
   } catch (error: any) {
     console.error('Error retrieving suppliers info:', error);
     throw error;
@@ -22,7 +22,7 @@ export async function getSuppliers(): Promise<ISuppliersQuery> {
 
 export async function getSupplier(id: string): Promise<ISupplierQuery> {
   try {
-    const product = await prisma.supplier.findFirstOrThrow({
+    const data = await prisma.supplier.findFirstOrThrow({
       where: { id: +id },
       include: {
         entries: { 
@@ -31,7 +31,7 @@ export async function getSupplier(id: string): Promise<ISupplierQuery> {
         }
       }
     });
-    return { data: product };
+    return { data };
   } catch (error: any) {
     console.error('Error retrieving supplier info:', error);
     throw error.message;

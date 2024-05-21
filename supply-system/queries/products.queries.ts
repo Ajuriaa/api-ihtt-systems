@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function getProducts(): Promise<IProductsQuery> {
   try {
-    const product = await prisma.product.findMany({
+    const data = await prisma.product.findMany({
       include: {
         batches: true,
         group: true,
@@ -13,7 +13,7 @@ export async function getProducts(): Promise<IProductsQuery> {
         outputs: true
       }
     });
-    return { data: product };
+    return { data };
   } catch (error: any) {
     console.error('Error retrieving products info:', error);
     throw error;
@@ -22,7 +22,7 @@ export async function getProducts(): Promise<IProductsQuery> {
 
 export async function getProduct(id: string): Promise<IProductQuery> {
   try {
-    const product = await prisma.product.findFirstOrThrow({
+    const data = await prisma.product.findFirstOrThrow({
       where: { id: +id },
       include: {
         batches: { orderBy: { due: 'desc' } },
@@ -31,9 +31,9 @@ export async function getProduct(id: string): Promise<IProductQuery> {
         outputs: true
       }
     });
-    return { data: product };
+    return { data };
   } catch (error: any) {
-    console.error('Error retrieving products info:', error);
+    console.error('Error retrieving product info:', error);
     throw error.message;
   }
 }

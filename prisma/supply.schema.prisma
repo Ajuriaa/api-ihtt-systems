@@ -87,7 +87,6 @@ model Supplier {
 model Requisition {
   id                  Int                  @id(map: "PK__TB_Requi__02EDAEB45F003963") @default(autoincrement()) @map("ID_Requisicion")
   employeeId          Int                  @map("ID_Empleado")
-  department          String               @map("Departamento") @db.VarChar(100)
   stateId             Int                  @map("ID_Estado")
   documentUrl         String?              @map("Url_Documento") @db.VarChar(255)
   systemUser          String?              @map("Sistema_Usuario") @db.VarChar(100)
