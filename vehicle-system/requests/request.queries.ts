@@ -23,7 +23,14 @@ export async function getRequests(): Promise<IRequestsQuery> {
       const empleado = await rrhh.tB_Empleados.findUnique({
         where: { ID_Empleado: request.ID_Empleado }
       });
-      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos };
+
+      const Departamento: any = await rrhh.$queryRaw`
+        SELECT A.DESC_Area
+        FROM TB_Empleado_Area_Cargo EAC
+        JOIN TB_Areas A ON EAC.id_area = A.id_area
+        WHERE EAC.id_empleado = 1321;
+      `
+      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos, Departamento: Departamento[0].DESC_Area };
     }));
 
     return { data: requestsWithEmployee };
@@ -51,7 +58,13 @@ export async function getVehicleRequests(vehicleId: string): Promise<IRequestsQu
       const empleado = await rrhh.tB_Empleados.findUnique({
         where: { ID_Empleado: request.ID_Empleado }
       });
-      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos };
+      const Departamento: any = await rrhh.$queryRaw`
+        SELECT A.DESC_Area
+        FROM TB_Empleado_Area_Cargo EAC
+        JOIN TB_Areas A ON EAC.id_area = A.id_area
+        WHERE EAC.id_empleado = 1321;
+      `
+      return { ...request, Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos, Departamento: Departamento[0].DESC_Area };
     }));
 
     return { data: requestsWithEmployee };
@@ -83,11 +96,18 @@ export async function getRequest(id: string): Promise<IRequestQuery> {
     });
 
     const passengerNames = passengers.map((passenger) => passenger.Nombres + ' ' + passenger.Apellidos).join(', ');
+    const Departamento: any = await rrhh.$queryRaw`
+      SELECT A.DESC_Area
+      FROM TB_Empleado_Area_Cargo EAC
+      JOIN TB_Areas A ON EAC.id_area = A.id_area
+      WHERE EAC.id_empleado = 1321;
+    `
 
     const requestWithEmployee = {
       ...request,
       Nombre_Empleado: empleado?.Nombres + ' ' + empleado?.Apellidos,
-      Nombres_Pasajeros: passengerNames
+      Nombres_Pasajeros: passengerNames,
+      Departamento: Departamento[0].DESC_Area
     };
 
     return { data: requestWithEmployee };
