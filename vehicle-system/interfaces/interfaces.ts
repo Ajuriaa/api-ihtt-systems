@@ -97,6 +97,8 @@ export interface IFuelRefill {
   Estacion_Combustible: string;
   Kilometraje_Recarga: number;
   Fecha: Date;
+  Numero_Factura: number;
+  Numero_Orden: number;
   Precio: number;
   ID_Unidad_Combustible: number;
 }

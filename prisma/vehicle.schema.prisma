@@ -147,6 +147,8 @@ model TB_Llenado_Combustible {
   Fecha                  DateTime              @db.Date
   Precio                 Float
   ID_Unidad_Combustible  Int
+  Numero_Orden           Int
+  Numero_Factura         Int
   Sistema_Fecha          DateTime              @default(now(), map: "DF__TB_Llenad__Siste__619B8048") @db.DateTime
   Sistema_Usuario        String?               @db.NVarChar(25)
   Bitacora               TB_Bitacoras          @relation(fields: [ID_Bitacora], references: [ID_Bitacora], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Llenad__ID_Bi__5FB337D6")
