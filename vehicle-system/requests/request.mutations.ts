@@ -83,11 +83,18 @@ export async function createRequest(data: any ) {
         employee: employee?.Nombres + ' ' + employee?.Apellidos,
         destination: data.Destino + ', ' + data.Ciudad.Nombre,
         purpose: data.Motivo,
-        departureDate: moment.utc(data.Fecha).format('DD/MM/YYYY HH:mm A'),
+        departureDate: moment.utc(data.Fecha).format('DD/MM/YYYY'),
         requestId: new_request.ID_Solicitud.toString()
       }
 
-      sendMail('aajuria@transporte.gob.hn', requestInfo)
+      const boss: any = await prisma.$queryRaw`
+        SELECT tc.Email
+        FROM v_listado_empleados vle
+        INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
+        WHERE vle.ID_Empleado = ${data.ID_Empleado};
+      `;
+      
+      sendMail(boss[0].Email, requestInfo)
       return true;
     }
 

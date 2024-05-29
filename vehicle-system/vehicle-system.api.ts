@@ -13,8 +13,10 @@ import {
   getRequestByBoss
 } from './requests';
 import { upload } from '../services';
+import { PrismaClient } from '../prisma/client/rrhh';
 
 export const router = express.Router();
+const prisma = new PrismaClient();
 
 router.use((req, res, next) => {
   console.log('vehicle system middleware');
@@ -22,6 +24,14 @@ router.use((req, res, next) => {
 });
 
 // Queries
+router.get('/get-id/:username', async (req, res) => {
+  const id: any = await prisma.$queryRaw`
+    SELECT ID_Empleado  from IHTT_USUARIOS.dbo.TB_Usuarios tu 
+    WHERE Usuario_Nombre = ${req.params.username}
+  `
+  res.json(+id[0].ID_Empleado);
+});
+
 router.get('/drivers', (req, res: Response) => {
   getDrivers().then((data) => {
     res.json(data);
