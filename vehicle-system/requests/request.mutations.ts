@@ -1,5 +1,10 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
+import { PrismaClient as PrismaRRHHClient } from '../../prisma/client/rrhh';
+import { requestMailInfo, sendMail } from '../../services';
+import moment from 'moment';
+
 const prisma = new PrismaClient();
+const rrhh = new PrismaRRHHClient();
 
 export async function finishRequest(id: string): Promise<boolean> {
   const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Finalizada' }});
@@ -71,6 +76,18 @@ export async function createRequest(data: any ) {
     });
 
     if(new_request) {
+      const employee = await rrhh.tB_Empleados.findFirst({
+        where: { ID_Empleado: data.ID_Empleado }
+      });
+      const requestInfo: requestMailInfo = {
+        employee: employee?.Nombres + ' ' + employee?.Apellidos,
+        destination: data.Destino + ', ' + data.Ciudad.Nombre,
+        purpose: data.Motivo,
+        departureDate: moment.utc(data.Fecha).format('DD/MM/YYYY HH:mm A'),
+        requestId: new_request.ID_Solicitud.toString()
+      }
+
+      sendMail('aajuria@transporte.gob.hn', requestInfo)
       return true;
     }
 
