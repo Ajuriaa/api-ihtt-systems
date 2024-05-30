@@ -24,7 +24,7 @@ export interface requestMailInfo {
   requestId: string;
 }
 
-export async function sendMail(to: string, requestInfo: requestMailInfo): Promise<boolean> {
+export async function sendMail(to: string, requestInfo: requestMailInfo): Promise<void> {
   const __dirname = path.resolve();
   const filePath = path.join(__dirname, 'templates/vehicle-request.template.html');
   const source = fs.readFileSync(filePath, 'utf-8').toString();
@@ -41,10 +41,4 @@ export async function sendMail(to: string, requestInfo: requestMailInfo): Promis
   const html = template(replacements);
 
   const mail = await transporter.sendMail({ from, to, subject, html });
-
-  if(mail.messageId){
-    return true;
-  }
-
-  return false;
 }
