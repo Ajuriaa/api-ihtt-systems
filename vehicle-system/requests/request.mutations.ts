@@ -2,6 +2,7 @@ import { PrismaClient } from '../../prisma/client/vehicles';
 import { PrismaClient as PrismaRRHHClient } from '../../prisma/client/rrhh';
 import { requestMailInfo, sendMail } from '../../services';
 import moment from 'moment';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 const rrhh = new PrismaRRHHClient();
@@ -53,7 +54,14 @@ export async function cancelRequest(id: string): Promise<boolean> {
 }
 
 export async function createRequest(data: any ) {
+  const deparments = ['IHTT03', 'IHTT11', 'IHTT12', 'IHTT13', 'IHTT26', 'IHTT07']
   const requestState = await prisma.tB_Estado_Solicitudes.findFirst({ where: { Estado: 'Pendiente por jefe' }});
+  let area = await getArea(data.Sistema_Usuario);
+
+  if(!deparments.includes(area)) {
+    area = 'IHTT03';
+  }
+
   if(!requestState) {
     throw new Error('Request state not found');
   }
@@ -71,7 +79,8 @@ export async function createRequest(data: any ) {
         ID_Estado_Solicitud: requestState.ID_Estado_Solicitud,
         ID_Tipo_Solicitud: data.Tipo_Solicitud.ID_Tipo_Solicitud,
         Sistema_Usuario: data.Sistema_Usuario,
-        Pasajeros: data.Pasajeros
+        Pasajeros: data.Pasajeros,
+        Departamento: area
       }
     });
 

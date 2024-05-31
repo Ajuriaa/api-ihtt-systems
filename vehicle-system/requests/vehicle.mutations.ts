@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { IModel, IVehicle } from '../interfaces/interfaces';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 
@@ -22,7 +23,9 @@ export async function deleteVehicle(id: number) {
 }
 
 export async function createVehicle(data: IVehicle ) {
+  const area = await getArea(data.Sistema_Usuario as string);
   const { ID_Vehiculo, ...createData } = data;
+  createData.Departamento = area;
   try {
     const new_vehicle = await prisma.tB_Vehiculos.create({
       data: createData

@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { IFuelRefill, ILog, IVehicle } from '../interfaces';
+import { getArea } from './reusable';
 
 interface FuesWithLog {
   ID_Vehiculo?: number;
@@ -21,7 +22,11 @@ const prisma = new PrismaClient();
 
 export async function createLogs(data: Data) {
   const refills = data.refills;
-  const logs = data.logs;
+  const area = await getArea(data.logs[0].Sistema_Usuario as string);
+  const logs: ILog[] = data.logs.map(log => ({
+    ...log,
+    Departamento: area
+  }));
   const vehicleId = data.logs[0].ID_Vehiculo;
   const fuels: IFuelRefill[] = [];
 
@@ -42,6 +47,8 @@ export async function createLogs(data: Data) {
       const { ID_Vehiculo, Kilometraje_Vehiculo, ...rest } = refill;
       
       (rest as any).ID_Bitacora = log.ID_Bitacora;
+      (rest as any).Departamento = area;
+      (rest as any).Sistema_Usuario = log.Sistema_Usuario;
 
       fuels.push(rest as IFuelRefill);
     }
@@ -74,7 +81,7 @@ export async function createLogs(data: Data) {
 
     return false;
   } catch (error) {
-    console.error('Error creating driver:', error);
+    console.error('Error creating logs:', error);
     return error;
   }
 }

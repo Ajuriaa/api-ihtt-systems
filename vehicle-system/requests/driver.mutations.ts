@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { IDriver } from '../interfaces';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 
@@ -22,7 +23,9 @@ export async function deleteDriver(id: number) {
 }
 
 export async function createDriver(data: IDriver ) {
+  const area = await getArea(data.Sistema_Usuario as string);
   const { ID_Conductor, ...createData } = data;
+  createData.Departamento = area;
   try {
     const new_driver = await prisma.tB_Conductores.create({
       data: createData

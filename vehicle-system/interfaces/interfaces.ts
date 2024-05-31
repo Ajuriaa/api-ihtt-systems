@@ -3,6 +3,8 @@ export interface IDriver {
   Nombre: string;
   Solicitudes_Finalizadas?: number;
   Disponible?: boolean;
+  Sistema_Usuario?: string | null;
+  Departamento?: string | null;
 }
 
 export interface IGasUnit {
@@ -20,6 +22,8 @@ export interface IVehicle {
   Imagen_URL: string;
   Anio: number;
   Color: string;
+  Sistema_Usuario?: string | null;
+  Departamento?: string | null;
   ID_Estado_Vehiculo: number;
   ID_Modelo: number;
 }
@@ -79,6 +83,8 @@ export interface ILog {
   ID_Vehiculo: number;
   ID_Conductor: number;
   ID_Ciudad: number | null;
+  Departamento?: string | null;
+  Sistema_Usuario?: string | null;
   Destino: string;
   Kilometraje_Entrada: number;
   Kilometraje_Salida: number;
