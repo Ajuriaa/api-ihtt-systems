@@ -32,8 +32,8 @@ router.get('/get-id/:username', async (req, res) => {
   res.json(+id[0].ID_Empleado);
 });
 
-router.get('/drivers', (req, res: Response) => {
-  getDrivers().then((data) => {
+router.get('/drivers/:username', (req, res: Response) => {
+  getDrivers(req.params.username).then((data) => {
     res.json(data);
   });
 });
@@ -44,8 +44,8 @@ router.get('/request-list/:id', (req, res: Response) => {
   });
 });
 
-router.get('/dashboard', (req, res: Response) => {
-  dashboardQuery().then((data) => {
+router.get('/dashboard/:username', (req, res: Response) => {
+  dashboardQuery(req.params.username).then((data) => {
     res.json(data);
   });
 });
@@ -74,14 +74,14 @@ router.get('/users', (req, res: Response) => {
   });
 });
 
-router.get('/maintenances', (req, res: Response) => {
-  getMaintenances().then((data) => {
+router.get('/maintenances/:username', (req, res: Response) => {
+  getMaintenances(req.params.username).then((data) => {
     res.json(data);
   });
 });
 
-router.get('/requests', (req, res: Response) => {
-  getRequests().then((data) => {
+router.get('/requests/:username', (req, res: Response) => {
+  getRequests(req.params.username).then((data) => {
     res.json(data);
   });
 });
@@ -92,8 +92,8 @@ router.get('/requests/:id', (req, res: Response) => {
   });
 });
 
-router.get('/vehicles', (req, res: Response) => {
-  getVehicles().then((data) => {
+router.get('/vehicles/:username', (req, res: Response) => {
+  getVehicles(req.params.username).then((data) => {
     res.json(data);
   });
 });

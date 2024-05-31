@@ -41,3 +41,8 @@ model TB_RRHH_Encargados {
   ID_Cod       Int          @id(map: "PK__TB_RRHH___B7872C9001AC9A99")
   TB_Empleados TB_Empleados @relation(fields: [ID_Empleado], references: [ID_Empleado], onDelete: Cascade, map: "FK__TB_RRHH_E__ID_Em__0AF29B96")
 }
+
+model TB_Empleado_Area_Cargo {
+  ID_Empleado    Int       @id
+  ID_Area        String?   @db.VarChar(20)
+}

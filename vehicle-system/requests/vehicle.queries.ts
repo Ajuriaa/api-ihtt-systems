@@ -3,6 +3,7 @@ import {
   IVehicleStatusesQuery, IVehicleTypesQuery, IVehiclesQuery
 } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 
@@ -38,14 +39,15 @@ export async function getVehicle(id: string): Promise<IVehicleQuery> {
   }
 }
 
-export async function getVehicles(): Promise<IVehiclesQuery> {
+export async function getVehicles(username: string): Promise<IVehiclesQuery> {
   try {
+    const area = await getArea(username);
     const maintenance: [{id: number, kms: number}]= await prisma.$queryRaw`
       SELECT TOP 1 v.ID_Vehiculo AS id, 
         (m.Kilometraje + 5000) - v.Kilometraje AS kms
       FROM TB_Vehiculos v
       JOIN TB_Mantenimientos m ON v.ID_Vehiculo = m.ID_Vehiculo
-      WHERE v.deleted_at IS NULL
+      WHERE v.deleted_at IS NULL AND v.Departamento = ${area}
         AND m.Tipo_Mantenimiento = 'Preventivo'
         AND m.Kilometraje = (
           SELECT MAX(Kilometraje) FROM TB_Mantenimientos 
@@ -54,7 +56,7 @@ export async function getVehicles(): Promise<IVehiclesQuery> {
       ORDER BY (m.Kilometraje + 5000) - v.Kilometraje ASC;
     `;
     const vehicles = await prisma.tB_Vehiculos.findMany({
-      where: { deleted_at: null },
+      where: { deleted_at: null, Departamento: area },
       include: { 
         Mantenimientos: {
           orderBy: { Fecha: 'desc' }

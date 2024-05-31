@@ -1,14 +1,16 @@
 import { IAvailableForRequestQuery, IRequestQuery, IRequestsQuery, IRequestStatusQuery, IRequestTypesQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { PrismaClient as rrhhPrisma } from '../../prisma/client/rrhh';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 const rrhh = new rrhhPrisma();
 
-export async function getRequests(): Promise<IRequestsQuery> {
+export async function getRequests(username: string): Promise<IRequestsQuery> {
   try {
+    const area = await getArea(username);
     const requests = await prisma.tB_Solicitudes.findMany({
-      where: { deleted_at: null },
+      where: { deleted_at: null, Departamento: area },
       include: {
         Conductor: true,
         Estado_Solicitud: true,

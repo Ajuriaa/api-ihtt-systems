@@ -1,5 +1,6 @@
 import { PrismaClient } from "../../prisma/client/vehicles";
 import { IVehicle } from "../interfaces";
+import { getArea } from "./reusable";
 
 interface monthData {
   gas: number;
@@ -20,8 +21,9 @@ interface IDashboardQuery {
 
 const prisma = new PrismaClient();
 
-export async function dashboardQuery(): Promise<IDashboardQuery> {
+export async function dashboardQuery(username: string): Promise<IDashboardQuery> {
   try {
+    const area = await getArea(username);
     const current: any = await prisma.$queryRaw`
       WITH GasCostKms AS (
       SELECT
@@ -37,6 +39,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
       WHERE
         B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
         AND B.Fecha <= GETDATE()
+        AND B.Departamento = ${area}
       ),
       RequestsTrips AS (
         SELECT
@@ -49,6 +52,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
         WHERE
           S.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
           AND S.Fecha <= GETDATE()
+          AND S.Departamento = ${area}
       )
       SELECT * FROM GasCostKms, RequestsTrips;
     `;
@@ -68,6 +72,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
       WHERE 
         B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, DATEADD(MONTH, -1, GETDATE())), 0) 
         AND B.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+        AND B.Departamento = ${area}
       ),
       RequestsTrips AS (
         SELECT 
@@ -80,6 +85,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
         WHERE 
           S.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, DATEADD(MONTH, -1, GETDATE())), 0) 
           AND S.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+          AND S.Departamento = ${area}
       )
       SELECT * FROM GasCostKms, RequestsTrips;
     `;
@@ -95,7 +101,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
       FROM 
         Meses M
       LEFT JOIN 
-        TB_Bitacoras b ON MONTH(b.Fecha) = MONTH(M.month) AND YEAR(b.Fecha) = YEAR(M.month)
+        TB_Bitacoras b ON MONTH(b.Fecha) = MONTH(M.month) AND YEAR(b.Fecha) = YEAR(M.month) AND b.Departamento = ${area}
       GROUP BY 
         M.month
       ORDER BY 
@@ -113,6 +119,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
       WHERE 
         B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) 
         AND B.Fecha <= GETDATE()
+        AND B.Departamento = ${area}
       GROUP BY 
         C.Nombre;
     `;
@@ -127,6 +134,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
       WHERE
         B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) 
         AND B.Fecha <= GETDATE()
+        AND B.Departamento = ${area}
       GROUP BY
         V.ID_Vehiculo
       ORDER BY
@@ -154,7 +162,7 @@ export async function dashboardQuery(): Promise<IDashboardQuery> {
           FROM sys.objects
           ) M
         LEFT JOIN
-          TB_Bitacoras B ON MONTH(B.Fecha) = MONTH(M.month) AND YEAR(B.Fecha) = YEAR(M.month)
+          TB_Bitacoras B ON MONTH(B.Fecha) = MONTH(M.month) AND YEAR(B.Fecha) = YEAR(M.month) AND B.Departamento = ${area}
         LEFT JOIN
           TB_Llenado_Combustible LC ON B.ID_Bitacora = LC.ID_Bitacora
           AND M.month != DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Excluir el mes actual

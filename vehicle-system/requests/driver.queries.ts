@@ -1,5 +1,6 @@
 import { IDriverQuery, IDriversQuery } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
+import { getArea } from './reusable';
 
 const prisma = new PrismaClient();
 
@@ -29,10 +30,11 @@ export async function getDriver(id: string): Promise<IDriverQuery> {
   }
 }
 
-export async function getDrivers(): Promise<IDriversQuery> {
+export async function getDrivers(username: string): Promise<IDriversQuery> {
   try {
+    const area = await getArea(username);
     const drivers = await prisma.tB_Conductores.findMany({
-      where: { deleted_at: null },
+      where: { deleted_at: null, Departamento: area },
       include: { Solicitudes: { select: { Estado_Solicitud: { select: {Estado: true}}}}}
     });
 
