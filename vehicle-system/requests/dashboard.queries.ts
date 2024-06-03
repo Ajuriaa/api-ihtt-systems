@@ -21,7 +21,7 @@ interface IDashboardQuery {
 
 const prisma = new PrismaClient();
 
-export async function dashboardQuery(username: string): Promise<IDashboardQuery> {
+export async function dashboardQuery(username: string): Promise<IDashboardQuery | number> {
   try {
     const area = await getArea(username);
     const current: any = await prisma.$queryRaw`
@@ -140,6 +140,10 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery>
       ORDER BY
         SUM(B.Kilometraje_Entrada - B.Kilometraje_Salida) DESC;
     `;
+
+    if (!vehicleId.length) {
+      return 0;
+    }
 
     const vehicle  = await prisma.tB_Vehiculos.findUniqueOrThrow({ 
       where: { ID_Vehiculo: vehicleId[0].ID_Vehiculo },
