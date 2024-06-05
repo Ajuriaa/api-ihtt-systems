@@ -32,6 +32,7 @@ export interface IMaintenance {
   ID_Mantenimiento: number;
   ID_Vehiculo: number;
   Kilometraje: number;
+  Sistema_Usuario?: string | null;
   Tipo_Mantenimiento: string;
   Fecha: Date;
 }
