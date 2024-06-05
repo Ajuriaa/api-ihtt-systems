@@ -86,7 +86,7 @@ router.get('/requests/:username', (req, res: Response) => {
   });
 });
 
-router.get('/requests/:id', (req, res: Response) => {
+router.get('/requests/:id/:username', (req, res: Response) => {
   getVehicleRequests(req.params.id).then((data) => {
     res.json(data);
   });
