@@ -44,8 +44,8 @@ router.get('/request-list/:id', (req, res: Response) => {
   });
 });
 
-router.get('/dashboard/:username', (req, res: Response) => {
-  dashboardQuery(req.params.username).then((data) => {
+router.get('/dashboard/:username/:start/:end', (req, res: Response) => {
+  dashboardQuery(req.params.username, req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });

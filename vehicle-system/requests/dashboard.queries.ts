@@ -1,3 +1,4 @@
+import moment from "moment";
 import { PrismaClient } from "../../prisma/client/vehicles";
 import { IVehicle } from "../interfaces";
 import { getArea } from "./reusable";
@@ -21,9 +22,11 @@ interface IDashboardQuery {
 
 const prisma = new PrismaClient();
 
-export async function dashboardQuery(username: string): Promise<IDashboardQuery | number> {
+export async function dashboardQuery(username: string, start: string, end: string): Promise<IDashboardQuery | number> {
   try {
     const area = await getArea(username);
+    const startDate = moment.utc(start).format("YYYY-MM-DD");
+    const endDate = moment.utc(end).format("YYYY-MM-DD");
     const current: any = await prisma.$queryRaw`
       WITH GasCostKms AS (
       SELECT
@@ -37,8 +40,8 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery 
       LEFT JOIN
         TB_Unidad_Combustible UC ON LC.ID_Unidad_Combustible = UC.ID_Unidad_Combustible
       WHERE
-        B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
-        AND B.Fecha <= GETDATE()
+        B.Fecha >= ${startDate}
+        AND B.Fecha <= ${endDate}
         AND B.Departamento = ${area}
       ),
       RequestsTrips AS (
@@ -50,8 +53,8 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery 
         LEFT JOIN
           TB_Estado_Solicitudes ES ON S.ID_Estado_Solicitud = ES.ID_Estado_Solicitud
         WHERE
-          S.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
-          AND S.Fecha <= GETDATE()
+          S.Fecha >= ${startDate}
+          AND S.Fecha <= ${endDate}
           AND S.Departamento = ${area}
       )
       SELECT * FROM GasCostKms, RequestsTrips;
@@ -83,8 +86,8 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery 
         LEFT JOIN 
           TB_Estado_Solicitudes ES ON S.ID_Estado_Solicitud = ES.ID_Estado_Solicitud
         WHERE 
-          S.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, DATEADD(MONTH, -1, GETDATE())), 0) 
-          AND S.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)
+          S.Fecha >= ${startDate}
+          AND S.Fecha < ${endDate}
           AND S.Departamento = ${area}
       )
       SELECT * FROM GasCostKms, RequestsTrips;
@@ -117,8 +120,8 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery 
       LEFT JOIN 
         TB_Ciudades C ON B.ID_Ciudad = C.ID_Ciudad
       WHERE 
-        B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) 
-        AND B.Fecha <= GETDATE()
+        B.Fecha >= ${startDate}
+        AND B.Fecha <= ${endDate}
         AND B.Departamento = ${area}
       GROUP BY 
         C.Nombre;
@@ -132,8 +135,8 @@ export async function dashboardQuery(username: string): Promise<IDashboardQuery 
       JOIN
         TB_Vehiculos V ON B.ID_Vehiculo = V.ID_Vehiculo
       WHERE
-        B.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) 
-        AND B.Fecha <= GETDATE()
+        B.Fecha >= ${startDate}
+        AND B.Fecha <= ${endDate}
         AND B.Departamento = ${area}
       GROUP BY
         V.ID_Vehiculo
