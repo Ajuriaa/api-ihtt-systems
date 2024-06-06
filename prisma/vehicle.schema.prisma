@@ -113,6 +113,8 @@ model TB_Solicitudes {
   Departamento        String?               @db.VarChar(50)
   Sistema_Fecha       DateTime              @default(now(), map: "DF__TB_Solici__Siste__59063A47") @db.DateTime
   Sistema_Usuario     String?               @db.NVarChar(25)
+  Documento_URL       String?               @db.NVarChar(Max)
+  Numero_Memorando    String?               @db.NVarChar(50)
   Ciudad              TB_Ciudades           @relation(fields: [ID_Ciudad], references: [ID_Ciudad], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Ci__5441852A")
   Conductor           TB_Conductores?       @relation(fields: [ID_Conductor], references: [ID_Conductor], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Co__5812160E")
   Estado_Solicitud    TB_Estado_Solicitudes @relation(fields: [ID_Estado_Solicitud], references: [ID_Estado_Solicitud], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Solici__ID_Es__5629CD9C")

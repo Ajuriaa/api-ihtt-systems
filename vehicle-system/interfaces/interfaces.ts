@@ -68,6 +68,8 @@ export interface IRequest {
   Departamento?: string;
   Destino: string;
   Motivo: string;
+  Documento_URL?: string | null;
+  Numero_Memorando?: string | null;
   Fecha: Date;
   Hora_Salida: Date;
   Hora_Regreso: Date;

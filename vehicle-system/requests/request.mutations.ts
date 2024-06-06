@@ -80,7 +80,9 @@ export async function createRequest(data: any ) {
         ID_Tipo_Solicitud: data.Tipo_Solicitud.ID_Tipo_Solicitud,
         Sistema_Usuario: data.Sistema_Usuario,
         Pasajeros: data.Pasajeros,
-        Departamento: area
+        Departamento: area,
+        Documento_URL: data.Documento_URL,
+        Numero_Memorando: data.Numero_Memorando
       }
     });
 
@@ -96,14 +98,14 @@ export async function createRequest(data: any ) {
         requestId: new_request.ID_Solicitud.toString()
       }
 
-      const boss: any = await prisma.$queryRaw`
+      const boss: any = await rrhh.$queryRaw`
         SELECT tc.Email
         FROM v_listado_empleados vle
         INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
         WHERE vle.ID_Empleado = ${data.ID_Empleado};
       `;
       
-      sendMail(boss[0].Email, requestInfo)
+      //sendMail(boss[0].Email, requestInfo)
       return true;
     }
 
