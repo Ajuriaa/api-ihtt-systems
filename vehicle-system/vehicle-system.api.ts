@@ -122,8 +122,8 @@ router.get('/vehicle/:id', (req, res: Response) => {
   });
 });
 
-router.get('/vehicle-info/:id', (req, res: Response) => {
-  getVehicleInfo(req.params.id).then((data) => {
+router.get('/vehicle-info/:id/:start/:end', (req, res: Response) => {
+  getVehicleInfo(req.params.id, req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });

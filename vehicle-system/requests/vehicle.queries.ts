@@ -4,6 +4,7 @@ import {
 } from '../interfaces';
 import { PrismaClient } from '../../prisma/client/vehicles';
 import { getArea } from './reusable';
+import moment from 'moment';
 
 const prisma = new PrismaClient();
 
@@ -124,8 +125,10 @@ export async function getVehicleBrands(): Promise<IVehicleBrandsQuery> {
   }
 }
 
-export async function getVehicleInfo(vehicleId: string): Promise<IVehicleInfoQuery> {
+export async function getVehicleInfo(vehicleId: string, start: string, end: string): Promise<IVehicleInfoQuery> {
   try {
+    const startDate = moment.utc(start).format("YYYY-MM-DD");
+    const endDate = moment.utc(end).format("YYYY-MM-DD");
     const kmsHistory: { month: string, kms: number }[] = await prisma.$queryRaw`
     DECLARE @VehicleId INT = ${vehicleId};
     WITH Meses AS (
@@ -219,10 +222,10 @@ export async function getVehicleInfo(vehicleId: string): Promise<IVehicleInfoQue
     LEFT JOIN TB_Llenado_Combustible lc ON b.ID_Bitacora = lc.ID_Bitacora
     LEFT JOIN TB_Unidad_Combustible uc ON lc.ID_Unidad_Combustible  = uc.ID_Unidad_Combustible 
     WHERE b.ID_Vehiculo = @VehicleId
-      AND b.Fecha >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)
-      AND b.Fecha < DATEADD(day, DATEDIFF(day, 0, GETDATE()) + 1, 0)
-      AND (lc.Fecha >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) OR lc.Fecha IS NULL)
-      AND (lc.Fecha < DATEADD(day, DATEDIFF(day, 0, GETDATE()) + 1, 0) OR lc.Fecha IS NULL);
+      AND b.Fecha >= ${startDate}
+      AND b.Fecha < ${endDate}
+      AND (lc.Fecha >= ${startDate} OR lc.Fecha IS NULL)
+      AND (lc.Fecha < ${endDate} OR lc.Fecha IS NULL);
     `;
 
     const kms = kmsHistory.map(h => h.kms);
