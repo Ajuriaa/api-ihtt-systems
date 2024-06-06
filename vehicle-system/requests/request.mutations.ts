@@ -105,7 +105,7 @@ export async function createRequest(data: any ) {
         WHERE vle.ID_Empleado = ${data.ID_Empleado};
       `;
       
-      //sendMail(boss[0].Email, requestInfo)
+      sendMail(boss[0].Email, requestInfo)
       return true;
     }
 
