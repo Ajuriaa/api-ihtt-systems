@@ -4,6 +4,11 @@ export interface IEntriesQuery {
   data: Partial<IEntry>[];
 }
 
+export interface IHistoryQuery {
+  entries: Partial<IEntry>[];
+  outputs: Partial<IOutput>[];
+}
+
 export interface IEntryQuery {
   data: Partial<IEntry>;
 }
