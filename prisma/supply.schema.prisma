@@ -48,6 +48,7 @@ model Product {
   id                  Int                  @id(map: "PK__TB_Produ__9B4120E2141A4341") @default(autoincrement()) @map("ID_Producto")
   name                String               @map("Nombre") @db.VarChar(100)
   groupId             Int                  @map("ID_Grupo")
+  minimum             Int                  @map("Cantidad_Minima") @db.Int
   unit                String               @map("Unidad") @db.VarChar(50)
   imageUrl            String?              @map("Url_Imagen") @db.VarChar(255)
   systemUser          String?              @map("Sistema_Usuario") @db.VarChar(100)

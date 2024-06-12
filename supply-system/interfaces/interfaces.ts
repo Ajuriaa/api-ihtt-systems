@@ -21,6 +21,7 @@ export interface IProduct {
   name: string;
   groupId: number;
   unit: string;
+  minimum: number;
   imageUrl?: string | null;
 }
 
