@@ -48,11 +48,11 @@ model Product {
   id                  Int                  @id(map: "PK__TB_Produ__9B4120E2141A4341") @default(autoincrement()) @map("ID_Producto")
   name                String               @map("Nombre") @db.VarChar(100)
   groupId             Int                  @map("ID_Grupo")
-  minimum             Int                  @map("Cantidad_Minima") @db.Int
   unit                String               @map("Unidad") @db.VarChar(50)
   imageUrl            String?              @map("Url_Imagen") @db.VarChar(255)
   systemUser          String?              @map("Sistema_Usuario") @db.VarChar(100)
   systemDate          DateTime?            @default(now(), map: "DF_TB_Productos_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  minimum             Int                  @default(1, map: "DF__TB_Produc__Canti__66EA454A") @map("Cantidad_Minima")
   batches             Batch[]
   group               Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
   productsEntry       ProductEntry[]
@@ -104,16 +104,18 @@ model Requisition {
 }
 
 model Output {
-  id            Int          @id(map: "PK__TB_Salid__2ECAEE39581A4223") @default(autoincrement()) @map("ID_Salida")
-  productId     Int          @map("ID_Producto")
-  observation   String?      @map("Observacion") @db.VarChar(255)
-  quantity      Int          @map("Cantidad")
-  requisitionId Int?         @map("ID_Requisicion")
-  motive        String?      @map("Razon") @db.VarChar(50)
-  systemUser    String?      @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate    DateTime?    @default(now(), map: "DF_TB_Salidas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
-  product       Product      @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
-  requisition   Requisition? @relation(fields: [requisitionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
+  id              Int          @id(map: "PK__TB_Salid__2ECAEE39581A4223") @default(autoincrement()) @map("ID_Salida")
+  productId       Int          @map("ID_Producto")
+  observation     String?      @map("Observacion") @db.VarChar(255)
+  quantity        Int          @map("Cantidad")
+  requisitionId   Int?         @map("ID_Requisicion")
+  motive          String?      @map("Razon") @db.VarChar(50)
+  systemUser      String?      @map("Sistema_Usuario") @db.VarChar(100)
+  systemDate      DateTime?    @default(now(), map: "DF_TB_Salidas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  date            DateTime?    @default(now(), map: "DF__TB_Salida__Fecha__67DE6983") @map("Fecha") @db.Date
+  currentQuantity Int?         @map("Cantidad_Actual")
+  product         Product      @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
+  requisition     Requisition? @relation(fields: [requisitionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
 
   @@map("TB_Salidas")
 }
@@ -134,15 +136,16 @@ model Batch {
 }
 
 model ProductEntry {
-  id         Int       @id(map: "PK__TB_Produ__B51C951B1B3065B8") @default(autoincrement()) @map("ID_Producto_Entrada")
-  entryId    Int?      @map("ID_Entrada")
-  productId  Int?      @map("ID_Producto")
-  quantity   Int?      @map("Cantidad")
-  price      Decimal?  @map("Precio") @db.Decimal(10, 2)
-  systemUser String?   @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate DateTime? @default(now(), map: "DF__TB_Produc__Siste__53D770D6") @map("Sistema_Fecha") @db.Date
-  entry      Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__54CB950F")
-  product    Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
+  id              Int       @id(map: "PK__TB_Produ__B51C951B1B3065B8") @default(autoincrement()) @map("ID_Producto_Entrada")
+  entryId         Int?      @map("ID_Entrada")
+  productId       Int?      @map("ID_Producto")
+  quantity        Int?      @map("Cantidad")
+  price           Decimal?  @map("Precio") @db.Decimal(10, 2)
+  systemUser      String?   @map("Sistema_Usuario") @db.VarChar(100)
+  systemDate      DateTime? @default(now(), map: "DF__TB_Produc__Siste__53D770D6") @map("Sistema_Fecha") @db.Date
+  currentQuantity Int?      @map("Cantidad_Actual")
+  entry           Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__54CB950F")
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
 
   @@map("TB_Productos_Entrada")
 }
