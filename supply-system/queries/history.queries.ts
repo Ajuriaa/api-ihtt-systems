@@ -12,14 +12,16 @@ export async function getHistoryInfo(): Promise<IHistoryQuery> {
           include: { product: { include: { group: true }}}
         },
         batches: true
-      }
+      },
+      orderBy: { date: 'desc' }
     });
-    
+
     const outputs = await prisma.output.findMany({
       include: {
         product: { include: { group: true }},
         requisition: true
-      }
+      },
+      orderBy: { date: 'desc' }
     });
 
     return { entries, outputs };
