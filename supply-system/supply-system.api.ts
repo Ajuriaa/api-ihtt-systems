@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
 import { getHistoryInfo, getProduct, getProductGroups, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
-import { createProduct } from './mutations';
+import { createProduct, updateProduct } from './mutations';
 
 export const router = express.Router();
 
@@ -66,6 +66,12 @@ router.post('/upload', upload.single('file'), (req, res) => {
 
 router.post('/create-product', async (req, res) => {
   createProduct(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/update-product', async (req, res) => {
+  updateProduct(req.body).then((data) => {
     res.json(data);
   });
 });
