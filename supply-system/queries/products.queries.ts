@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../prisma/client/supply';
-import { IProductQuery, IProductsQuery } from '../interfaces';
+import { IGroupsQuery, IProductQuery, IProductsQuery } from '../interfaces';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +16,16 @@ export async function getProducts(): Promise<IProductsQuery> {
     return { data };
   } catch (error: any) {
     console.error('Error retrieving products info:', error);
+    throw error;
+  }
+}
+
+export async function getProductGroups(): Promise<IGroupsQuery> {
+  try {
+    const data = await prisma.group.findMany({});
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving product groups info:', error);
     throw error;
   }
 }

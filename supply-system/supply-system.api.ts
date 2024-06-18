@@ -1,6 +1,7 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
-import { getHistoryInfo, getProduct, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
+import { getHistoryInfo, getProduct, getProductGroups, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
+import { createProduct } from './mutations';
 
 export const router = express.Router();
 
@@ -28,6 +29,12 @@ router.get('/suppliers', async (req, res) => {
   });
 });
 
+router.get('/groups', async (req, res) => {
+  getProductGroups().then((data) => {
+    res.json(data);
+  });
+});
+
 router.get('/supplier/:id', async (req, res) => {
   getSupplier(req.params.id).then((data) => {
     res.json(data);
@@ -48,6 +55,17 @@ router.get('/requisition/:id', async (req, res) => {
 
 router.get('/history', async (req, res) => {
   getHistoryInfo().then((data) => {
+    res.json(data);
+  });
+});
+
+// Mutations
+router.post('/upload', upload.single('file'), (req, res) => {
+  res.json(true);
+});
+
+router.post('/create-product', async (req, res) => {
+  createProduct(req.body).then((data) => {
     res.json(data);
   });
 });

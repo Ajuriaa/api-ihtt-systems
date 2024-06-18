@@ -13,7 +13,7 @@ export interface IState {
 export interface IGroup {
   id: number;
   name: string;
-  description?: string;
+  description?: string | null;
 }
 
 export interface IProduct {
