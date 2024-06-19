@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
-import { 
+import {
   createDriver, createVehicle, createVehicleBrands, createVehicleModels,
-  deleteDriver, deleteVehicle, getDriver, getDrivers, getVehicle, 
+  deleteDriver, deleteVehicle, getDriver, getDrivers, getVehicle,
   getVehicleBrands, getVehicleModels, getVehicleStatuses, getVehicleTypes,
   getVehicles, updateDriver, updateVehicle, getRequests,
   updateRequest,createRequest, getRequest, availableForRequest,
@@ -10,7 +10,8 @@ import {
   getCities, createLogs, getResquestStatus,
   cancelRequest, getVehicleRequests, getVehicleInfo,
   finishRequest, dashboardQuery, acceptRequest,
-  getRequestByBoss
+  getRequestByBoss,
+  getUserRequestList
 } from './requests';
 import { upload } from '../services';
 import { PrismaClient } from '../prisma/client/rrhh';
@@ -26,7 +27,7 @@ router.use((req, res, next) => {
 // Queries
 router.get('/get-id/:username', async (req, res) => {
   const id: any = await prisma.$queryRaw`
-    SELECT ID_Empleado  from IHTT_USUARIOS.dbo.TB_Usuarios tu 
+    SELECT ID_Empleado  from IHTT_USUARIOS.dbo.TB_Usuarios tu
     WHERE Usuario_Nombre = ${req.params.username}
   `
   res.json(+id[0].ID_Empleado);
@@ -40,6 +41,12 @@ router.get('/drivers/:username', (req, res: Response) => {
 
 router.get('/request-list/:id', (req, res: Response) => {
   getRequestByBoss(req.params.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/my-request-list/:id', (req, res: Response) => {
+  getUserRequestList(req.params.id).then((data) => {
     res.json(data);
   });
 });
