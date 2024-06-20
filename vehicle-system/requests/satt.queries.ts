@@ -16,7 +16,8 @@ export async function getRequestByBoss(id: string): Promise<any> {
         TB_Solicitudes.Hora_Salida,
         TB_Solicitudes.Hora_Regreso,
         tes.Estado as Estado,
-        tes.ID_Estado_Solicitud as ID_Estado
+        tes.ID_Estado_Solicitud as ID_Estado,
+        TB_Solicitudes.Documento_URL as Documento
       FROM TB_Solicitudes
       JOIN IHTT_RRHH.dbo.v_listado_empleados ON TB_Solicitudes.ID_Empleado = IHTT_RRHH.dbo.v_listado_empleados.ID_Empleado
       JOIN TB_Ciudades ON TB_Solicitudes.ID_Ciudad = TB_Ciudades.ID_Ciudad
@@ -46,7 +47,8 @@ export async function getUserRequestList(id: string): Promise<any> {
         TB_Solicitudes.Hora_Salida,
         TB_Solicitudes.Hora_Regreso,
         tes.Estado as Estado,
-        tes.ID_Estado_Solicitud as ID_Estado
+        tes.ID_Estado_Solicitud as ID_Estado,
+        TB_Solicitudes.Documento_URL as Documento
       FROM TB_Solicitudes
       JOIN IHTT_RRHH.dbo.v_listado_empleados ON TB_Solicitudes.ID_Empleado = IHTT_RRHH.dbo.v_listado_empleados.ID_Empleado
       JOIN TB_Ciudades ON TB_Solicitudes.ID_Ciudad = TB_Ciudades.ID_Ciudad
