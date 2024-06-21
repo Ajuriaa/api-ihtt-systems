@@ -1,6 +1,6 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
-import { getHistoryInfo, getProduct, getProductGroups, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
+import { getHistoryInfo, getNotifications, getProduct, getProductGroups, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
 import { createProduct, createSupplier, updateProduct, updateSupplier } from './mutations';
 
 export const router = express.Router();
@@ -55,6 +55,12 @@ router.get('/requisition/:id', async (req, res) => {
 
 router.get('/history', async (req, res) => {
   getHistoryInfo().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/notifications', async (req, res) => {
+  getNotifications().then((data) => {
     res.json(data);
   });
 });
