@@ -39,3 +39,21 @@ export async function updateSupplier(data: ISupplier) {
     return error;
   }
 }
+
+export async function deleteSupplier(id: number) {
+  try {
+    const deleted_supplier = await prisma.supplier.update({
+      where: { id },
+      data: { deleted_at: new Date() }
+    });
+
+    if(deleted_supplier) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error deleting supplier:', error);
+    return error;
+  }
+}
