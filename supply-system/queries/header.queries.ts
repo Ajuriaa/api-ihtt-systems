@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function getNotifications(): Promise<IProductsQuery> {
   try {
     const products = await prisma.product.findMany({
-      where: { batches: { some: {}} },
+      where: { batches: { some: {}}, deleted_at: null },
       include: { batches: { orderBy: { due: 'desc' }} }
     });
 

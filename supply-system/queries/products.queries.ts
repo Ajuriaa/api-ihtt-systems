@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export async function getProducts(): Promise<IProductsQuery> {
   try {
     const data = await prisma.product.findMany({
+      where: { deleted_at: null },
       include: {
         batches: true,
         group: true,
