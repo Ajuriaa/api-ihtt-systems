@@ -39,3 +39,21 @@ export async function updateProduct(data: IProduct) {
     return error;
   }
 }
+
+export async function deleteProduct(id: number) {
+  try {
+    const deleted_product = await prisma.product.update({
+      where: { id },
+      data: { deleted_at: new Date() }
+    });
+
+    if(deleted_product) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    return error;
+  }
+}

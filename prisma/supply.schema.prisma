@@ -53,6 +53,7 @@ model Product {
   systemUser          String?              @map("Sistema_Usuario") @db.VarChar(100)
   systemDate          DateTime?            @default(now(), map: "DF_TB_Productos_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
   minimum             Int                  @default(1, map: "DF__TB_Produc__Canti__66EA454A") @map("Cantidad_Minima")
+  deleted_at          DateTime?            @db.DateTime
   batches             Batch[]
   group               Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
   productsEntry       ProductEntry[]
