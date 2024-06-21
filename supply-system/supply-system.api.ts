@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { upload } from '../services';
 import { getHistoryInfo, getNotifications, getProduct, getProductGroups, getProducts, getRequisition, getRequisitions, getSupplier, getSuppliers } from './queries';
-import { createProduct, createSupplier, deleteProduct, updateProduct, updateSupplier } from './mutations';
+import { createProduct, createSupplier, deleteProduct, deleteSupplier, updateProduct, updateSupplier } from './mutations';
 
 export const router = express.Router();
 
@@ -96,6 +96,12 @@ router.post('/create-supplier', async (req, res) => {
 
 router.post('/update-supplier', async (req, res) => {
   updateSupplier(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/delete-supplier', async (req, res) => {
+  deleteSupplier(req.body.id).then((data) => {
     res.json(data);
   });
 });
