@@ -6,8 +6,9 @@ const prisma = new PrismaClient();
 export async function getSuppliers(): Promise<ISuppliersQuery> {
   try {
     const data = await prisma.supplier.findMany({
+      where: { deleted_at: null },
       include: {
-        entries: { 
+        entries: {
           include: { productsEntry: true, batches: true },
           orderBy: { date: 'desc' }
         }
@@ -25,7 +26,7 @@ export async function getSupplier(id: string): Promise<ISupplierQuery> {
     const data = await prisma.supplier.findFirstOrThrow({
       where: { id: +id },
       include: {
-        entries: { 
+        entries: {
           include: { productsEntry: true, batches: true },
           orderBy: { date: 'desc' }
         }

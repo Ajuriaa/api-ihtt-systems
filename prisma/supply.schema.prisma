@@ -85,6 +85,7 @@ model Supplier {
   email      String?   @map("Correo") @db.VarChar(100)
   address    String?   @map("Direccion") @db.VarChar(200)
   rtn        String?   @map("RTN") @db.VarChar(100)
+  deleted_at DateTime? @db.DateTime
   entries    Entry[]
 
   @@map("TB_Proveedores")
