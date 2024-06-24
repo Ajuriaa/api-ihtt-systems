@@ -11,7 +11,8 @@ export async function getRequisitions(): Promise<IRequisitionsQuery> {
       include: {
         productsRequisition: { include: { product: true } },
         state: true
-      }
+      },
+      orderBy: { systemDate: 'desc' }
     });
 
     const data = await Promise.all(requisitons.map(async (requisition) => {

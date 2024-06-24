@@ -29,6 +29,7 @@ export interface IProductRequisition {
   id: number;
   productId: number;
   requisitionId: number;
+  systemUser: string;
   quantity: number;
 }
 
