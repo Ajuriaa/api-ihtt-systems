@@ -51,3 +51,27 @@ export async function createRequisition(requisitions: IProductRequisition[], use
     return error;
   }
 }
+
+export async function cancelRequisition(id: number) {
+  try {
+    const cancelState = await prisma.state.findFirst({ where: { state: 'Cancelada' }});
+
+    if(!cancelState) {
+      throw new Error('Cancel state not found');
+    }
+
+    const cancelled_requisition = await prisma.requisition.update({
+      where: { id },
+      data: { stateId: cancelState.id }
+    });
+
+    if(cancelled_requisition) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error cancelling requisition:', error);
+    return error;
+  }
+}
