@@ -11,6 +11,11 @@ export async function getNotifications(): Promise<IProductsQuery> {
       include: { batches: { orderBy: { due: 'desc' }} }
     });
 
+    const productsWith0Stock = await prisma.product.findMany({
+      where: { batches: { none: {} }, deleted_at: null },
+      include: { batches: { orderBy: { due: 'desc' } } }
+    });
+
     const minimumStock = products.filter(product => {
       const totalStock = product.batches.reduce((sum, batch) => sum + batch.quantity, 0);
       return totalStock < product.minimum;
@@ -24,7 +29,7 @@ export async function getNotifications(): Promise<IProductsQuery> {
 
     const data = minimumStock.concat(soonExpired.filter(product =>
       !minimumStock.some(stockProduct => stockProduct.id === product.id)
-    ));
+    )).concat(productsWith0Stock);
 
     return { data };
   } catch (error: any) {
