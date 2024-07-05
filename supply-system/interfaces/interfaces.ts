@@ -67,3 +67,12 @@ export interface IBatch {
   quantity: number;
   price: number;
 }
+
+export interface IProductEntry {
+  id: number;
+  entryId: number;
+  productId: number;
+  quantity: number;
+  price: number;
+  currentQuantity: number;
+}
