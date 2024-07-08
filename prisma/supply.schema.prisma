@@ -116,6 +116,7 @@ model Output {
   systemDate      DateTime?    @default(now(), map: "DF_TB_Salidas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
   date            DateTime?    @default(now(), map: "DF__TB_Salida__Fecha__67DE6983") @map("Fecha") @db.Date
   currentQuantity Int?         @map("Cantidad_Actual")
+  price           Int?         @map("Precio")
   product         Product      @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
   requisition     Requisition? @relation(fields: [requisitionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
 
@@ -146,6 +147,8 @@ model ProductEntry {
   systemUser      String?   @map("Sistema_Usuario") @db.VarChar(100)
   systemDate      DateTime? @default(now(), map: "DF__TB_Produc__Siste__53D770D6") @map("Sistema_Fecha") @db.Date
   currentQuantity Int?      @map("Cantidad_Actual")
+  book            Boolean?  @default(false, map: "DF__TB_Produc__Talon__68D28DBC") @map("Talonario")
+  bookNumber      Int?      @default(0, map: "DF__TB_Produc__Numer__6ABAD62E") @map("Numero_Correlativo")
   entry           Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__54CB950F")
   product         Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
 
