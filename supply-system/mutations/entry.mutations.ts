@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../prisma/client/supply';
-import { IBatch, IEntry, IProduct, IProductEntry } from '../interfaces';
+import { IBatch, IEntry, IProductEntry } from '../interfaces';
 
 const prisma = new PrismaClient();
 
