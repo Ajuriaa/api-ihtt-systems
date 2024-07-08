@@ -15,7 +15,8 @@ function extractFirstWord(str: string): string {
 }
 
 function checkSystem(str: string): string {
-  if (str.includes('products')) {
+  const supply = ['products', 'invoices'];
+  if (supply.some((word) => str.includes(word))) {
     return 'supply';
   }
   return 'Solicitud_Vehiculos';
