@@ -9,7 +9,7 @@ export async function getRequisitions(): Promise<IRequisitionsQuery> {
   try {
     const requisitons = await prisma.requisition.findMany({
       include: {
-        productsRequisition: { include: { product: true } },
+        productsRequisition: { include: { product: { include: { batches: true } } } },
         state: true
       },
       orderBy: { systemDate: 'desc' }

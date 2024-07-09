@@ -99,3 +99,37 @@ export async function finishRequisition(id: number) {
     return error;
   }
 }
+
+export async function updateProductsRequisition(productRequisitions: IProductRequisition[]) {
+  try {
+    const activeState = await prisma.state.findFirst({ where: { state: 'Activa' }});
+
+    if(!activeState) {
+      throw new Error('Active state not found');
+    }
+
+    const updatePromises = productRequisitions.map(product =>
+      prisma.productRequisition.update({
+        where: { id: product.id },
+        data: { quantity: product.quantity },
+      })
+    );
+
+    await Promise.all(updatePromises);
+
+    const id = productRequisitions[0].requisitionId;
+    const finalized_requisition = await prisma.requisition.update({
+      where: { id },
+      data: { stateId: activeState.id }
+    });
+
+    if(finalized_requisition) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error updating product requisitions:', error);
+    return false;
+  }
+}

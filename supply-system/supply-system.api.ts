@@ -8,8 +8,8 @@ import {
 import {
   cancelRequisition, createEntries, createOutput,
   createProduct, createRequisition, createSupplier,
-  deleteProduct, deleteSupplier, finishRequisition, updateProduct,
-  updateSupplier
+  deleteProduct, deleteSupplier, finishRequisition,
+  updateProduct, updateProductsRequisition, updateSupplier
 } from './mutations';
 
 export const router = express.Router();
@@ -141,6 +141,12 @@ router.post('/create-entries', async (req, res) => {
 
 router.post('/create-output', async (req, res) => {
   createOutput(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/update-requisition', async (req, res) => {
+  updateProductsRequisition(req.body).then((data) => {
     res.json(data);
   });
 });
