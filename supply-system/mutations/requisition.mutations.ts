@@ -75,3 +75,27 @@ export async function cancelRequisition(id: number) {
     return error;
   }
 }
+
+export async function finishRequisition(id: number) {
+  try {
+    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' }});
+
+    if(!finishState) {
+      throw new Error('Finalized state not found');
+    }
+
+    const finalized_requisition = await prisma.requisition.update({
+      where: { id },
+      data: { stateId: finishState.id }
+    });
+
+    if(finalized_requisition) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error finalizing requisition:', error);
+    return error;
+  }
+}

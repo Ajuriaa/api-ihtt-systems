@@ -8,7 +8,7 @@ import {
 import {
   cancelRequisition, createEntries, createOutput,
   createProduct, createRequisition, createSupplier,
-  deleteProduct, deleteSupplier, updateProduct,
+  deleteProduct, deleteSupplier, finishRequisition, updateProduct,
   updateSupplier
 } from './mutations';
 
@@ -123,6 +123,12 @@ router.post('/create-requisition', async (req, res) => {
 
 router.post('/cancel-requisition', async (req, res) => {
   cancelRequisition(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/finish-requisition', async (req, res) => {
+  finishRequisition(req.body.id).then((data) => {
     res.json(data);
   });
 });
