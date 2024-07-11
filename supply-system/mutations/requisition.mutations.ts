@@ -76,27 +76,62 @@ export async function cancelRequisition(id: number) {
   }
 }
 
-export async function finishRequisition(id: number) {
+export async function finishRequisition(id: number): Promise<boolean> {
   try {
-    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' }});
+    const requisition = await prisma.requisition.findUnique({
+      where: { id },
+      include: { productsRequisition: { include: { product: { include: { batches: { orderBy: { due: 'desc' }}}}}}}
+    });
 
-    if(!finishState) {
+    if (!requisition) {
+      throw new Error('Requisition not found');
+    }
+
+    for (const productReq of requisition.productsRequisition) {
+      const totalBatchQuantity = productReq.product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
+
+      if (totalBatchQuantity < productReq.quantity) {
+        throw new Error(`Not enough stock for product ${productReq.product.name}`);
+      }
+    }
+
+    for (const productReq of requisition.productsRequisition) {
+      let remainingQuantity = productReq.quantity;
+
+      for (const batch of productReq.product.batches) {
+        if (remainingQuantity <= 0) break;
+
+        if (batch.quantity >= remainingQuantity) {
+          await prisma.batch.update({
+            where: { id: batch.id },
+            data: { quantity: batch.quantity - remainingQuantity }
+          });
+          remainingQuantity = 0;
+        } else {
+          remainingQuantity -= batch.quantity;
+          await prisma.batch.update({
+            where: { id: batch.id },
+            data: { quantity: 0 }
+          });
+        }
+      }
+    }
+
+    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' } });
+
+    if (!finishState) {
       throw new Error('Finalized state not found');
     }
 
-    const finalized_requisition = await prisma.requisition.update({
+    const finalizedRequisition = await prisma.requisition.update({
       where: { id },
       data: { stateId: finishState.id }
     });
 
-    if(finalized_requisition) {
-      return true;
-    }
-
-    return false;
+    return finalizedRequisition ? true : false;
   } catch (error) {
     console.error('Error finalizing requisition:', error);
-    return error;
+    return false;
   }
 }
 
