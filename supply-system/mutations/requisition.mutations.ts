@@ -97,6 +97,9 @@ export async function finishRequisition(id: number): Promise<boolean> {
 
     for (const productReq of requisition.productsRequisition) {
       let remainingQuantity = productReq.quantity;
+      const beforeQuantity = productReq.product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
+      const currentQuantity = beforeQuantity - productReq.quantity;
+      let price = 0;
 
       for (const batch of productReq.product.batches) {
         if (remainingQuantity <= 0) break;
@@ -106,8 +109,10 @@ export async function finishRequisition(id: number): Promise<boolean> {
             where: { id: batch.id },
             data: { quantity: batch.quantity - remainingQuantity }
           });
+          price += remainingQuantity * +batch.price;
           remainingQuantity = 0;
         } else {
+          price += batch.quantity * +batch.price;
           remainingQuantity -= batch.quantity;
           await prisma.batch.update({
             where: { id: batch.id },
@@ -115,6 +120,21 @@ export async function finishRequisition(id: number): Promise<boolean> {
           });
         }
       }
+
+
+      await prisma.output.create({
+        data: {
+          productId: productReq.productId,
+          quantity: productReq.quantity,
+          requisitionId: id,
+          observation: 'Salida por requisición',
+          motive: 'requisicion',
+          systemUser: requisition.systemUser,
+          date: new Date(),
+          currentQuantity,
+          price
+        }
+      });
     }
 
     const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' } });
