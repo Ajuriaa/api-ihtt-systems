@@ -78,30 +78,52 @@ export async function cancelRequisition(id: number) {
 
 export async function finishRequisition(id: number): Promise<boolean> {
   try {
-    const requisition = await prisma.requisition.findUnique({
+    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' } });
+
+    if (!finishState) {
+      throw new Error('Finalized state not found');
+    }
+
+    const finalizedRequisition = await prisma.requisition.update({
       where: { id },
-      include: { productsRequisition: { include: { product: { include: { batches: { orderBy: { due: 'desc' }}}}}}}
+      data: { stateId: finishState.id }
     });
 
-    if (!requisition) {
-      throw new Error('Requisition not found');
+    return !!finalizedRequisition;
+  } catch (error) {
+    console.error('Error finalizing requisition:', error);
+    return false;
+  }
+}
+
+export async function updateProductsRequisition(productRequisitions: IProductRequisition[]) {
+  try {
+    const activeState = await prisma.state.findFirst({ where: { state: 'Activa' } });
+
+    if (!activeState) {
+      throw new Error('Active state not found');
     }
 
-    for (const productReq of requisition.productsRequisition) {
-      const totalBatchQuantity = productReq.product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
+    for (const productReq of productRequisitions) {
+      const product = await prisma.product.findUnique({
+        where: { id: productReq.productId },
+        include: { batches: { orderBy: { due: 'desc' } } }
+      });
+
+      if (!product) {
+        throw new Error(`Product not found: ${productReq.productId}`);
+      }
+
+      const totalBatchQuantity = product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
 
       if (totalBatchQuantity < productReq.quantity) {
-        throw new Error(`Not enough stock for product ${productReq.product.name}`);
+        throw new Error(`Not enough stock for product ${product.name}`);
       }
-    }
 
-    for (const productReq of requisition.productsRequisition) {
       let remainingQuantity = productReq.quantity;
-      const beforeQuantity = productReq.product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
-      const currentQuantity = beforeQuantity - productReq.quantity;
       let price = 0;
 
-      for (const batch of productReq.product.batches) {
+      for (const batch of product.batches) {
         if (remainingQuantity <= 0) break;
 
         if (batch.quantity >= remainingQuantity) {
@@ -121,68 +143,33 @@ export async function finishRequisition(id: number): Promise<boolean> {
         }
       }
 
+      await prisma.productRequisition.update({
+        where: { id: productReq.id },
+        data: { quantity: productReq.quantity },
+      });
 
       await prisma.output.create({
         data: {
           productId: productReq.productId,
           quantity: productReq.quantity,
-          requisitionId: id,
+          requisitionId: productReq.requisitionId,
           observation: 'Salida por requisición',
           motive: 'requisicion',
-          systemUser: requisition.systemUser,
+          systemUser: productReq.systemUser,
           date: new Date(),
-          currentQuantity,
+          currentQuantity: totalBatchQuantity - productReq.quantity,
           price
         }
       });
     }
 
-    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' } });
-
-    if (!finishState) {
-      throw new Error('Finalized state not found');
-    }
-
-    const finalizedRequisition = await prisma.requisition.update({
-      where: { id },
-      data: { stateId: finishState.id }
-    });
-
-    return finalizedRequisition ? true : false;
-  } catch (error) {
-    console.error('Error finalizing requisition:', error);
-    return false;
-  }
-}
-
-export async function updateProductsRequisition(productRequisitions: IProductRequisition[]) {
-  try {
-    const activeState = await prisma.state.findFirst({ where: { state: 'Activa' }});
-
-    if(!activeState) {
-      throw new Error('Active state not found');
-    }
-
-    const updatePromises = productRequisitions.map(product =>
-      prisma.productRequisition.update({
-        where: { id: product.id },
-        data: { quantity: product.quantity },
-      })
-    );
-
-    await Promise.all(updatePromises);
-
     const id = productRequisitions[0].requisitionId;
-    const finalized_requisition = await prisma.requisition.update({
+    const finalizedRequisition = await prisma.requisition.update({
       where: { id },
       data: { stateId: activeState.id }
     });
 
-    if(finalized_requisition) {
-      return true;
-    }
-
-    return false;
+    return !!finalizedRequisition;
   } catch (error) {
     console.error('Error updating product requisitions:', error);
     return false;
