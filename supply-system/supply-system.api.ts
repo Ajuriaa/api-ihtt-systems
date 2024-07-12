@@ -9,8 +9,10 @@ import {
   cancelRequisition, createEntries, createOutput,
   createProduct, createRequisition, createSupplier,
   deleteProduct, deleteSupplier, finishRequisition,
+  printRequisition,
   updateProduct, updateProductsRequisition, updateRequisitionFile, updateSupplier
 } from './mutations';
+import jsPDF from 'jspdf';
 
 export const router = express.Router();
 
@@ -154,5 +156,13 @@ router.post('/update-requisition', async (req, res) => {
 router.post('/upload-requisition-file', async (req, res) => {
   updateRequisitionFile(req.body.id, req.body.file).then((data) => {
     res.json(data);
+  });
+});
+
+router.get('/test', async (req, res) => {
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename=test.pdf');
+  printRequisition(6).then((data) => {
+    res.send(Buffer.from(data));
   });
 });

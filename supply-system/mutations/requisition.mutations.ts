@@ -1,9 +1,11 @@
 import { PrismaClient } from '../../prisma/client/supply';
 import { PrismaClient as RhPrismaClient } from '../../prisma/client/rrhh';
-import { IProductRequisition, IRequisition } from '../interfaces';
+import { IProductRequisition } from '../interfaces';
+import { PDFHelper } from '../../services';
 
 const prisma = new PrismaClient();
 const rhPrisma = new RhPrismaClient();
+const pdfHelper = new PDFHelper();
 
 export async function createRequisition(requisitions: IProductRequisition[], username: string) {
   const requestState = await prisma.state.findFirst({ where: { state: 'Pendiente por jefe' }});
@@ -73,6 +75,34 @@ export async function cancelRequisition(id: number) {
   } catch (error) {
     console.error('Error cancelling requisition:', error);
     return error;
+  }
+}
+
+export async function printRequisition(id: number): Promise<ArrayBuffer> {
+  try {
+    const requisition = await prisma.requisition.findUnique({
+      where: { id },
+      include: { outputs: true, productsRequisition: { include: { product: { include: { batches: { orderBy: { due: 'desc' }}}}}}}
+    });
+
+    if (!requisition) {
+      throw new Error('requisition not found');
+    }
+    const department: { Area: string } = await rhPrisma.$queryRaw`
+      SELECT Area
+      FROM v_listado_empleados vle
+      INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
+      WHERE vle.ID_Empleado = ${requisition.employeeId};
+    `;;
+
+    if(department) {
+      return pdfHelper.generateRequisitionsPDF(requisition, department.Area);
+    }
+
+    return new ArrayBuffer(0);
+  } catch (error) {
+    console.error('Error cancelling requisition:', error);
+    return new ArrayBuffer(0);
   }
 }
 
