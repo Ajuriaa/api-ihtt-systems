@@ -96,6 +96,20 @@ export async function finishRequisition(id: number): Promise<boolean> {
   }
 }
 
+export async function updateRequisitionFile(id: number, file: string): Promise<boolean> {
+  try {
+    const requisition = await prisma.requisition.update({
+      where: { id },
+      data: { documentUrl: file }
+    });
+
+    return !!requisition;
+  } catch (error) {
+    console.error('Error updating requisition document:', error);
+    return false;
+  }
+}
+
 export async function updateProductsRequisition(productRequisitions: IProductRequisition[]) {
   try {
     const activeState = await prisma.state.findFirst({ where: { state: 'Activa' } });

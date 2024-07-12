@@ -9,7 +9,7 @@ import {
   cancelRequisition, createEntries, createOutput,
   createProduct, createRequisition, createSupplier,
   deleteProduct, deleteSupplier, finishRequisition,
-  updateProduct, updateProductsRequisition, updateSupplier
+  updateProduct, updateProductsRequisition, updateRequisitionFile, updateSupplier
 } from './mutations';
 
 export const router = express.Router();
@@ -147,6 +147,12 @@ router.post('/create-output', async (req, res) => {
 
 router.post('/update-requisition', async (req, res) => {
   updateProductsRequisition(req.body).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/upload-requisition-file', async (req, res) => {
+  updateRequisitionFile(req.body.id, req.body.file).then((data) => {
     res.json(data);
   });
 });
