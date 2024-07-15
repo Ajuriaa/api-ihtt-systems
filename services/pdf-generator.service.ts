@@ -1,14 +1,19 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import moment from 'moment';
+import { getBase64 } from './base64.helper';
 
 
 export class PDFHelper {
   private isFirstPageDrawn = false;
+  private image = '';
+  private image2 = '';
   constructor() {}
 
-  public generatePDF(formattedData: any[], columns: string[], title: string, requestDate: string, deliverDate: string, department: string): ArrayBuffer {
+  public async generatePDF(formattedData: any[], columns: string[], title: string, requestDate: string, deliverDate: string, department: string): Promise<ArrayBuffer> {
     this.isFirstPageDrawn = false;
+    this.image = await getBase64('assets/pdf.jpg');
+    this.image2 = await getBase64('assets/pdf2.jpg');
     const doc = new jsPDF('portrait');
     doc.setTextColor(40);
     const blue = '#88CFE0';
@@ -29,7 +34,8 @@ export class PDFHelper {
           const centerX = pageSize.width / 2;
           doc.text(title, centerX - (doc.getTextWidth(title) / 2), 25);
 
-          doc.addImage('/pdf.jpg', 'JPEG', 0, 0, 20, 20);
+          doc.addImage(this.image, 'JPEG', 20, 5, 40, 40);
+          doc.addImage(this.image2, 'JPEG', pageSize.width-50, 7, 30, 30);
           this.isFirstPageDrawn = true;
         }
 
@@ -53,7 +59,7 @@ export class PDFHelper {
     return doc.output('arraybuffer');
   }
 
-  public generateRequisitionsPDF(requisition: any, department: string): ArrayBuffer {
+  public async generateRequisitionsPDF(requisition: any, department: string): Promise<ArrayBuffer> {
     const columns = ['No', 'Unidad de medida', 'Producto', 'Cantidad Entregada'];
     const formattedSuppliers = this.formatRequisitionsForPDF(requisition);
     const requestDate = this.getDate(requisition.date);
