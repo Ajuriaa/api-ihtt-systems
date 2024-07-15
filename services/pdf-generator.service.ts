@@ -8,6 +8,7 @@ export class PDFHelper {
   private isFirstPageDrawn = false;
   private image = '';
   private image2 = '';
+  private finalY = 0;
   constructor() {}
 
   public async generatePDF(formattedData: any[], columns: string[], title: string, requestDate: string, deliverDate: string, department: string): Promise<ArrayBuffer> {
@@ -21,7 +22,7 @@ export class PDFHelper {
     autoTable(doc, {
       head: [columns],
       body: formattedData,
-      margin: { top: 65, right: 10, bottom: 20, left: 20 },
+      margin: { top: 55, right: 10, bottom: 20, left: 20 },
       styles: { halign: 'center', valign: 'middle', fontSize: 8 },
       headStyles: { fillColor: blue },
       didDrawPage: (data) => {
@@ -41,12 +42,9 @@ export class PDFHelper {
           doc.addImage(this.image, 'JPEG', 20, 5, 40, 40);
           doc.addImage(this.image2, 'JPEG', pageSize.width-50, 7, 30, 30);
           doc.setFontSize(6);
-          doc.text(departmentText, 22, 44);
-          doc.rect(20, 40, pageSize.width - 30, 6);
-          doc.text(requestDateText, 22, 52);
-          doc.rect(20, 48, pageSize.width - 30, 6);
-          doc.text(deliverDateText, 22, 60);
-          doc.rect(20, 56, pageSize.width - 30, 6);
+          doc.text(departmentText, 22, 40);
+          doc.text(requestDateText, 22, 45);
+          doc.text(deliverDateText, 22, 50);
 
           this.isFirstPageDrawn = true;
         }
@@ -55,10 +53,41 @@ export class PDFHelper {
         const margin = 4;
         doc.setFillColor(blue);
         doc.rect(margin, margin, 10, pageSize.height-2*margin, 'F');
+
+        this.finalY = data.cursor?.y || 95;
       },
     });
     const pageCount = (doc as any).internal.getNumberOfPages();
     const footerHeight = doc.internal.pageSize.height - 7;
+
+    const signatureY = this.finalY + 20;
+    const rowHeight = 20;
+    const labels = ['SOLICITADO', 'AUTORIZADO', 'RECIBIDO', 'ENTREGADO POR'];
+    doc.setFontSize(6);
+
+    if (signatureY + 2 * rowHeight > doc.internal.pageSize.height) {
+      doc.addPage();
+      const startY = 30;
+
+      for (let i = 0; i < 2; i++) {
+        const y = startY + i * rowHeight;
+        doc.line(20, y, 80, y);
+        doc.line(120, y, 180, y);
+        doc.text(labels[i * 2], 20, y + 5);
+        doc.text(labels[i * 2 + 1], 120, y + 5);
+      }
+    } else {
+      const startY = signatureY;
+
+      for (let i = 0; i < 2; i++) {
+        const y = startY + i * rowHeight;
+        doc.line(20, y, 80, y);
+        doc.line(120, y, 180, y);
+        doc.text(labels[i * 2], 50 - (doc.getTextWidth(labels[i * 2])/2), y + 5);
+        doc.text(labels[i * 2 + 1], 150 - (doc.getTextWidth(labels[i * 2 + 1])/2), y + 5);
+      }
+    }
+
 
     // Footer
     for(let i = 1; i <= pageCount; i++) {
@@ -76,7 +105,7 @@ export class PDFHelper {
     const formattedSuppliers = this.formatRequisitionsForPDF(requisition);
     const requestDate = this.getDate(requisition.date);
     const deliverDate = this.getDate(requisition.outputs[0].date);
-    return this.generatePDF(formattedSuppliers, columns, 'Requisición de materiales sección proveeduría', requestDate, deliverDate, department);
+    return this.generatePDF(formattedSuppliers, columns, 'Requisición de Materiales Sección Proveeduría', requestDate, deliverDate, department);
   }
 
   public formatRequisitionsForPDF(requisition: any) {
