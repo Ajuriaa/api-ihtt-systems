@@ -21,8 +21,8 @@ export class PDFHelper {
     autoTable(doc, {
       head: [columns],
       body: formattedData,
-      margin: { top: 45, right: 10, bottom: 20, left: 20 },
-      styles: { halign: 'center', valign: 'middle'},
+      margin: { top: 65, right: 10, bottom: 20, left: 20 },
+      styles: { halign: 'center', valign: 'middle', fontSize: 8 },
       headStyles: { fillColor: blue },
       didDrawPage: (data) => {
         doc.setFontSize(12);
@@ -31,11 +31,23 @@ export class PDFHelper {
         // Header
         if (!this.isFirstPageDrawn) {
           data.settings.margin.top = 4;
-          const centerX = pageSize.width / 2;
-          doc.text(title, centerX - (doc.getTextWidth(title) / 2), 25);
 
+          const departmentText = `UNIDAD QUE LO SOLICITA: ${department}`;
+          const requestDateText = `FECHA DE SOLICITUD: ${requestDate}`;
+          const deliverDateText = `FECHA DE ENTREGA: ${deliverDate}`;
+          const centerX = pageSize.width / 2;
+
+          doc.text(title, centerX - (doc.getTextWidth(title) / 2), 25);
           doc.addImage(this.image, 'JPEG', 20, 5, 40, 40);
           doc.addImage(this.image2, 'JPEG', pageSize.width-50, 7, 30, 30);
+          doc.setFontSize(6);
+          doc.text(departmentText, 22, 44);
+          doc.rect(20, 40, pageSize.width - 30, 6);
+          doc.text(requestDateText, 22, 52);
+          doc.rect(20, 48, pageSize.width - 30, 6);
+          doc.text(deliverDateText, 22, 60);
+          doc.rect(20, 56, pageSize.width - 30, 6);
+
           this.isFirstPageDrawn = true;
         }
 

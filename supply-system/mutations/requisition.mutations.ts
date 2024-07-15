@@ -88,7 +88,7 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
     if (!requisition) {
       throw new Error('requisition not found');
     }
-    const department: { Area: string } = await rhPrisma.$queryRaw`
+    const department: { Area: string }[] = await rhPrisma.$queryRaw`
       SELECT Area
       FROM v_listado_empleados vle
       INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
@@ -96,7 +96,7 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
     `;;
 
     if(department) {
-      return pdfHelper.generateRequisitionsPDF(requisition, department.Area);
+      return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area);
     }
 
     return new ArrayBuffer(0);
