@@ -159,10 +159,10 @@ router.post('/upload-requisition-file', async (req, res) => {
   });
 });
 
-router.get('/test', async (req, res) => {
+router.get('/print-requisition', async (req, res) => {
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename=test.pdf');
-  printRequisition(6).then((data) => {
+  printRequisition(req.body.id).then((data) => {
     res.send(Buffer.from(data));
   });
 });

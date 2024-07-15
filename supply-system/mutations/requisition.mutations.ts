@@ -93,7 +93,7 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
       FROM v_listado_empleados vle
       INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
       WHERE vle.ID_Empleado = ${requisition.employeeId};
-    `;;
+    `;
 
     if(department) {
       return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area);
@@ -101,7 +101,7 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
 
     return new ArrayBuffer(0);
   } catch (error) {
-    console.error('Error cancelling requisition:', error);
+    console.error('Error printing requisition:', error);
     return new ArrayBuffer(0);
   }
 }
