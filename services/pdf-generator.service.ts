@@ -11,7 +11,7 @@ export class PDFHelper {
   private finalY = 0;
   constructor() {}
 
-  public async generatePDF(formattedData: any[], columns: string[], title: string, requestDate: string, deliverDate: string, department: string): Promise<ArrayBuffer> {
+  public async generatePDF(formattedData: any[], columns: string[], title: string, requestDate: string, deliverDate: string, department: string, id: number): Promise<ArrayBuffer> {
     this.isFirstPageDrawn = false;
     this.image = await getBase64('assets/pdf.jpg');
     this.image2 = await getBase64('assets/pdf2.jpg');
@@ -42,6 +42,7 @@ export class PDFHelper {
           doc.addImage(this.image, 'JPEG', 20, 5, 40, 40);
           doc.addImage(this.image2, 'JPEG', pageSize.width-50, 7, 30, 30);
           doc.setFontSize(6);
+          doc.text(id.toString(), pageSize.width - 7, 7);
           doc.text(departmentText, 22, 40);
           doc.text(requestDateText, 22, 45);
           doc.text(deliverDateText, 22, 50);
@@ -101,11 +102,12 @@ export class PDFHelper {
   }
 
   public async generateRequisitionsPDF(requisition: any, department: string): Promise<ArrayBuffer> {
+    const id = requisition.id;
     const columns = ['No', 'Unidad de medida', 'Producto', 'Cantidad Entregada'];
     const formattedSuppliers = this.formatRequisitionsForPDF(requisition);
     const requestDate = this.getDate(requisition.date);
     const deliverDate = this.getDate(requisition.outputs[0].date);
-    return this.generatePDF(formattedSuppliers, columns, 'Requisición de Materiales Sección Proveeduría', requestDate, deliverDate, department);
+    return this.generatePDF(formattedSuppliers, columns, 'Requisición de Materiales Sección Proveeduría', requestDate, deliverDate, department, id);
   }
 
   public formatRequisitionsForPDF(requisition: any) {
