@@ -24,7 +24,7 @@ export async function getNotifications(): Promise<IProductsQuery> {
     const soonExpired = products.filter(product => {
       const now = moment.utc();
       const date = moment.utc(product.batches[0].due);
-      return date.isAfter(now) && date.diff(now, 'days') < 30;
+      return date.isSameOrAfter(now, 'D') && date.diff(now, 'days') < 30;
     });
 
     const data = minimumStock.concat(soonExpired.filter(product =>
