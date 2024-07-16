@@ -126,7 +126,7 @@ model Output {
 model Batch {
   id         Int       @id(map: "PK__TB_Lotes__914CB9C70CDAEB2D") @default(autoincrement()) @map("ID_Lote")
   productId  Int       @map("ID_Producto")
-  due        DateTime  @map("Vencimiento") @db.Date
+  due        DateTime? @map("Vencimiento") @db.Date
   quantity   Int       @map("Cantidad")
   price      Decimal   @map("Precio") @db.Decimal(10, 2)
   systemUser String?   @map("Sistema_Usuario") @db.VarChar(100)

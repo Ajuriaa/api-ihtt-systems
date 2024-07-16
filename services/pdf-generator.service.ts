@@ -125,7 +125,7 @@ export class PDFHelper {
   }
 
   private getDate(date: Date): string {
-    return moment(date).format('DD/MM/YYYY');
+    return moment.utc(date).format('DD/MM/YYYY');
   }
 }
 
