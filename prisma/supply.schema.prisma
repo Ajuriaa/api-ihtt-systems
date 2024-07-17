@@ -147,7 +147,7 @@ model ProductEntry {
   systemUser      String?   @map("Sistema_Usuario") @db.VarChar(100)
   systemDate      DateTime? @default(now(), map: "DF__TB_Produc__Siste__53D770D6") @map("Sistema_Fecha") @db.Date
   currentQuantity Int?      @map("Cantidad_Actual")
-  book            Boolean?  @default(false, map: "DF__TB_Produc__Talon__68D28DBC") @map("Talonario")
+  batched         Boolean?  @default(false, map: "DF__TB_Produc__Talon__68D28DBC") @map("Lotificado")
   bookNumber      Int?      @default(0, map: "DF__TB_Produc__Numer__6ABAD62E") @map("Numero_Correlativo")
   entry           Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__54CB950F")
   product         Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
