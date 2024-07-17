@@ -54,6 +54,8 @@ model Product {
   systemDate          DateTime?            @default(now(), map: "DF_TB_Productos_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
   minimum             Int                  @default(1, map: "DF__TB_Produc__Canti__66EA454A") @map("Cantidad_Minima")
   deleted_at          DateTime?            @db.DateTime
+  perishable          Boolean              @default(false, map: "DF__TB_Produc__Perec__6BAEFA67") @map("Perecedero")
+  batched             Boolean              @default(false, map: "DF__TB_Produc__Lotif__6CA31EA0") @map("Lotificado")
   batches             Batch[]
   group               Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
   productsEntry       ProductEntry[]
@@ -147,7 +149,6 @@ model ProductEntry {
   systemUser      String?   @map("Sistema_Usuario") @db.VarChar(100)
   systemDate      DateTime? @default(now(), map: "DF__TB_Produc__Siste__53D770D6") @map("Sistema_Fecha") @db.Date
   currentQuantity Int?      @map("Cantidad_Actual")
-  batched         Boolean?  @default(false, map: "DF__TB_Produc__Talon__68D28DBC") @map("Lotificado")
   bookNumber      Int?      @default(0, map: "DF__TB_Produc__Numer__6ABAD62E") @map("Numero_Correlativo")
   entry           Entry?    @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_En__54CB950F")
   product         Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
