@@ -63,7 +63,7 @@ export interface IBatch {
   id: number;
   productId: number;
   entryId: number;
-  due: Date;
+  due?: Date | null;
   quantity: number;
   price: number;
 }
