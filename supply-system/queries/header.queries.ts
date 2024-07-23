@@ -11,6 +11,8 @@ export async function getNotifications(): Promise<IProductsQuery> {
       include: { batches: { orderBy: { due: 'desc' }} }
     });
 
+    const perishableProducts = products.filter(product => product.perishable);
+
     const productsWith0Stock = await prisma.product.findMany({
       where: { batches: { none: {} }, deleted_at: null },
       include: { batches: { orderBy: { due: 'desc' } } }
@@ -21,7 +23,7 @@ export async function getNotifications(): Promise<IProductsQuery> {
       return totalStock < product.minimum;
     });
 
-    const soonExpired = products.filter(product => {
+    const soonExpired = perishableProducts.filter(product => {
       const now = moment.utc();
       const date = moment.utc(product.batches[0].due);
       return date.isSameOrAfter(now, 'D') && date.diff(now, 'days') < 30;
