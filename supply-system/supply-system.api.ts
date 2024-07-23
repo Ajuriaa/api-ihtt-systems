@@ -6,11 +6,11 @@ import {
   getRequisitions, getSupplier, getSuppliers
 } from './queries';
 import {
-  cancelRequisition, createEntries, createOutput,
+  cancelRequisition, createEntries, createGroup,
   createProduct, createRequisition, createSupplier,
   deleteProduct, deleteSupplier, finishRequisition,
-  printRequisition,
-  updateProduct, updateProductsRequisition, updateRequisitionFile, updateSupplier
+  printRequisition, updateProduct, updateProductsRequisition,
+  updateRequisitionFile, updateSupplier, createOutput
 } from './mutations';
 import jsPDF from 'jspdf';
 
@@ -137,6 +137,12 @@ router.post('/finish-requisition', async (req, res) => {
 
 router.post('/create-entries', async (req, res) => {
   createEntries(req.body.entry, req.body.products, req.body.batches).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/create-group', async (req, res) => {
+  createGroup(req.body).then((data) => {
     res.json(data);
   });
 });
