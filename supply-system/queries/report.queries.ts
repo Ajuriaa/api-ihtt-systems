@@ -110,12 +110,18 @@ async function getDailyReport(): Promise<any> {
         date DESC;
     `;
 
-    const formattedResult = query.map(item => {
-      const date = moment(item.date);
+    const resultsMap = query.reduce((acc, curr) => {
+      acc[moment.utc(curr.date).format('DD/MM/YYYY')] = curr.totalAmount;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    const formattedResult = businessDays.map(stringDate => {
+      const date = moment(stringDate);
+      const dateString = date.format('DD/MM/YYYY');
       return {
-        day: daysOfWeek[moment.utc(date).day()],
         date: date.format('DD/MM/YYYY'),
-        cost: item.totalAmount.toFixed(2)
+        day: daysOfWeek[date.day()],
+        cost: (resultsMap[dateString] ? resultsMap[dateString] : 0).toFixed(2)
       };
     });
 
