@@ -60,6 +60,8 @@ async function getProductsReport(startDate: string, endDate: string): Promise<an
         TB_Productos p
       INNER JOIN
         TB_Salidas o ON o.ID_Producto = p.ID_Producto
+      WHERE
+        o.Fecha BETWEEN ${startDate} AND ${endDate}
       GROUP BY
         p.Nombre, p.Unidad;
     `;
