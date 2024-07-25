@@ -22,6 +22,8 @@ export async function generateReport(type: string, startDate: string, endDate: s
       return await getProductsReport(startDate, endDate);
     case 'daily':
       return await getDailyReport();
+    case 'groups':
+      return await getGroupsReport(startDate, endDate);
     default:
       return null;
   }
@@ -57,6 +59,38 @@ async function getDepartmentsReport(startDate: string, endDate: string): Promise
     return { data };
   } catch (error: any) {
     console.error('Error retrieving departments report:', error);
+    throw error;
+  }
+}
+
+async function getGroupsReport(startDate: string, endDate: string): Promise<any> {
+  try {
+    const query = await prisma.$queryRaw<{ group: string, totalProducts: number, totalCost: number }[]>`
+      SELECT
+       	tg.Nombre AS department,
+        COUNT(DISTINCT ts.ID_Salida) AS totalProducts,
+        SUM(ts.Precio) AS totalCost
+      FROM
+        TB_Grupos tg
+      INNER JOIN
+      	TB_Productos p ON p.ID_Grupo = tg.ID_Grupo
+      INNER JOIN
+      	TB_Salidas ts ON ts.ID_Producto = p.ID_Producto
+      AND ts.Fecha BETWEEN ${startDate} AND ${endDate}
+      GROUP BY
+        tg.Nombre;
+    `;
+
+    const total = query.reduce((acc, curr) => acc + parseFloat(curr.totalCost as any), 0);
+
+    const data = {
+      info: query,
+      total: +total.toFixed(2)
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving groups report:', error);
     throw error;
   }
 }
@@ -121,7 +155,7 @@ async function getDailyReport(): Promise<any> {
       return {
         date: date.format('DD/MM/YYYY'),
         day: daysOfWeek[date.day()],
-        cost: (resultsMap[dateString] ? resultsMap[dateString] : 0).toFixed(2)
+        cost: 'L.' + (resultsMap[dateString] ? resultsMap[dateString] : 0).toFixed(2)
       };
     });
 
