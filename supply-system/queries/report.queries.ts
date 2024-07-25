@@ -1,5 +1,16 @@
-import { PrismaClient } from '../../prisma/client/supply';
+import moment from 'moment-business-days';
+import { Prisma, PrismaClient } from '../../prisma/client/supply';
 import { DepartmentReportQuery } from '../interfaces';
+
+const daysOfWeek: { [key: number]: string } = {
+  0: "Domingo",
+  1: "Lunes",
+  2: "Martes",
+  3: "Miércoles",
+  4: "Jueves",
+  5: "Viernes",
+  6: "Sábado"
+};
 
 const prisma = new PrismaClient();
 
@@ -9,6 +20,8 @@ export async function generateReport(type: string, startDate: string, endDate: s
       return await getDepartmentsReport(startDate, endDate);
     case 'products':
       return await getProductsReport(startDate, endDate);
+    case 'daily':
+      return await getDailyReport();
     default:
       return null;
   }
@@ -66,7 +79,6 @@ async function getProductsReport(startDate: string, endDate: string): Promise<an
         p.Nombre, p.Unidad;
     `;
 
-
     const total = query.reduce((acc, curr) => acc + parseFloat(curr.cost as any), 0);
 
     const data = {
@@ -79,4 +91,58 @@ async function getProductsReport(startDate: string, endDate: string): Promise<an
     console.error('Error retrieving products report:', error);
     throw error;
   }
+}
+
+async function getDailyReport(): Promise<any> {
+  const businessDays = getLastFiveBusinessDays();
+  try {
+    const query = await prisma.$queryRaw<{ date: string, totalAmount: number }[]>`
+      SELECT
+        CAST(o.Fecha AS DATE) AS date,
+        SUM(o.Precio) AS totalAmount
+      FROM
+        TB_Salidas o
+      WHERE
+        CAST(o.Fecha AS DATE) IN (${Prisma.join(businessDays)})
+      GROUP BY
+        CAST(o.Fecha AS DATE)
+      ORDER BY
+        date DESC;
+    `;
+
+    const formattedResult = query.map(item => {
+      const date = moment(item.date);
+      return {
+        day: daysOfWeek[moment.utc(date).day()],
+        date: date.format('DD/MM/YYYY'),
+        cost: item.totalAmount.toFixed(2)
+      };
+    });
+
+    const total = query.reduce((acc, curr) => acc + parseFloat(curr.totalAmount as any), 0);
+
+    const data = {
+      info: formattedResult,
+      total: +total.toFixed(2)
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving daily report:', error);
+    throw error;
+  }
+}
+
+function getLastFiveBusinessDays(): string[] {
+  const businessDays: moment.Moment[] = [];
+  let currentDay = moment();
+
+  while (businessDays.length < 5) {
+    if (currentDay.isBusinessDay()) {
+      businessDays.push(currentDay.clone());
+    }
+    currentDay = currentDay.subtract(1, 'days');
+  }
+
+  return businessDays.reverse().map(date => date.format('YYYY-MM-DD'));
 }
