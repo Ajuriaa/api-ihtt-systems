@@ -3,7 +3,8 @@ import { upload } from '../services';
 import {
   getHistoryInfo, getNotifications, getProduct,
   getProductGroups, getProducts, getRequisition,
-  getRequisitions, getSupplier, getSuppliers
+  getRequisitions, getSupplier, getSuppliers,
+  generateReport
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -12,7 +13,6 @@ import {
   printRequisition, updateProduct, updateProductsRequisition,
   updateRequisitionFile, updateSupplier, createOutput
 } from './mutations';
-import jsPDF from 'jspdf';
 
 export const router = express.Router();
 
@@ -72,6 +72,12 @@ router.get('/history', async (req, res) => {
 
 router.get('/notifications', async (req, res) => {
   getNotifications().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/report/:type/:start/:end', async (req, res) => {
+  generateReport(req.params.type, req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });

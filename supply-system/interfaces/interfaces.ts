@@ -76,3 +76,16 @@ export interface IProductEntry {
   price: number;
   currentQuantity: number;
 }
+
+export interface DepartmentReport {
+  info: {
+    department: string;
+    totalRequisitions: number;
+    totalCost: number;
+  }[];
+  total: number;
+}
+
+export interface DepartmentReportQuery {
+  data: DepartmentReport;
+}

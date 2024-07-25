@@ -66,7 +66,7 @@ export interface IOutputsQuery {
 }
 
 export interface IOutputQuery {
-  data: Partial<IOutput>;
+  data: Partial<IOutput>[];
 }
 
 export interface IBatchesQuery {
