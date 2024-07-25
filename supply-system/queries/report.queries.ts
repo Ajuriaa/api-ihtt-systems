@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../prisma/client/supply';
-import { DepartmentReport, DepartmentReportQuery } from '../interfaces';
+import { DepartmentReportQuery } from '../interfaces';
 
 const prisma = new PrismaClient();
 
@@ -7,6 +7,10 @@ export async function generateReport(type: string, startDate: string, endDate: s
   switch (type) {
     case 'departments':
       return await getDepartmentsReport(startDate, endDate);
+    case 'products':
+      return await getProductsReport(startDate, endDate);
+    default:
+      return null;
   }
 }
 
@@ -40,6 +44,37 @@ async function getDepartmentsReport(startDate: string, endDate: string): Promise
     return { data };
   } catch (error: any) {
     console.error('Error retrieving departments report:', error);
+    throw error;
+  }
+}
+
+async function getProductsReport(startDate: string, endDate: string): Promise<any> {
+  try {
+    const query: { product: string, unit: string, quantity: number, cost: number }[] = await prisma.$queryRaw`
+      SELECT
+        p.Nombre AS product,
+        p.Unidad AS unit,
+        SUM(o.Cantidad) AS quantity,
+        SUM(o.Precio) AS cost
+      FROM
+        TB_Productos p
+      INNER JOIN
+        TB_Salidas o ON o.ID_Producto = p.ID_Producto
+      GROUP BY
+        p.Nombre, p.Unidad;
+    `;
+
+
+    const total = query.reduce((acc, curr) => acc + parseFloat(curr.cost as any), 0);
+
+    const data = {
+      info: query,
+      total: +total.toFixed(2)
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving products report:', error);
     throw error;
   }
 }

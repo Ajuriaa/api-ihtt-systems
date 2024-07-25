@@ -9,4 +9,4 @@ export function getBase64(filePath: string): Promise<string> {
       resolve(data);
     });
   });
-};
+}
