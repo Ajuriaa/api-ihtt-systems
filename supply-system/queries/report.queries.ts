@@ -24,6 +24,8 @@ export async function generateReport(type: string, startDate: string, endDate: s
       return await getDailyReport();
     case 'groups':
       return await getGroupsReport(startDate, endDate);
+    case 'entries':
+      return await getEntriesReport(startDate, endDate);
     default:
       return null;
   }
@@ -185,4 +187,47 @@ function getLastFiveBusinessDays(): string[] {
   }
 
   return businessDays.reverse().map(date => date.format('YYYY-MM-DD'));
+}
+
+async function getEntriesReport(startDate: string, endDate: string): Promise<any> {
+  try{
+    const query = await prisma.$queryRaw<{ product: string, unit: string, totalInputs: number, totalCost: number }[]>`
+      SELECT
+        p.Nombre AS product,
+        p.Unidad AS unit,
+        COUNT(DISTINCT te.ID_Entrada) AS totalInputs,
+        SUM(tp.Precio) AS totalCost
+      FROM
+      TB_Productos p
+      INNER JOIN
+        TB_Productos_Entrada tp ON tp.ID_Producto = p.ID_Producto
+      INNER JOIN
+        TB_Entradas te ON tp.ID_Entrada = te.ID_Entrada
+      AND
+        te.Fecha BETWEEN ${startDate} AND ${endDate}
+      GROUP BY
+        p.Nombre, p.Unidad;
+    `;
+
+    const formattedResult = query.map(result => {
+      return {
+        product: result.product,
+        unit: result.unit,
+        totalInputs: result.totalInputs,
+        totalCost: 'L.' + result.totalCost.toFixed(2)
+      };
+    });
+
+    const total = query.reduce((acc, curr) => acc + parseFloat(curr.totalCost as any), 0);
+
+    const data = {
+      info: formattedResult,
+      total: +total.toFixed(2)
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving entries report:', error);
+    throw error;
+  }
 }
