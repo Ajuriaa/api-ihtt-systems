@@ -121,6 +121,8 @@ model Output {
   date            DateTime?    @default(now(), map: "DF__TB_Salida__Fecha__67DE6983") @map("Fecha") @db.Date
   currentQuantity Int?         @map("Cantidad_Actual")
   price           Decimal?     @map("Precio") @db.Decimal(10, 2)
+  startRange      Int          @default(0, map: "DF__TB_Salida__Rango__73501C2F") @map("Rango_Inicio")
+  endRange        Int          @default(0, map: "DF__TB_Salida__Rango__74444068") @map("Rango_Fin")
   product         Product      @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Salida__ID_Pr__0E391C95")
   requisition     Requisition? @relation(fields: [requisitionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Salida__ID_Re__0F2D40CE")
 

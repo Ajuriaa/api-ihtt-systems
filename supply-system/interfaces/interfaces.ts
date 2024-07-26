@@ -58,6 +58,8 @@ export interface IOutput {
   quantity: number;
   requisitionId?: number | null;
   motive: string | null;
+  startRange: number;
+  endRange: number;
 }
 
 export interface IBatch {
