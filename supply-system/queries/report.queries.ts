@@ -26,6 +26,8 @@ export async function generateReport(type: string, startDate: string, endDate: s
       return await getGroupsReport(startDate, endDate);
     case 'entries':
       return await getEntriesReport(startDate, endDate);
+    case 'suppliers':
+      return await getProvidersReport(startDate, endDate);
     default:
       return null;
   }
@@ -228,6 +230,46 @@ async function getEntriesReport(startDate: string, endDate: string): Promise<any
     return { data };
   } catch (error: any) {
     console.error('Error retrieving entries report:', error);
+    throw error;
+  }
+}
+
+async function getProvidersReport(startDate: string, endDate: string): Promise<any> {
+  try {
+    const query = await prisma.$queryRaw<{ provider: string, totalInputs: number, totalCost: number }[]>`
+      SELECT
+        p.Nombre AS provider,
+        COUNT(DISTINCT te.ID_Entrada) AS totalInputs,
+        SUM(tpe.Precio) AS totalCost
+      FROM
+        TB_Proveedores p
+      INNER JOIN
+        TB_Entradas te ON te.ID_Proveedor = p.ID_Proveedor
+      INNER JOIN
+      	TB_Productos_Entrada tpe ON tpe.ID_Entrada = te.ID_Entrada
+      AND te.Fecha BETWEEN ${startDate} AND ${endDate}
+      GROUP BY
+        p.Nombre;
+    `;
+
+    const formattedResult = query.map(result => {
+      return {
+        provider: result.provider,
+        totalInputs: result.totalInputs,
+        totalCost: 'L.' + result.totalCost.toFixed(2)
+      };
+    });
+
+    const total = query.reduce((acc, curr) => acc + parseFloat(curr.totalCost as any), 0);
+
+    const data = {
+      info: formattedResult,
+      total: +total.toFixed(2)
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving providers report:', error);
     throw error;
   }
 }
