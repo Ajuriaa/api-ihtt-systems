@@ -31,6 +31,7 @@ export interface IProductRequisition {
   requisitionId: number;
   systemUser: string;
   quantity: number;
+  requestedQuantity: number;
 }
 
 export interface ISupplier {

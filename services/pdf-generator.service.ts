@@ -42,7 +42,7 @@ export class PDFHelper {
           doc.addImage(this.image, 'JPEG', 20, 5, 40, 40);
           doc.addImage(this.image2, 'JPEG', pageSize.width-50, 7, 30, 30);
           doc.setFontSize(6);
-          doc.text(id.toString(), pageSize.width - 7, 7);
+          doc.text(id.toString(), pageSize.width - 15, 15);
           doc.text(departmentText, 22, 40);
           doc.text(requestDateText, 22, 45);
           doc.text(deliverDateText, 22, 50);
@@ -103,7 +103,7 @@ export class PDFHelper {
 
   public async generateRequisitionsPDF(requisition: any, department: string): Promise<ArrayBuffer> {
     const id = requisition.id;
-    const columns = ['No', 'Unidad de medida', 'Producto', 'Cantidad Entregada'];
+    const columns = ['No', 'Unidad de medida', 'Producto', 'Cantidad Solicitada','Cantidad Entregada'];
     const formattedSuppliers = this.formatRequisitionsForPDF(requisition);
     const requestDate = this.getDate(requisition.date);
     const deliverDate = this.getDate(requisition.outputs[0].date);
@@ -113,12 +113,13 @@ export class PDFHelper {
   public formatRequisitionsForPDF(requisition: any) {
     const productsRequisition = requisition.productsRequisition;
     let counter = 0;
-    return productsRequisition.map((req: { product: { unit: any; name: any; }; quantity: any; }) => {
+    return productsRequisition.map((req: { product: { unit: any; name: any; }; requestedQuantity: any; quantity: any; }) => {
       counter++;
       return [
         counter,
         req.product.unit,
         req.product.name,
+        req.requestedQuantity,
         req.quantity
       ];
     });

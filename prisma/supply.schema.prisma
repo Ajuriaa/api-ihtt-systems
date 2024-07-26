@@ -67,14 +67,15 @@ model Product {
 }
 
 model ProductRequisition {
-  id            Int         @id(map: "PK__TB_Produ__AE98D61718340486") @default(autoincrement()) @map("ID_Producto_Requisicion")
-  productId     Int         @map("ID_Producto")
-  requisitionId Int         @map("ID_Requisicion")
-  quantity      Int         @map("Cantidad")
-  systemUser    String?     @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate    DateTime?   @default(now(), map: "DF_TB_Productos_Requisicion_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
-  product       Product     @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0A688BB1")
-  requisition   Requisition @relation(fields: [requisitionId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Re__0B5CAFEA")
+  id                Int         @id(map: "PK__TB_Produ__AE98D61718340486") @default(autoincrement()) @map("ID_Producto_Requisicion")
+  productId         Int         @map("ID_Producto")
+  requisitionId     Int         @map("ID_Requisicion")
+  quantity          Int         @map("Cantidad")
+  systemUser        String?     @map("Sistema_Usuario") @db.VarChar(100)
+  systemDate        DateTime?   @default(now(), map: "DF_TB_Productos_Requisicion_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  requestedQuantity Int?        @default(0, map: "DF__TB_Produc__Canti__7073AF84") @map("Cantidad_Solicitada")
+  product           Product     @relation(fields: [productId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__0A688BB1")
+  requisition       Requisition @relation(fields: [requisitionId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Re__0B5CAFEA")
 
   @@map("TB_Productos_Requisicion")
 }

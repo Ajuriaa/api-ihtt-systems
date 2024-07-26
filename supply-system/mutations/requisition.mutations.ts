@@ -36,6 +36,7 @@ export async function createRequisition(requisitions: IProductRequisition[], use
       requisitions.forEach(async (requisition) => {
         requisition.requisitionId = new_requisition.id;
         requisition.systemUser = username;
+        requisition.requestedQuantity = requisition.quantity;
       });
 
       const new_products_requisition = await prisma.productRequisition.createMany({
