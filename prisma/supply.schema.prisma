@@ -15,7 +15,7 @@ model Entry {
   date          DateTime       @map("Fecha") @db.Date
   invoiceUrl    String?        @map("Url_Factura") @db.VarChar(255)
   systemUser    String?        @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate    DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  systemDate    DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.DateTime
   supplier      Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
   batches       Batch[]
   productsEntry ProductEntry[]
@@ -117,7 +117,7 @@ model Output {
   requisitionId   Int?         @map("ID_Requisicion")
   motive          String?      @map("Razon") @db.VarChar(50)
   systemUser      String?      @map("Sistema_Usuario") @db.VarChar(100)
-  systemDate      DateTime?    @default(now(), map: "DF_TB_Salidas_Sistema_Fecha") @map("Sistema_Fecha") @db.Date
+  systemDate      DateTime?    @default(now(), map: "DF_TB_Salidas_Sistema_Fecha") @map("Sistema_Fecha") @db.DateTime
   date            DateTime?    @default(now(), map: "DF__TB_Salida__Fecha__67DE6983") @map("Fecha") @db.Date
   currentQuantity Int?         @map("Cantidad_Actual")
   price           Decimal?     @map("Precio") @db.Decimal(10, 2)

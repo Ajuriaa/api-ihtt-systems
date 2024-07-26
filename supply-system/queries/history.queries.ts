@@ -13,7 +13,7 @@ export async function getHistoryInfo(): Promise<IHistoryQuery> {
         },
         batches: true
       },
-      orderBy: { date: 'desc' }
+      orderBy: { systemDate: 'desc' }
     });
 
     const outputs = await prisma.output.findMany({
@@ -21,7 +21,7 @@ export async function getHistoryInfo(): Promise<IHistoryQuery> {
         product: { include: { group: true }},
         requisition: true
       },
-      orderBy: { date: 'desc' }
+      orderBy: { systemDate: 'desc' }
     });
 
     return { entries, outputs };
