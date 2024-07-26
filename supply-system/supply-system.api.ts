@@ -160,7 +160,7 @@ router.post('/create-output', async (req, res) => {
 });
 
 router.post('/update-requisition', async (req, res) => {
-  updateProductsRequisition(req.body).then((data) => {
+  updateProductsRequisition(req.body.productsRequisition, req.body.ranges).then((data) => {
     res.json(data);
   });
 });

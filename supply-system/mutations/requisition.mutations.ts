@@ -7,6 +7,12 @@ const prisma = new PrismaClient();
 const rhPrisma = new RhPrismaClient();
 const pdfHelper = new PDFHelper();
 
+export interface IRange {
+  id: number;
+  startRange: number;
+  endRange: number;
+}
+
 export async function createRequisition(requisitions: IProductRequisition[], username: string) {
   const requestState = await prisma.state.findFirst({ where: { state: 'Pendiente por jefe' }});
   const employeeId: {ID_Empleado: number}[] = await rhPrisma.$queryRaw`
@@ -141,7 +147,7 @@ export async function updateRequisitionFile(id: number, file: string): Promise<b
   }
 }
 
-export async function updateProductsRequisition(productRequisitions: IProductRequisition[]) {
+export async function updateProductsRequisition(productRequisitions: IProductRequisition[], ranges: IRange[]) {
   try {
     const activeState = await prisma.state.findFirst({ where: { state: 'Activa' } });
 
@@ -188,6 +194,8 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
         }
       }
 
+      const range = ranges.find(range => range.id === productReq.id);
+
       await prisma.productRequisition.update({
         where: { id: productReq.id },
         data: { quantity: productReq.quantity },
@@ -203,9 +211,18 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
           systemUser: productReq.systemUser,
           date: new Date(),
           currentQuantity: totalBatchQuantity - productReq.quantity,
-          price
+          price,
+          endRange: range?.endRange || 0,
+          startRange: range?.startRange || 0
         }
       });
+
+      if(range && range.endRange) {
+        await prisma.product.update({
+          where: { id: productReq.productId },
+          data: { batchedNumber: range.endRange + 1 }
+        });
+      }
     }
 
     const id = productRequisitions[0].requisitionId;
