@@ -28,6 +28,8 @@ export async function generateReport(type: string, startDate: string, endDate: s
       return await getEntriesReport(startDate, endDate);
     case 'suppliers':
       return await getProvidersReport(startDate, endDate);
+    case 'stock':
+      return await getStockReport();
     default:
       return null;
   }
@@ -270,6 +272,39 @@ async function getProvidersReport(startDate: string, endDate: string): Promise<a
     return { data };
   } catch (error: any) {
     console.error('Error retrieving providers report:', error);
+    throw error;
+  }
+}
+
+async function getStockReport(): Promise<any> {
+  try {
+    const products = await prisma.product.findMany({
+      select: { minimum: true, unit: true, name: true, batches: { select: { quantity: true }}}
+    });
+
+    const losStockProducts = products.filter(product => {
+      const totalStock = product.batches.reduce((acc, curr) => acc + curr.quantity, 0);
+      return totalStock < product.minimum;
+    });
+
+    const formattedResult = losStockProducts.map(product => {
+      const totalStock = product.batches.reduce((acc, curr) => acc + curr.quantity, 0);
+      return {
+        product: product.name,
+        unit: product.unit,
+        totalStock,
+        minimum: product.minimum
+      };
+    });
+
+    const data = {
+      info: formattedResult,
+      total: 0
+    };
+
+    return { data };
+  } catch (error: any) {
+    console.error('Error retrieving stock report:', error);
     throw error;
   }
 }
