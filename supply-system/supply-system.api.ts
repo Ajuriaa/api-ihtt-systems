@@ -4,7 +4,8 @@ import {
   getHistoryInfo, getNotifications, getProduct,
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
-  generateReport, getYearlyStats
+  generateReport, getYearlyStats,
+  getDashboardInfo
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -22,6 +23,26 @@ router.use((req, res, next) => {
 });
 
 // Queries
+router.get('/print-requisition/:id', async (req, res) => {
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename=requisicion.pdf');
+  printRequisition(+req.params.id).then((data) => {
+    res.send(Buffer.from(data));
+  });
+});
+
+router.get('/dashboard-top', async (req, res) => {
+  getYearlyStats().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/dashboard/:start/:end', async (req, res) => {
+  getDashboardInfo(req.params.start, req.params.end).then((data) => {
+    res.json(data);
+  });
+});
+
 router.get('/products', async (req, res) => {
   getProducts().then((data) => {
     res.json(data);
@@ -167,20 +188,6 @@ router.post('/update-requisition', async (req, res) => {
 
 router.post('/upload-requisition-file', async (req, res) => {
   updateRequisitionFile(req.body.id, req.body.file).then((data) => {
-    res.json(data);
-  });
-});
-
-router.get('/print-requisition/:id', async (req, res) => {
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename=requisicion.pdf');
-  printRequisition(+req.params.id).then((data) => {
-    res.send(Buffer.from(data));
-  });
-});
-
-router.get('/dashboard-top', async (req, res) => {
-  getYearlyStats().then((data) => {
     res.json(data);
   });
 });
