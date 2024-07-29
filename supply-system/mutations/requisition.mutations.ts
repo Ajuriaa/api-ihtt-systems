@@ -13,19 +13,24 @@ export interface IRange {
   endRange: number;
 }
 
-export async function createRequisition(requisitions: IProductRequisition[], username: string) {
-  const requestState = await prisma.state.findFirst({ where: { state: 'Pendiente por jefe' }});
-  const employeeId: {ID_Empleado: number}[] = await rhPrisma.$queryRaw`
+export async function createRequisition(
+  requisitions: IProductRequisition[],
+  username: string
+) {
+  const requestState = await prisma.state.findFirst({
+    where: { state: 'Pendiente por jefe' },
+  });
+  const employeeId: { ID_Empleado: number }[] = await rhPrisma.$queryRaw`
     SELECT ID_Empleado  from IHTT_USUARIOS.dbo.TB_Usuarios tu
     WHERE Usuario_Nombre = ${username}
   `;
 
   const id = +employeeId[0].ID_Empleado;
 
-  if(!employeeId) {
+  if (!employeeId) {
     throw new Error('Employee not found');
   }
-  if(!requestState) {
+  if (!requestState) {
     throw new Error('Request state not found');
   }
 
@@ -34,22 +39,23 @@ export async function createRequisition(requisitions: IProductRequisition[], use
       data: {
         employeeId: id,
         stateId: requestState.id,
-        systemUser: username
-      }
+        systemUser: username,
+      },
     });
 
-    if(new_requisition) {
+    if (new_requisition) {
       requisitions.forEach(async (requisition) => {
         requisition.requisitionId = new_requisition.id;
         requisition.systemUser = username;
         requisition.requestedQuantity = requisition.quantity;
       });
 
-      const new_products_requisition = await prisma.productRequisition.createMany({
-        data: requisitions
-      });
+      const new_products_requisition =
+        await prisma.productRequisition.createMany({
+          data: requisitions,
+        });
 
-      if(new_products_requisition) {
+      if (new_products_requisition) {
         return true;
       }
     }
@@ -63,18 +69,20 @@ export async function createRequisition(requisitions: IProductRequisition[], use
 
 export async function cancelRequisition(id: number) {
   try {
-    const cancelState = await prisma.state.findFirst({ where: { state: 'Cancelada' }});
+    const cancelState = await prisma.state.findFirst({
+      where: { state: 'Cancelada' },
+    });
 
-    if(!cancelState) {
+    if (!cancelState) {
       throw new Error('Cancel state not found');
     }
 
     const cancelled_requisition = await prisma.requisition.update({
       where: { id },
-      data: { stateId: cancelState.id }
+      data: { stateId: cancelState.id },
     });
 
-    if(cancelled_requisition) {
+    if (cancelled_requisition) {
       return true;
     }
 
@@ -85,11 +93,65 @@ export async function cancelRequisition(id: number) {
   }
 }
 
+export async function acceptRequisition(id: number) {
+  try {
+    const adminState = await prisma.state.findFirst({
+      where: { state: 'Pendiente por admin' },
+    });
+
+    if (!adminState) {
+      throw new Error('Admin state not found');
+    }
+
+    const cancelled_requisition = await prisma.requisition.update({
+      where: { id },
+      data: { stateId: adminState.id },
+    });
+
+    if (cancelled_requisition) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error cancelling requisition:', error);
+    return error;
+  }
+}
+
+export async function getBossRequisitions(id: string): Promise<any> {
+  try {
+    const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
+    	DECLARE @BossId INT = ${id};
+      SELECT
+      r.ID_Requisicion,
+      r.Url_Documento ,
+      te.Estado
+      FROM TB_Requisiciones r
+      INNER JOIN IHTT_RRHH.dbo.v_listado_empleados vle ON r.ID_Empleado = vle.ID_Empleado
+      INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
+      WHERE vle.ID_Jefe = @BossId;
+    `;
+
+    return requisitions;
+  } catch (error) {
+    console.error('Error retrieving requisitions info:', error);
+    throw error;
+  }
+}
+
 export async function printRequisition(id: number): Promise<ArrayBuffer> {
   try {
     const requisition = await prisma.requisition.findUnique({
       where: { id },
-      include: { outputs: true, productsRequisition: { include: { product: { include: { batches: { orderBy: { due: 'desc' }}}}}}}
+      include: {
+        outputs: true,
+        productsRequisition: {
+          include: {
+            product: { include: { batches: { orderBy: { due: 'desc' } } } },
+          },
+        },
+      },
     });
 
     if (!requisition) {
@@ -102,7 +164,7 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
       WHERE vle.ID_Empleado = ${requisition.employeeId};
     `;
 
-    if(department) {
+    if (department) {
       return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area);
     }
 
@@ -115,7 +177,9 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
 
 export async function finishRequisition(id: number): Promise<boolean> {
   try {
-    const finishState = await prisma.state.findFirst({ where: { state: 'Finalizada' } });
+    const finishState = await prisma.state.findFirst({
+      where: { state: 'Finalizada' },
+    });
 
     if (!finishState) {
       throw new Error('Finalized state not found');
@@ -123,7 +187,7 @@ export async function finishRequisition(id: number): Promise<boolean> {
 
     const finalizedRequisition = await prisma.requisition.update({
       where: { id },
-      data: { stateId: finishState.id }
+      data: { stateId: finishState.id },
     });
 
     return !!finalizedRequisition;
@@ -133,11 +197,14 @@ export async function finishRequisition(id: number): Promise<boolean> {
   }
 }
 
-export async function updateRequisitionFile(id: number, file: string): Promise<boolean> {
+export async function updateRequisitionFile(
+  id: number,
+  file: string
+): Promise<boolean> {
   try {
     const requisition = await prisma.requisition.update({
       where: { id },
-      data: { documentUrl: file }
+      data: { documentUrl: file },
     });
 
     return !!requisition;
@@ -147,9 +214,14 @@ export async function updateRequisitionFile(id: number, file: string): Promise<b
   }
 }
 
-export async function updateProductsRequisition(productRequisitions: IProductRequisition[], ranges: IRange[]) {
+export async function updateProductsRequisition(
+  productRequisitions: IProductRequisition[],
+  ranges: IRange[]
+) {
   try {
-    const activeState = await prisma.state.findFirst({ where: { state: 'Activa' } });
+    const activeState = await prisma.state.findFirst({
+      where: { state: 'Activa' },
+    });
 
     if (!activeState) {
       throw new Error('Active state not found');
@@ -158,14 +230,15 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
     for (const productReq of productRequisitions) {
       const product = await prisma.product.findUnique({
         where: { id: productReq.productId },
-        include: { batches: { orderBy: { due: 'desc' } } }
+        include: { batches: { orderBy: { due: 'desc' } } },
       });
 
       if (!product) {
         throw new Error(`Product not found: ${productReq.productId}`);
       }
 
-      const totalBatchQuantity = product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
+      const totalBatchQuantity =
+        product.batches.reduce((acc, batch) => acc + batch.quantity, 0) || 0;
 
       if (totalBatchQuantity < productReq.quantity) {
         throw new Error(`Not enough stock for product ${product.name}`);
@@ -180,7 +253,7 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
         if (batch.quantity >= remainingQuantity) {
           await prisma.batch.update({
             where: { id: batch.id },
-            data: { quantity: batch.quantity - remainingQuantity }
+            data: { quantity: batch.quantity - remainingQuantity },
           });
           price += remainingQuantity * +batch.price;
           remainingQuantity = 0;
@@ -189,12 +262,12 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
           remainingQuantity -= batch.quantity;
           await prisma.batch.update({
             where: { id: batch.id },
-            data: { quantity: 0 }
+            data: { quantity: 0 },
           });
         }
       }
 
-      const range = ranges.find(range => range.id === productReq.id);
+      const range = ranges.find((range) => range.id === productReq.id);
 
       await prisma.productRequisition.update({
         where: { id: productReq.id },
@@ -213,14 +286,14 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
           currentQuantity: totalBatchQuantity - productReq.quantity,
           price,
           endRange: range?.endRange || 0,
-          startRange: range?.startRange || 0
-        }
+          startRange: range?.startRange || 0,
+        },
       });
 
-      if(range && range.endRange) {
+      if (range && range.endRange) {
         await prisma.product.update({
           where: { id: productReq.productId },
-          data: { batchedNumber: range.endRange + 1 }
+          data: { batchedNumber: range.endRange + 1 },
         });
       }
     }
@@ -228,7 +301,7 @@ export async function updateProductsRequisition(productRequisitions: IProductReq
     const id = productRequisitions[0].requisitionId;
     const finalizedRequisition = await prisma.requisition.update({
       where: { id },
-      data: { stateId: activeState.id }
+      data: { stateId: activeState.id },
     });
 
     return !!finalizedRequisition;

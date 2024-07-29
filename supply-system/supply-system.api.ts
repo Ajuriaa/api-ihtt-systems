@@ -12,7 +12,9 @@ import {
   createProduct, createRequisition, createSupplier,
   deleteProduct, deleteSupplier, finishRequisition,
   printRequisition, updateProduct, updateProductsRequisition,
-  updateRequisitionFile, updateSupplier, createOutput
+  updateRequisitionFile, updateSupplier, createOutput,
+  acceptRequisition,
+  getBossRequisitions
 } from './mutations';
 
 export const router = express.Router();
@@ -28,6 +30,12 @@ router.get('/print-requisition/:id', async (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename=requisicion.pdf');
   printRequisition(+req.params.id).then((data) => {
     res.send(Buffer.from(data));
+  });
+});
+
+router.get('/requisition-list/:id', async (req, res) => {
+  getBossRequisitions(req.params.id).then((data) => {
+    res.json(data);
   });
 });
 
@@ -152,6 +160,12 @@ router.post('/create-requisition', async (req, res) => {
 
 router.post('/cancel-requisition', async (req, res) => {
   cancelRequisition(req.body.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/accept-requisition', async (req, res) => {
+  acceptRequisition(req.body.id).then((data) => {
     res.json(data);
   });
 });
