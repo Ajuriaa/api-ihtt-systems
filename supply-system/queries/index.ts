@@ -4,3 +4,4 @@ export * from './requisitions.queries';
 export * from './history.queries';
 export * from './header.queries';
 export * from './report.queries';
+export * from './dashboard.queries';

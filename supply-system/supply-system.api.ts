@@ -4,7 +4,7 @@ import {
   getHistoryInfo, getNotifications, getProduct,
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
-  generateReport
+  generateReport, getYearlyStats
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -176,5 +176,11 @@ router.get('/print-requisition/:id', async (req, res) => {
   res.setHeader('Content-Disposition', 'attachment; filename=requisicion.pdf');
   printRequisition(+req.params.id).then((data) => {
     res.send(Buffer.from(data));
+  });
+});
+
+router.get('/dashboard-top', async (req, res) => {
+  getYearlyStats().then((data) => {
+    res.json(data);
   });
 });
