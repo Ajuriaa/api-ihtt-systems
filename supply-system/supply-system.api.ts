@@ -4,8 +4,7 @@ import {
   getHistoryInfo, getNotifications, getProduct,
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
-  generateReport, getYearlyStats,
-  getDashboardInfo
+  generateReport, getYearlyStats, getDashboardInfo
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -13,8 +12,7 @@ import {
   deleteProduct, deleteSupplier, finishRequisition,
   printRequisition, updateProduct, updateProductsRequisition,
   updateRequisitionFile, updateSupplier, createOutput,
-  acceptRequisition,
-  getBossRequisitions
+  acceptRequisition, getBossRequisitions, getMyRequisitions
 } from './mutations';
 
 export const router = express.Router();
@@ -35,6 +33,12 @@ router.get('/print-requisition/:id', async (req, res) => {
 
 router.get('/requisition-list/:id', async (req, res) => {
   getBossRequisitions(req.params.id).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/my-requisition-list/:id', async (req, res) => {
+  getMyRequisitions(req.params.id).then((data) => {
     res.json(data);
   });
 });

@@ -119,6 +119,27 @@ export async function acceptRequisition(id: number) {
   }
 }
 
+export async function getMyRequisitions(id: string): Promise<any> {
+  try {
+    const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
+      DECLARE @EmployeeId INT = ${id};
+      SELECT
+      r.ID_Requisicion,
+      r.Url_Documento ,
+      te.Estado
+      FROM TB_Requisiciones r
+      INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
+      WHERE r.ID_Empleado = @EmployeeId;
+    `;
+
+
+    return requisitions;
+  } catch (error) {
+    console.error('Error retrieving requisitions info:', error);
+    throw error;
+  }
+}
+
 export async function getBossRequisitions(id: string): Promise<any> {
   try {
     const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
