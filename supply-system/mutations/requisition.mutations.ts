@@ -1,7 +1,7 @@
 import { PrismaClient } from '../../prisma/client/supply';
 import { PrismaClient as RhPrismaClient } from '../../prisma/client/rrhh';
 import { IProductRequisition } from '../interfaces';
-import { PDFHelper } from '../../services';
+import { PDFHelper, sendApprovedRequisitionMail, sendCreateRequisitionMail } from '../../services';
 
 const prisma = new PrismaClient();
 const rhPrisma = new RhPrismaClient();
@@ -56,6 +56,20 @@ export async function createRequisition(
         });
 
       if (new_products_requisition) {
+        const info = await rhPrisma.$queryRaw<{ Email: string | null, fullName: string }[]>`
+          SELECT tc.Email, vle.Nombres + ' ' + vle.Apellidos as fullName
+          FROM v_listado_empleados vle
+          INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
+          WHERE vle.ID_Empleado = ${id};
+        `;
+
+        if(info[0].Email){
+          const data = {
+            employee: info[0].fullName,
+            id: new_requisition.id.toString(),
+          }
+          sendCreateRequisitionMail(info[0].Email, data);
+        }
         return true;
       }
     }
@@ -324,6 +338,20 @@ export async function updateProductsRequisition(
       where: { id },
       data: { stateId: activeState.id },
     });
+
+    const info = await rhPrisma.$queryRaw<{ Email: string | null }[]>`
+      SELECT tc.Email
+      FROM v_listado_empleados vle
+      INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
+      WHERE vle.ID_Empleado = ${finalizedRequisition.employeeId};
+    `
+    if(info[0].Email){
+      const data = {
+        employee: '',
+        id: id.toString(),
+      }
+      sendApprovedRequisitionMail(info[0].Email, data);
+    }
 
     return !!finalizedRequisition;
   } catch (error) {

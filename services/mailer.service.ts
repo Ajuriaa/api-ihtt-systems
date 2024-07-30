@@ -16,12 +16,30 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+const supplyTransporter = nodemailer.createTransport({
+  host: "correo.transporte.gob.hn",
+  port: 587,
+  secure: false,
+  tls: {
+    rejectUnauthorized: false
+  },
+  auth: {
+    user: process.env.SUPPLY_MAIL,
+    pass: process.env.SUPPLY_PASSWORD
+  }
+});
+
 export interface requestMailInfo {
   employee: string;
   destination: string;
   purpose: string;
   departureDate: string;
   requestId: string;
+}
+
+export interface supplyMailInfo {
+  employee: string;
+  id: string;
 }
 
 export async function sendMail(to: string, requestInfo: requestMailInfo): Promise<void> {
@@ -41,4 +59,33 @@ export async function sendMail(to: string, requestInfo: requestMailInfo): Promis
   const html = template(replacements);
 
   const mail = await transporter.sendMail({ from, to, subject, html });
+}
+
+export async function sendCreateRequisitionMail(to: string, supply: supplyMailInfo): Promise<void> {
+  const __dirname = path.resolve();
+  const filePath = path.join(__dirname, 'templates/requisition.template.html');
+  const source = fs.readFileSync(filePath, 'utf-8').toString();
+  const template = handlebars.compile(source);
+  const replacements = {
+    employee: supply.employee,
+    id: supply.id
+  };
+  const from =`"Sistema de Proveeduría" <${process.env.SUPPLY_MAIL}>`;
+  const subject = 'Solicitud de Proveeduría';
+  const html = template(replacements);
+
+  const mail = await supplyTransporter.sendMail({ from, to, subject, html });
+}
+
+export async function sendApprovedRequisitionMail(to: string, supply: supplyMailInfo): Promise<void> {
+  const __dirname = path.resolve();
+  const filePath = path.join(__dirname, 'templates/accepted-requisition.template.html');
+  const source = fs.readFileSync(filePath, 'utf-8').toString();
+  const template = handlebars.compile(source);
+  const replacements = { id: supply.id };
+  const from =`"Sistema de Proveeduría" <${process.env.SUPPLY_MAIL}>`;
+  const subject = 'Solicitud de Proveeduría Aprobada';
+  const html = template(replacements);
+
+  const mail = await supplyTransporter.sendMail({ from, to, subject, html });
 }
