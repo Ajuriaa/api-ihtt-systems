@@ -8,11 +8,14 @@ Is strongly recommended to use [Bun](https://bun.sh/) instead of npm. The bun bi
 
 ## Database
 This is the DB SCheme and relations (Job required to name the tables in spanish and this format: TB_Table_Name but in prisma I mapped them so the codebase is in english with camelCased properties):
+
 Vehicle Fleet Control System Database:
+
 ![image](https://github.com/user-attachments/assets/8d7dbab0-5897-45ec-86b9-04d73569646b)
 
 
 Supply System Database:
+
 ![image](https://github.com/user-attachments/assets/6041b02d-6445-43f5-98aa-6767d46f1911)
 
 
