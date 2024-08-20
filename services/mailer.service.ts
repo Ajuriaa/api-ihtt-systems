@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const transporter = nodemailer.createTransport({
-  host: "correo.transporte.gob.hn",
+  host: "mail.transporte.gob.hn",
   port: 587,
   secure: false,
   tls: {
@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const supplyTransporter = nodemailer.createTransport({
-  host: "correo.transporte.gob.hn",
+  host: "mail.transporte.gob.hn",
   port: 587,
   secure: false,
   tls: {
