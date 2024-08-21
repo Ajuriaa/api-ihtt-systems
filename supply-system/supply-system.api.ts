@@ -4,7 +4,8 @@ import {
   getHistoryInfo, getNotifications, getProduct,
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
-  generateReport, getYearlyStats, getDashboardInfo
+  generateReport, getYearlyStats, getDashboardInfo,
+  getEntryInvoices
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -75,6 +76,12 @@ router.get('/suppliers', async (req, res) => {
 
 router.get('/groups', async (req, res) => {
   getProductGroups().then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/invoice-list', async (req, res) => {
+  getEntryInvoices().then((data) => {
     res.json(data);
   });
 });

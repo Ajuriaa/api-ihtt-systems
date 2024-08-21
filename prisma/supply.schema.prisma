@@ -16,6 +16,7 @@ model Entry {
   invoiceUrl    String?        @map("Url_Factura") @db.VarChar(255)
   systemUser    String?        @map("Sistema_Usuario") @db.VarChar(100)
   systemDate    DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.DateTime
+  invoiceNumber String         @default("0", map: "DF__TB_Entrad__Numer__7908F585") @map("Numero_Factura") @db.VarChar(100)
   supplier      Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
   batches       Batch[]
   productsEntry ProductEntry[]
@@ -57,6 +58,7 @@ model Product {
   perishable          Boolean              @default(false, map: "DF__TB_Produc__Perec__6BAEFA67") @map("Perecedero")
   batched             Boolean              @default(false, map: "DF__TB_Produc__Lotif__6CA31EA0") @map("Lotificado")
   batchedNumber       Int?                 @default(0, map: "DF__TB_Produc__Numer__6E8B6712") @map("Numero_Correlativo")
+  active              Boolean              @default(true, map: "DF__TB_Produc__Activ__79FD19BE") @map("Activo")
   batches             Batch[]
   group               Group                @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK__TB_Produc__ID_Gr__03BB8E22")
   productsEntry       ProductEntry[]

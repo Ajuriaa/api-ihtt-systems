@@ -3,6 +3,7 @@ export interface IEntry {
   supplierId: number;
   date: Date;
   invoiceUrl: string | null;
+  invoiceNumber: string;
 }
 
 export interface IState {
