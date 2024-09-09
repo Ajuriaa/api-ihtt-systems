@@ -4,7 +4,7 @@ import { IChargesSummaryQuery, IEmissionsByExpirationAndAmountQuery, IExpedientB
 
 const prisma = new PrismaClient();
 
-export async function getExpedientsByType() {
+export async function getExpedientsByType(start: string, end: string) {
   const stats: IExpedientRenovationQuery[] = await prisma.$queryRaw`
     SELECT
       Codigo_Ciudad AS cityCode,
@@ -13,8 +13,8 @@ export async function getExpedientsByType() {
     FROM
       [IHTT_DB].[dbo].[V_busq_solicitudes] a
     WHERE
-      CAST(a.SitemaFecha AS DATE) < '2024-09-01'
-      AND CAST(a.SitemaFecha AS DATE) > '2024-07-31'
+      CAST(a.SitemaFecha AS DATE) < ${end}
+      AND CAST(a.SitemaFecha AS DATE) > ${start}
     GROUP BY
       Codigo_Ciudad;
   `
@@ -22,7 +22,7 @@ export async function getExpedientsByType() {
   return stats;
 }
 
-export async function getExpedientsByProcedureAndCategory() {
+export async function getExpedientsByProcedureAndCategory(start: string, end: string) {
   const stats: IExpedientByProcedureAndCategoryQuery[] = await prisma.$queryRaw`
     SELECT
       DESC_Tipo_Tramite AS procedureType,
@@ -31,8 +31,8 @@ export async function getExpedientsByProcedureAndCategory() {
     FROM
       [IHTT_DB].[dbo].[V_busq_solicitudes] a
     WHERE
-      CAST(a.SitemaFecha AS DATE) < '2024-09-01'
-      AND CAST(a.SitemaFecha AS DATE) > '2024-07-31'
+      CAST(a.SitemaFecha AS DATE) < ${end}
+      AND CAST(a.SitemaFecha AS DATE) > ${start}
     GROUP BY
       DESC_Tipo_Tramite, DESC_Categoria;
   `;
@@ -40,7 +40,7 @@ export async function getExpedientsByProcedureAndCategory() {
   return stats;
 }
 
-export async function getExpedientsByModalityAndProcedure() {
+export async function getExpedientsByModalityAndProcedure(start: string, end: string) {
   const stats: IExpedientByModalityAndProcedureQuery[] = await prisma.$queryRaw`
     SELECT
       DESC_Tipo_Tramite AS procedureType,
@@ -49,8 +49,8 @@ export async function getExpedientsByModalityAndProcedure() {
     FROM
       [IHTT_DB].[dbo].[V_busq_solicitudes] a
     WHERE
-      CAST(a.SitemaFecha AS DATE) < '2024-09-01'
-      AND CAST(a.SitemaFecha AS DATE) > '2024-07-31'
+      CAST(a.SitemaFecha AS DATE) < ${end}
+      AND CAST(a.SitemaFecha AS DATE) > ${start}
     GROUP BY
       COALESCE(DESC_Modalidad, DESC_Categoria),
       DESC_Tipo_Tramite;

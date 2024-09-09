@@ -13,20 +13,20 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get('/expedients-by-type', async (req, res) => {
-  getExpedientsByType().then((data) => {
+router.get('/expedients-by-type/:start/:end', async (req, res) => {
+  getExpedientsByType(req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });
 
-router.get('/expedients-by-procedure-and-category', async (req, res) => {
-  getExpedientsByProcedureAndCategory().then((data) => {
+router.get('/expedients-by-procedure/:start/:end', async (req, res) => {
+  getExpedientsByProcedureAndCategory(req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });
 
-router.get('/expedients-by-modality-and-procedure', async (req, res) => {
-  getExpedientsByModalityAndProcedure().then((data) => {
+router.get('/expedients-by-modality/:start/:end', async (req, res) => {
+  getExpedientsByModalityAndProcedure(req.params.start, req.params.end).then((data) => {
     res.json(data);
   });
 });
@@ -61,7 +61,7 @@ router.get('/seizures-by-department', async (req, res) => {
   });
 });
 
-router.get('/fines-by-infraction-description', async (req, res) => {
+router.get('/fines-by-infraction', async (req, res) => {
   getFinesByInfractionDescription().then((data) => {
     res.json(data);
   });
