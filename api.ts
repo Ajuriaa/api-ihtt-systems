@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { router as vehicleSystemRouter } from './vehicle-system';
 import { router as sypplySystemRouter } from './supply-system';
+import { router as statsSystemRouter } from './stats-system';
 import https from 'https';
 import fs from 'fs';
 
@@ -13,6 +14,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use('/api/vehicle-system', vehicleSystemRouter);
 app.use('/api/supply-system', sypplySystemRouter);
+app.use('/api/stats', statsSystemRouter);
 app.use(express.json());
 
 const httpsOptions = {
