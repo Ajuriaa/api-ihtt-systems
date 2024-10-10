@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const transporter = nodemailer.createTransport({
-  host: "mail.transporte.gob.hn",
-  port: 587,
-  secure: false,
+  host: "122.8.183.193",
+  port: 465,
+  secure: true,
   tls: {
     rejectUnauthorized: false
   },
@@ -17,9 +17,9 @@ const transporter = nodemailer.createTransport({
 });
 
 const supplyTransporter = nodemailer.createTransport({
-  host: "mail.transporte.gob.hn",
-  port: 587,
-  secure: false,
+  host: "122.8.183.193",
+  port: 465,
+  secure: true,
   tls: {
     rejectUnauthorized: false
   },

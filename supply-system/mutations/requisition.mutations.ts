@@ -63,6 +63,8 @@ export async function createRequisition(
           WHERE vle.ID_Empleado = ${id};
         `;
 
+        console.log(info[0].Email);
+
         if(info[0].Email){
           const data = {
             employee: info[0].fullName,
