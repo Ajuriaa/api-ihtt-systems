@@ -343,9 +343,8 @@ export async function updateProductsRequisition(
 
     const info = await rhPrisma.$queryRaw<{ Email: string | null }[]>`
       SELECT tc.Email
-      FROM v_listado_empleados vle
-      INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
-      WHERE vle.ID_Empleado = ${finalizedRequisition.employeeId};
+      FROM TB_Contactos tc
+      WHERE tc.ID_Empleado = ${finalizedRequisition.employeeId};
     `
     if(info[0].Email){
       const data = {
