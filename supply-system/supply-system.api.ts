@@ -170,13 +170,13 @@ router.post('/create-requisition', async (req, res) => {
 });
 
 router.post('/cancel-requisition', async (req, res) => {
-  cancelRequisition(req.body.id).then((data) => {
+  cancelRequisition(+req.body.id).then((data) => {
     res.json(data);
   });
 });
 
 router.post('/accept-requisition', async (req, res) => {
-  acceptRequisition(req.body.id).then((data) => {
+  acceptRequisition(+req.body.id).then((data) => {
     res.json(data);
   });
 });
