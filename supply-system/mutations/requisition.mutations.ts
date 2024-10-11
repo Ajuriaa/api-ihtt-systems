@@ -140,11 +140,17 @@ export async function getMyRequisitions(id: string): Promise<any> {
     const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
       DECLARE @EmployeeId INT = ${id};
       SELECT
-      r.ID_Requisicion,
-      r.Url_Documento ,
-      te.Estado
+        r.ID_Requisicion,
+        r.Url_Documento,
+        te.Estado,
+        te.Id_Estado,
+        r.Sistema_Fecha as Fecha,
+        tem.Nombres + ' ' + tem.Apellidos AS Nombre,
+        vle.Nombre_Jefe
       FROM TB_Requisiciones r
       INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
+      INNER JOIN IHTT_RRHH.dbo.TB_Empleados tem ON tem.ID_Empleado = r.ID_Empleado
+      INNER JOIN IHTT_RRHH.dbo.v_listado_empleados vle ON r.ID_Empleado = vle.ID_Empleado
       WHERE r.ID_Empleado = @EmployeeId;
     `;
 
@@ -161,10 +167,15 @@ export async function getBossRequisitions(id: string): Promise<any> {
     const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
     	DECLARE @BossId INT = ${id};
       SELECT
-      r.ID_Requisicion,
-      r.Url_Documento ,
-      te.Estado
+        r.ID_Requisicion,
+        r.Url_Documento ,
+        te.Estado,
+        te.Id_Estado,
+        r.Sistema_Fecha as Fecha,
+        tem.Nombres + ' ' + tem.Apellidos AS Empleado,
+        vle.Nombre_Jefe
       FROM TB_Requisiciones r
+      INNER JOIN IHTT_RRHH.dbo.TB_Empleados tem ON tem.ID_Empleado = r.ID_Empleado
       INNER JOIN IHTT_RRHH.dbo.v_listado_empleados vle ON r.ID_Empleado = vle.ID_Empleado
       INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
       WHERE vle.ID_Jefe = @BossId;
