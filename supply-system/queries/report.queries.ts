@@ -49,7 +49,7 @@ async function getDepartmentsReport(startDate: string, endDate: string): Promise
       INNER JOIN
         TB_Salidas o ON o.ID_Requisicion = r.ID_Requisicion
       WHERE
-        r.ID_Estado = 4
+        r.ID_Estado = 10
       AND r.Sistema_Fecha BETWEEN ${startDate} AND ${endDate}
       GROUP BY
         vle.Area;
