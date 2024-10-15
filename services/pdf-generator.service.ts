@@ -113,16 +113,22 @@ export class PDFHelper {
   public formatRequisitionsForPDF(requisition: any) {
     const productsRequisition = requisition.productsRequisition;
     let counter = 0;
-    return productsRequisition.map((req: { product: { unit: any; name: any; }; requestedQuantity: any; quantity: any; }) => {
+    return productsRequisition.map((req: any) => {
       counter++;
       return [
         counter,
         req.product.unit,
-        req.product.name,
+        this.getName(req.product, requisition.outputs),
         req.requestedQuantity,
         req.quantity
       ];
     });
+  }
+
+  private getName(product: any, outputs: any[]): string {
+    const output = outputs.find((output) => output.productId === product.id);
+
+    return product.batched ? `${product.name} - ${output.startRange} - ${output.endRange}` : product.name;
   }
 
   private getDate(date: Date): string {
