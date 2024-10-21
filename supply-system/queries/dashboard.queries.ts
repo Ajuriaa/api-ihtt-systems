@@ -131,7 +131,7 @@ export async function getDashboardInfo(startDate: string, endDate: string): Prom
     `;
 
     const dashboardData: IDashboard = {
-      products: topProducts.map(p => ({
+      products: topProducts.slice(0, 5).map(p => ({
         name: p.name,
         quantity: +p.quantity.toFixed(2)
       })),
