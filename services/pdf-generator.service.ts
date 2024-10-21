@@ -128,7 +128,7 @@ export class PDFHelper {
   private getName(product: any, outputs: any[]): string {
     const output = outputs.find((output) => output.productId === product.id);
 
-    return product.batched ? `${product.name} - ${output.startRange} - ${output.endRange}` : product.name;
+    return output && product.batched ? `${product.name} - ${output.startRange} - ${output.endRange}` : product.name;
   }
 
   private getDate(date: Date): string {
