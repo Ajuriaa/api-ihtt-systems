@@ -112,7 +112,7 @@ export async function cancelRequisition(id: number) {
 export async function acceptRequisition(id: number) {
   try {
     const adminState = await prisma.state.findFirst({
-      where: { state: 'Pendiente por admin' },
+      where: { state: 'Pendiente por proveeduria' },
     });
 
     if (!adminState) {

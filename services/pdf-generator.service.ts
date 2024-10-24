@@ -56,6 +56,19 @@ export class PDFHelper {
         doc.rect(margin, margin, 10, pageSize.height-2*margin, 'F');
 
         this.finalY = data.cursor?.y || 95;
+
+        // Add diagonal text if notFinished
+        const notFinished = deliverDate === 'NO ENTREGADO';
+        if (notFinished) {
+          doc.setTextColor('red');
+          doc.setFontSize(40);
+          doc.setFont('bold');
+          doc.saveGraphicsState();
+          const text = "REQUISICION NO VALIDA\nPENDIENTE DE APROBACION";
+          doc.text(text, pageSize.width / 2, pageSize.height / 2, { align: 'center', baseline: 'middle' });
+          doc.restoreGraphicsState();
+          doc.setTextColor(40); // Reset text color back
+        }
       },
     });
     const pageCount = (doc as any).internal.getNumberOfPages();
@@ -88,7 +101,6 @@ export class PDFHelper {
         doc.text(labels[i * 2 + 1], 150 - (doc.getTextWidth(labels[i * 2 + 1])/2), y + 5);
       }
     }
-
 
     // Footer
     for(let i = 1; i <= pageCount; i++) {
