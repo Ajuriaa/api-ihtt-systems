@@ -76,7 +76,7 @@ export class PDFHelper {
 
     const signatureY = this.finalY + 20;
     const rowHeight = 20;
-    const labels = ['SOLICITADO', 'AUTORIZADO', 'RECIBIDO', 'ENTREGADO POR'];
+    const labels = ['FIRMA Y SELLO UNIDAD SOLICITANTE', 'FIRMA Y SELLO GERENCIA DE ADMON Y RRHH', 'RECIBIDO', 'OFICIAL PROVEEDURIA'];
     doc.setFontSize(6);
 
     if (signatureY + 2 * rowHeight > doc.internal.pageSize.height) {
