@@ -117,7 +117,7 @@ export class PDFHelper {
     const id = requisition.id;
     const columns = ['No', 'Unidad de medida', 'Producto', 'Cantidad Solicitada','Cantidad Entregada'];
     const formattedSuppliers = this.formatRequisitionsForPDF(requisition);
-    const requestDate = this.getDate(requisition.date);
+    const requestDate = this.getDate(requisition.systemDate);
     const deliverDate = requisition.outputs.length > 0 ? this.getDate(requisition.outputs[0].date) : 'NO ENTREGADO';
     return this.generatePDF(formattedSuppliers, columns, 'Requisición de Materiales Sección Proveeduría', requestDate, deliverDate, department, id);
   }
