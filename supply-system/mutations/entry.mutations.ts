@@ -16,7 +16,7 @@ export async function createEntries(entry: IEntry, productsEntry: IProductEntry[
         }
       });
       const batches = batchesInfo.map(batch => {
-        batch.due = batch.due instanceof Date && !isNaN(batch.due.getTime()) ? batch.due  : null;
+        batch.due = batch.due ? new Date(batch.due) : null;
         return {
           ...batch,
           entryId: new_entry.id
