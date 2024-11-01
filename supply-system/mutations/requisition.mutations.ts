@@ -205,15 +205,15 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
     if (!requisition) {
       throw new Error('requisition not found');
     }
-    const department: { Area: string }[] = await rhPrisma.$queryRaw`
-      SELECT Area
+    const department: { Area: string, Nombre: string }[] = await rhPrisma.$queryRaw`
+      SELECT Area, CONCAT(Nombres, ' ', Apellidos) as Nombre
       FROM v_listado_empleados vle
       INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
       WHERE vle.ID_Empleado = ${requisition.employeeId};
     `;
 
     if (department) {
-      return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area);
+      return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area, department[0].Nombre);
     }
 
     return new ArrayBuffer(0);
