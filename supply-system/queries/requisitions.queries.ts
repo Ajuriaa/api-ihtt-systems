@@ -20,8 +20,15 @@ export async function getRequisitions(): Promise<IRequisitionsQuery> {
         where: { ID_Empleado: requisition.employeeId }
       });
       const info: { Nombre_Jefe: string, Area: string }[] = await rrhh.$queryRaw`
-        SELECT Nombre_Jefe, Area FROM v_listado_empleados vle
-        WHERE ID_Empleado = ${requisition.employeeId}
+        SELECT
+          c.DESC_Area AS Area,
+          x.Nombres + ' ' + x.Apellidos AS Nombre_Jefe
+        FROM
+          dbo.TB_Empleado_Area_Cargo AS d
+          LEFT JOIN dbo.TB_Areas AS c ON d.ID_Area = c.ID_Area
+          LEFT JOIN dbo.V_Encargado_RRHH AS x ON d.ID_Area = x.ID_Area
+        WHERE
+          d.ID_Empleado = ${requisition.employeeId};
       `
       return { ...requisition, employeeName: employee?.Nombres + ' ' + employee?.Apellidos, bossName: info[0].Nombre_Jefe, department: info[0].Area };
     }));
