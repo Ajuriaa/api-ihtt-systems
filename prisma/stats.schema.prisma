@@ -1,0 +1,69 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./client/stats-system"
+  binaryTargets = ["native", "rhel-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../stats.sqlite"
+}
+
+model certificates {
+  id                           Int     @id @default(autoincrement())
+  areaName                     String?
+  documentStatus               String?
+  coStatus                     String?
+  deliveryDate                 String?
+  shelfNumber                  String?
+  rowNumber                    String?
+  ringNumber                   String?
+  certificateNumber            String?
+  plateId                      String?
+  exploitationPermissionNumber String?
+  modality                     String?
+  documentType                 String?
+  department                   String?
+  requestId                    String?
+  fileId                       String?
+  isAutomaticRenewal           Int?
+  preform                      String?
+  concessionaireRtn            String?
+  concessionaireName           String?
+  concessionairePhone          String?
+  concessionaireEmail          String?
+  legalRepresentativeName      String?
+  legalRepresentativeEmail     String?
+  legalRepresentativePhone     String?
+  unifiedRequirement           String?
+  noticeCode                   Int?
+  noticeStatusDescription      String?
+  totalNoticeAmount            Float?
+  systemUser                   String?
+  inventoryDate                String?
+  certificateExpirationDate    String?
+  paymentDate                  String?
+  permissionExpirationDate     String?
+}
+
+model fines {
+  id           Int     @id @default(autoincrement())
+  fineId       String?
+  operationId  String?
+  fineStatus   String?
+  origin       String?
+  plate        String?
+  startDate    String?
+  companyName  String?
+  dniRtn       String?
+  phone        String?
+  email        String?
+  certificate  String?
+  region       String?
+  systemDate   String?
+  noticeCode   Int?
+  totalAmount  Float?
+  department   String?
+  municipality String?
+  place        String?
+}
