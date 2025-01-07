@@ -20,12 +20,24 @@ export async function createRequisition(
   const requestState = await prisma.state.findFirst({
     where: { state: 'Pendiente por jefe' },
   });
+  const bossState = await prisma.state.findFirst({
+    where: { state: 'Pendiente por proveeduria' }
+  });
   const employeeId: { ID_Empleado: number }[] = await rhPrisma.$queryRaw`
     SELECT ID_Empleado  from IHTT_USUARIOS.dbo.TB_Usuarios tu
     WHERE Usuario_Nombre = ${username}
   `;
 
   const id = +employeeId[0].ID_Empleado;
+  const isBoss: { value: number }[] = await rhPrisma.$queryRaw`
+    SELECT
+        CASE
+            WHEN ID_Empleado = ID_Jefe THEN 1
+            ELSE 0
+        END AS value
+    FROM IHTT_RRHH.dbo.v_listado_empleados vle
+    WHERE vle.ID_Empleado = ${id};
+  `;
 
   if (!employeeId) {
     throw new Error('Employee not found');
@@ -33,12 +45,15 @@ export async function createRequisition(
   if (!requestState) {
     throw new Error('Request state not found');
   }
+  if (!bossState) {
+    throw new Error('Boss state not found');
+  }
 
   try {
     const new_requisition = await prisma.requisition.create({
       data: {
         employeeId: id,
-        stateId: requestState.id,
+        stateId: isBoss[0].value === 1 ? bossState.id : requestState.id,
         systemUser: username,
       },
     });
