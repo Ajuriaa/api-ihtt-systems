@@ -96,6 +96,7 @@ export async function getFines(params: any): Promise<any> {
       startDate,
       endDate,
       region,
+      status,
       department,
       municipality,
       origin,
@@ -114,6 +115,9 @@ export async function getFines(params: any): Promise<any> {
         gte: new Date(startDate).toISOString(),
         lte: new Date(endDate).toISOString(),
       };
+    }
+    if (status) {
+      filters.fineStatus = status;
     }
     if(companyName) {
       filters.companyName = {
