@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export async function getCertificates(params: any): Promise<any> {
   try {
     // Extract filters and pagination parameters
-    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated } = params;
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated, modality } = params;
 
     // Determine pagination values
     let page = 0;
@@ -20,6 +20,10 @@ export async function getCertificates(params: any): Promise<any> {
 
     if (areaName) {
       filters.areaName = { contains: areaName };
+    }
+
+    if(modality) {
+      filters.modality = modality;
     }
 
     if (rtn) {
