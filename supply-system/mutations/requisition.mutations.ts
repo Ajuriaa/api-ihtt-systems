@@ -80,12 +80,23 @@ export async function createRequisition(
 
         console.log(info[0].Email);
 
-        if(info[0].Email){
+        // Todo eso está hardcoded porque esos empleados están en otro departamento :D
+        const skipPresident = ['662', '832', '1347'];
+
+        if(info[0].Email && !skipPresident.includes(id.toString())){
           const data = {
             employee: info[0].fullName,
             id: new_requisition.id.toString(),
           }
           sendCreateRequisitionMail(info[0].Email, data);
+        }
+
+        if(skipPresident.includes(id.toString())){
+          const data = {
+            employee: info[0].fullName,
+            id: new_requisition.id.toString(),
+          }
+          sendCreateRequisitionMail('sflores@transporte.gob.hn', data);
         }
         return true;
       }
@@ -151,9 +162,16 @@ export async function acceptRequisition(id: number) {
 }
 
 export async function getMyRequisitions(id: string): Promise<any> {
+  // El id del comisionado está hardcodeado para que todo le caiga a su asistente. Cambiarlo cuando se implemente el login
+  const presidentId = '610';
+  const assistantId = '616';
+
   try {
+    const employeeId1 = id;
+    const employeeId2 = id === assistantId ? presidentId : '-10'; // Si no es asistente, usa -10
     const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
-      DECLARE @EmployeeId INT = ${id};
+      DECLARE @EmployeeId1 INT = ${employeeId1};
+      DECLARE @EmployeeId2 INT = ${employeeId2};
       SELECT
         r.ID_Requisicion,
         r.Url_Documento,
@@ -166,7 +184,7 @@ export async function getMyRequisitions(id: string): Promise<any> {
       INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
       INNER JOIN IHTT_RRHH.dbo.TB_Empleados tem ON tem.ID_Empleado = r.ID_Empleado
       INNER JOIN IHTT_RRHH.dbo.v_listado_empleados vle ON r.ID_Empleado = vle.ID_Empleado
-      WHERE r.ID_Empleado = @EmployeeId;
+      WHERE r.ID_Empleado IN (@EmployeeId1, @EmployeeId2);
     `;
 
 
@@ -178,9 +196,16 @@ export async function getMyRequisitions(id: string): Promise<any> {
 }
 
 export async function getBossRequisitions(id: string): Promise<any> {
+  // El id del comisionado está hardcodeado para que todo le caiga a su asistente. Cambiarlo cuando se implemente el login
+  const presidentId = '610';
+  const assistantId = '616';
+
   try {
+    const employeeId1 = id;
+    const employeeId2 = id === assistantId ? presidentId : '-10'; // Si no es asistente, usa -10
     const requisitions = await prisma.$queryRaw<{ ID_Requisicion: number, Url_Documento: string, Estado: string }[]>`
-    	DECLARE @BossId INT = ${id};
+      DECLARE @BossId INT = ${employeeId1};
+      DECLARE @BossId2 INT = ${employeeId2};
       SELECT
         r.ID_Requisicion,
         r.Url_Documento ,
@@ -193,7 +218,7 @@ export async function getBossRequisitions(id: string): Promise<any> {
       INNER JOIN IHTT_RRHH.dbo.TB_Empleados tem ON tem.ID_Empleado = r.ID_Empleado
       INNER JOIN IHTT_RRHH.dbo.v_listado_empleados vle ON r.ID_Empleado = vle.ID_Empleado
       INNER JOIN TB_Estados te ON te.ID_Estado = r.ID_Estado
-      WHERE vle.ID_Jefe = @BossId;
+      WHERE vle.ID_Jefe IN (@BossId, @BossId2);
     `;
 
     return requisitions;
