@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export async function getCertificates(params: any): Promise<any> {
   try {
     // Extract filters and pagination parameters
-    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated, modality } = params;
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated, modality, dateType } = params;
 
     // Determine pagination values
     let page = 0;
@@ -42,27 +42,26 @@ export async function getCertificates(params: any): Promise<any> {
       filters.noticeStatusDescription = noticeStatus;
     }
 
-    if (startDate && endDate) {
-      filters.OR = [
-        {
-          certificateExpirationDate: {
-            gte: new Date(startDate as string).toISOString(),
-            lte: new Date(endDate as string).toISOString(),
-          },
-        },
-        {
-          permissionExpirationDate: {
-            gte: new Date(startDate as string).toISOString(),
-            lte: new Date(endDate as string).toISOString(),
-          },
-        },
-        {
-          paymentDate: {
-            gte: new Date(startDate as string).toISOString(),
-            lte: new Date(endDate as string).toISOString(),
-          },
-        },
-      ];
+    if (startDate && endDate && dateType) {
+      const dateFilter = {};
+
+      // Apply date filter based on dateType
+      if (dateType === 'certificateExpiration') {
+        dateFilter['certificateExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'permissionExpiration') {
+        dateFilter['permissionExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'payment') {
+        dateFilter['paymentDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
     }
 
     // Fetch data from Prisma
