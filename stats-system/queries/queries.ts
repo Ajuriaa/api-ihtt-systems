@@ -43,7 +43,7 @@ export async function getCertificates(params: any): Promise<any> {
     }
 
     if (startDate && endDate && dateType) {
-      const dateFilter = {};
+      const dateFilter: any = {};
 
       // Apply date filter based on dateType
       if (dateType === 'certificateExpiration') {
