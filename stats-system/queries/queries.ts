@@ -43,21 +43,19 @@ export async function getCertificates(params: any): Promise<any> {
     }
 
     if (startDate && endDate && dateType) {
-      const dateFilter: any = {};
-
       // Apply date filter based on dateType
       if (dateType === 'certificateExpiration') {
-        dateFilter['certificateExpirationDate'] = {
+        filters['certificateExpirationDate'] = {
           gte: new Date(startDate as string).toISOString(),
           lte: new Date(endDate as string).toISOString(),
         };
       } else if (dateType === 'permissionExpiration') {
-        dateFilter['permissionExpirationDate'] = {
+        filters['permissionExpirationDate'] = {
           gte: new Date(startDate as string).toISOString(),
           lte: new Date(endDate as string).toISOString(),
         };
       } else if (dateType === 'payment') {
-        dateFilter['paymentDate'] = {
+        filters['paymentDate'] = {
           gte: new Date(startDate as string).toISOString(),
           lte: new Date(endDate as string).toISOString(),
         };
