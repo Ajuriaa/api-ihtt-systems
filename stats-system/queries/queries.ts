@@ -62,29 +62,25 @@ export async function getCertificates(params: any): Promise<any> {
       }
     }
 
-    // Fetch data from Prisma
+    // Use distinct to get unique records by noticeCode at database level
     const data = await prisma.certificates.findMany({
       where: filters,
-      skip: paginated === 'true' ? (page - 1) * limit : undefined, // Skip only if paginated
-      take: paginated === 'true' ? limit : undefined, // Take only if paginated
+      distinct: ['noticeCode'],
+      skip: paginated === 'true' ? (page - 1) * limit : undefined,
+      take: paginated === 'true' ? limit : undefined,
     });
 
-    // Filtrar registros únicos basados en noticeCode
-    const seenNoticeCodes = new Set();
-    const uniqueData = data.filter((record) => {
-      if (!seenNoticeCodes.has(record.noticeCode)) {
-        seenNoticeCodes.add(record.noticeCode);
-        return true;
-      }
-      return false;
+    // Count total unique records for pagination
+    const totalUniqueRecords = await prisma.certificates.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+      select: { id: true }
     });
-
-    // Count total records for pagination (only if paginated is true)
-    const total = paginated === 'true' ? await prisma.certificates.count({ where: filters }) : data.length;
+    const total = paginated === 'true' ? totalUniqueRecords.length : data.length;
 
     // Return the response
     return {
-      data: uniqueData,
+      data,
       total,
       page: paginated === 'true' ? page : undefined,
       pages: paginated === 'true' ? Math.ceil(total / limit) : undefined,
