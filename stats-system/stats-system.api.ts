@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { getCertificates, getFines, getDashboardAnalytics } from './queries';
+import { getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics } from './queries';
 
 export const router = express.Router();
 
@@ -24,6 +24,12 @@ router.get('/fines', async (req, res: Response) => {
 
 router.get('/dashboard-analytics', async (req, res: Response) => {
   getDashboardAnalytics(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/fines-analytics', async (req, res: Response) => {
+  getFinesAnalytics(req.query).then((data) => {
     res.json(data);
   });
 });

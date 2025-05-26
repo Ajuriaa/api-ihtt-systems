@@ -338,6 +338,175 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
   }
 }
 
+export async function getFinesAnalytics(params: any): Promise<any> {
+  try {
+    const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName } = params;
+
+    // Build base filters for filtered data
+    const filters: any = {};
+    if (startDate && endDate) {
+      filters.startDate = {
+        gte: new Date(startDate).toISOString(),
+        lte: new Date(endDate).toISOString(),
+      };
+    }
+    if (status) filters.fineStatus = status;
+    if (companyName) filters.companyName = { contains: companyName };
+    if (dniRtn) filters.dniRtn = { contains: dniRtn };
+    if (region) filters.region = { contains: region };
+    if (department) filters.department = { contains: department };
+    if (municipality) filters.municipality = { contains: municipality };
+    if (origin) filters.origin = { contains: origin };
+    if (operationId) filters.operationId = operationId;
+
+    // Get filtered fines for KPIs and charts that need filtering
+    const filteredFines = await prisma.fines.findMany({
+      where: filters,
+    });
+
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
+
+    // Get ALL fines for global KPIs (no filters) - MOVE THIS BEFORE KPIs calculation
+    const globalActiveFinesResult = await prisma.fines.aggregate({
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalAmount: true
+      },
+      where: {
+        fineStatus: 'ACTIVA'
+      }
+    });
+
+    const globalAllFines = await prisma.fines.findMany({
+      where: {}  // No filters - all fines
+    });
+
+    // Calculate KPIs - both filtered and global
+    const kpis = {
+      // Filtered KPIs (based on user filters)
+      filtered: {
+        totalFines: filteredFines.length,
+        totalFineRevenue: filteredFines
+          .filter(fine => fine.fineStatus === 'PAGADA')
+          .reduce((sum, fine) => sum + (fine.totalAmount || 0), 0),
+        totalAmountDue: filteredFines
+          .filter(fine => fine.fineStatus === 'ACTIVA')
+          .reduce((sum, fine) => sum + (fine.totalAmount || 0), 0),
+        activeFines: filteredFines.filter(fine => fine.fineStatus === 'ACTIVA').length,
+        paidFines: filteredFines.filter(fine => fine.fineStatus === 'PAGADA').length,
+        cancelledFines: filteredFines.filter(fine => fine.fineStatus === 'ANULADA').length
+      },
+      // Global KPIs (all fines, no filters)
+      global: {
+        activeFines: globalActiveFinesResult._count.id || 0,
+        totalAmountDue: globalActiveFinesResult._sum.totalAmount || 0,
+        totalFines: globalAllFines.length
+      }
+    };
+
+    // Optimized query for monthly revenue (all paid fines, not filtered)
+    const monthlyRevenueData = await prisma.$queryRaw`
+      SELECT 
+        strftime('%Y-%m', startDate) as month,
+        SUM(totalAmount) as totalAmount
+      FROM fines 
+      WHERE fineStatus = 'PAGADA' 
+        AND startDate IS NOT NULL
+      GROUP BY strftime('%Y-%m', startDate)
+      ORDER BY month DESC
+      LIMIT 24
+    `;
+
+    // Get fines from last 12 months for global analytics (all fines, not filtered)
+    const last12MonthsFines = await prisma.fines.findMany({
+      where: {
+        startDate: {
+          gte: twelveMonthsAgo.toISOString(),
+          lte: now.toISOString()
+        }
+      }
+    });
+
+
+    // Calculate chart data
+    const chartData = {
+      statusDistribution: filteredFines.reduce((acc: any, fine) => {
+        const status = fine.fineStatus || 'DESCONOCIDO';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {}),
+
+      monthlyRevenue: (monthlyRevenueData as any[]).reduce((acc: any, row: any) => {
+        acc[row.month] = Number(row.totalAmount) || 0;
+        return acc;
+      }, {}),
+
+      debtByDepartment: filteredFines
+        .filter(fine => fine.fineStatus === 'ACTIVA')
+        .reduce((acc: any, fine) => {
+          const department = fine.department || 'DESCONOCIDO';
+          acc[department] = (acc[department] || 0) + (fine.totalAmount || 0);
+          return acc;
+        }, {}),
+
+      debtByRegion: filteredFines
+        .filter(fine => fine.fineStatus === 'ACTIVA')
+        .reduce((acc: any, fine) => {
+          const region = fine.region || 'DESCONOCIDO';
+          if (!acc[region]) {
+            acc[region] = { totalAmount: 0, count: 0 };
+          }
+          acc[region].totalAmount += fine.totalAmount || 0;
+          acc[region].count += 1;
+          return acc;
+        }, {}),
+
+      finesByDepartmentLast12Months: last12MonthsFines.reduce((acc: any, fine) => {
+        const department = fine.department || 'NO DEFINIDO';
+        if (!acc[department]) {
+          acc[department] = { value: 0, count: 0 };
+        }
+        acc[department].value += fine.totalAmount || 0;
+        acc[department].count += 1;
+        return acc;
+      }, {}),
+
+      // Global chart data (all active fines, no filters)
+      globalDebtByDepartment: globalAllFines
+        .filter(fine => fine.fineStatus === 'ACTIVA')
+        .reduce((acc: any, fine) => {
+          const department = fine.department || 'DESCONOCIDO';
+          acc[department] = (acc[department] || 0) + (fine.totalAmount || 0);
+          return acc;
+        }, {}),
+
+      globalDebtByRegion: globalAllFines
+        .filter(fine => fine.fineStatus === 'ACTIVA')
+        .reduce((acc: any, fine) => {
+          const region = fine.region || 'DESCONOCIDO';
+          if (!acc[region]) {
+            acc[region] = { totalAmount: 0, count: 0 };
+          }
+          acc[region].totalAmount += fine.totalAmount || 0;
+          acc[region].count += 1;
+          return acc;
+        }, {})
+    };
+
+    return {
+      kpis,
+      chartData,
+      total: filteredFines.length
+    };
+  } catch (error: any) {
+    console.error('Error retrieving fines analytics:', error);
+    throw error.message;
+  }
+}
+
 export async function getFines(params: any): Promise<any> {
   try {
     const {
