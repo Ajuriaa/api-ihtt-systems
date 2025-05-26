@@ -91,6 +91,253 @@ export async function getCertificates(params: any): Promise<any> {
   }
 }
 
+export async function getDashboardAnalytics(params: any): Promise<any> {
+  try {
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType } = params;
+
+    // Build base filters
+    const filters: any = {};
+    
+    if (areaName) filters.areaName = { contains: areaName };
+    if (modality) filters.modality = modality;
+    if (rtn) filters.concessionaireRtn = { contains: rtn };
+    if (department) filters.department = { contains: department };
+    if (coStatus) filters.coStatus = coStatus;
+    if (noticeStatus) filters.noticeStatusDescription = noticeStatus;
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'certificateExpiration') {
+        filters['certificateExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'permissionExpiration') {
+        filters['permissionExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'payment') {
+        filters['paymentDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Get filtered certificates for basic KPIs and chart data that need filtering
+    const certificates = await prisma.certificates.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    const now = new Date();
+    const threeMonthsFromNow = new Date(now.getTime() + (90 * 24 * 60 * 60 * 1000));
+    const twelveMonthsAgo = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
+    const twelveMonthsFromNow = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
+
+    // Basic KPIs from filtered data - using distinct noticeCode
+    const uniqueNoticeCodes = new Map();
+    certificates.forEach(cert => {
+      if (cert.noticeCode && !uniqueNoticeCodes.has(cert.noticeCode)) {
+        uniqueNoticeCodes.set(cert.noticeCode, cert);
+      }
+    });
+    
+    const uniqueCertificates = Array.from(uniqueNoticeCodes.values());
+    
+    const basicKpis = {
+      totalPaid: uniqueCertificates
+        .filter(cert => cert.paymentDate && cert.noticeStatusDescription === "PAGADO")
+        .reduce((sum, cert) => sum + (cert.totalNoticeAmount || 0), 0),
+      
+      totalOwed: uniqueCertificates
+        .filter(cert => cert.noticeStatusDescription === 'ACTIVO')
+        .reduce((sum, cert) => sum + (cert.totalNoticeAmount || 0), 0)
+    };
+
+    // Optimized queries for global KPIs (no filtering - all certificates)
+    const upcomingExpirationsResult = await prisma.certificates.aggregate({
+      _count: {
+        noticeCode: true
+      },
+      where: {
+        OR: [
+          {
+            certificateExpirationDate: {
+              gte: now.toISOString(),
+              lte: threeMonthsFromNow.toISOString()
+            }
+          },
+          {
+            permissionExpirationDate: {
+              gte: now.toISOString(),
+              lte: threeMonthsFromNow.toISOString()
+            }
+          }
+        ]
+      }
+    });
+
+    // For money calculations, we need to use raw SQL to ensure DISTINCT noticeCode
+    const totalPaidLast12MonthsResult = await prisma.$queryRaw`
+      SELECT SUM(totalNoticeAmount) as totalAmount
+      FROM (
+        SELECT DISTINCT noticeCode, totalNoticeAmount
+        FROM certificates 
+        WHERE paymentDate >= ${twelveMonthsAgo.toISOString()}
+          AND paymentDate <= ${now.toISOString()}
+          AND noticeStatusDescription = 'PAGADO'
+          AND noticeCode IS NOT NULL
+      )
+    `;
+
+    const totalProjectedNext12MonthsResult = await prisma.$queryRaw`
+      SELECT SUM(totalNoticeAmount) as totalAmount
+      FROM (
+        SELECT DISTINCT noticeCode, totalNoticeAmount
+        FROM certificates 
+        WHERE (
+          (certificateExpirationDate >= ${now.toISOString()} AND certificateExpirationDate <= ${twelveMonthsFromNow.toISOString()})
+          OR 
+          (permissionExpirationDate >= ${now.toISOString()} AND permissionExpirationDate <= ${twelveMonthsFromNow.toISOString()})
+        )
+        AND noticeCode IS NOT NULL
+      )
+    `;
+
+    // Optimized query for monthly income chart (all paid certificates with DISTINCT noticeCode)
+    const monthlyIncomeData = await prisma.$queryRaw`
+      SELECT 
+        month,
+        SUM(totalNoticeAmount) as totalAmount
+      FROM (
+        SELECT DISTINCT 
+          noticeCode, 
+          totalNoticeAmount,
+          strftime('%Y-%m', paymentDate) as month
+        FROM certificates 
+        WHERE noticeStatusDescription = 'PAGADO' 
+          AND paymentDate IS NOT NULL
+          AND noticeCode IS NOT NULL
+      )
+      GROUP BY month
+      ORDER BY month DESC
+      LIMIT 24
+    `;
+
+    // Get projection data directly from database (ALL certificates, not filtered)
+    const projectionCertificates = await prisma.certificates.findMany({
+      where: {
+        OR: [
+          {
+            certificateExpirationDate: {
+              gte: now.toISOString(),
+              lte: twelveMonthsFromNow.toISOString()
+            }
+          },
+          {
+            permissionExpirationDate: {
+              gte: now.toISOString(),
+              lte: twelveMonthsFromNow.toISOString()
+            }
+          }
+        ]
+      },
+      distinct: ['noticeCode'],
+    });
+
+    console.log('Found', projectionCertificates.length, 'certificates for projection from DB');
+
+    const kpis = {
+      ...basicKpis,
+      upcomingExpirations: upcomingExpirationsResult._count.noticeCode || 0,
+      totalPaidLast12Months: Number((totalPaidLast12MonthsResult as any)[0]?.totalAmount) || 0,
+      totalProjectedNext12Months: Number((totalProjectedNext12MonthsResult as any)[0]?.totalAmount) || 0
+    };
+
+    // Calculate chart data using unique certificates
+    const chartData = {
+      debtDistribution: uniqueCertificates.reduce((acc: any, cert) => {
+        const status = cert.noticeStatusDescription || "NO DEFINIDO";
+        acc[status] = (acc[status] || 0) + (cert.totalNoticeAmount || 0);
+        return acc;
+      }, {}),
+
+      debtByDepartment: uniqueCertificates
+        .filter(cert => cert.noticeStatusDescription === "ACTIVO")
+        .reduce((acc: any, cert) => {
+          const department = cert.department || "NO DEFINIDO";
+          acc[department] = (acc[department] || 0) + (cert.totalNoticeAmount || 0);
+          return acc;
+        }, {}),
+
+      paidByMonth: (monthlyIncomeData as any[]).reduce((acc: any, row: any) => {
+        acc[row.month] = Number(row.totalAmount) || 0;
+        return acc;
+      }, {}),
+
+      projectionsByMonth: (() => {
+        console.log('Starting projection calculation for next 12 months');
+        
+        const projectionData: { [key: string]: number } = {};
+        
+        // Initialize all 12 months with 0 (proper month calculation)
+        for (let i = 0; i < 12; i++) {
+          const futureDate = new Date(now);
+          futureDate.setMonth(futureDate.getMonth() + i);
+          const monthKey = String(futureDate.getMonth() + 1).padStart(2, '0') + '-' + futureDate.getFullYear();
+          projectionData[monthKey] = 0;
+        }
+        
+        console.log('Initialized months:', Object.keys(projectionData));
+        
+        // Calculate projections by month using database results
+        projectionCertificates.forEach(cert => {
+          const certExpDate = cert.certificateExpirationDate ? new Date(cert.certificateExpirationDate) : null;
+          const permExpDate = cert.permissionExpirationDate ? new Date(cert.permissionExpirationDate) : null;
+
+          const validDate = certExpDate && certExpDate >= now && certExpDate <= twelveMonthsFromNow
+            ? certExpDate
+            : permExpDate && permExpDate >= now && permExpDate <= twelveMonthsFromNow
+            ? permExpDate
+            : null;
+
+          if (validDate) {
+            const monthKey = String(validDate.getMonth() + 1).padStart(2, '0') + '-' + validDate.getFullYear();
+            projectionData[monthKey] = (projectionData[monthKey] || 0) + (cert.totalNoticeAmount || 0);
+            console.log('Added', cert.totalNoticeAmount, 'to month', monthKey);
+          }
+        });
+        
+        console.log('Final projection data:', projectionData);
+        return projectionData;
+      })(),
+
+      certificateByModality: uniqueCertificates.reduce((acc: any, cert) => {
+        const modality = cert.modality || 'DESCONOCIDO';
+        if (!acc[modality]) {
+          acc[modality] = { active: 0, paid: 0 };
+        }
+        if (cert.noticeStatusDescription === 'ACTIVO') {
+          acc[modality].active += cert.totalNoticeAmount || 0;
+        } else if (cert.noticeStatusDescription === 'PAGADO') {
+          acc[modality].paid += cert.totalNoticeAmount || 0;
+        }
+        return acc;
+      }, {})
+    };
+
+    return {
+      kpis,
+      chartData,
+      total: uniqueCertificates.length
+    };
+  } catch (error: any) {
+    console.error('Error retrieving dashboard analytics:', error);
+    throw error.message;
+  }
+}
+
 export async function getFines(params: any): Promise<any> {
   try {
     const {
