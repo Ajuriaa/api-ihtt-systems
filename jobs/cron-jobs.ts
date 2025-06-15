@@ -117,6 +117,8 @@ async function saveFinesToSQLite(data: any[]): Promise<void> {
           row.department,
           row.municipality,
           row.place,
+          row.employeeId,
+          row.employeeName
         ]);
       });
 

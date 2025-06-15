@@ -97,7 +97,7 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
 
     // Build base filters
     const filters: any = {};
-    
+
     if (areaName) filters.areaName = { contains: areaName };
     if (modality) filters.modality = modality;
     if (rtn) filters.concessionaireRtn = { contains: rtn };
@@ -142,14 +142,14 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
         uniqueNoticeCodes.set(cert.noticeCode, cert);
       }
     });
-    
+
     const uniqueCertificates = Array.from(uniqueNoticeCodes.values());
-    
+
     const basicKpis = {
       totalPaid: uniqueCertificates
         .filter(cert => cert.paymentDate && cert.noticeStatusDescription === "PAGADO")
         .reduce((sum, cert) => sum + (cert.totalNoticeAmount || 0), 0),
-      
+
       totalOwed: uniqueCertificates
         .filter(cert => cert.noticeStatusDescription === 'ACTIVO')
         .reduce((sum, cert) => sum + (cert.totalNoticeAmount || 0), 0)
@@ -183,7 +183,7 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
       SELECT SUM(totalNoticeAmount) as totalAmount
       FROM (
         SELECT DISTINCT noticeCode, totalNoticeAmount
-        FROM certificates 
+        FROM certificates
         WHERE paymentDate >= ${twelveMonthsAgo.toISOString()}
           AND paymentDate <= ${now.toISOString()}
           AND noticeStatusDescription = 'PAGADO'
@@ -195,10 +195,10 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
       SELECT SUM(totalNoticeAmount) as totalAmount
       FROM (
         SELECT DISTINCT noticeCode, totalNoticeAmount
-        FROM certificates 
+        FROM certificates
         WHERE (
           (certificateExpirationDate >= ${now.toISOString()} AND certificateExpirationDate <= ${twelveMonthsFromNow.toISOString()})
-          OR 
+          OR
           (permissionExpirationDate >= ${now.toISOString()} AND permissionExpirationDate <= ${twelveMonthsFromNow.toISOString()})
         )
         AND noticeCode IS NOT NULL
@@ -207,16 +207,16 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
 
     // Optimized query for monthly income chart (all paid certificates with DISTINCT noticeCode)
     const monthlyIncomeData = await prisma.$queryRaw`
-      SELECT 
+      SELECT
         month,
         SUM(totalNoticeAmount) as totalAmount
       FROM (
-        SELECT DISTINCT 
-          noticeCode, 
+        SELECT DISTINCT
+          noticeCode,
           totalNoticeAmount,
           strftime('%Y-%m', paymentDate) as month
-        FROM certificates 
-        WHERE noticeStatusDescription = 'PAGADO' 
+        FROM certificates
+        WHERE noticeStatusDescription = 'PAGADO'
           AND paymentDate IS NOT NULL
           AND noticeCode IS NOT NULL
       )
@@ -278,9 +278,9 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
 
       projectionsByMonth: (() => {
         console.log('Starting projection calculation for next 12 months');
-        
+
         const projectionData: { [key: string]: number } = {};
-        
+
         // Initialize all 12 months with 0 (proper month calculation)
         for (let i = 0; i < 12; i++) {
           const futureDate = new Date(now);
@@ -288,9 +288,9 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
           const monthKey = String(futureDate.getMonth() + 1).padStart(2, '0') + '-' + futureDate.getFullYear();
           projectionData[monthKey] = 0;
         }
-        
+
         console.log('Initialized months:', Object.keys(projectionData));
-        
+
         // Calculate projections by month using database results
         projectionCertificates.forEach(cert => {
           const certExpDate = cert.certificateExpirationDate ? new Date(cert.certificateExpirationDate) : null;
@@ -308,7 +308,7 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
             console.log('Added', cert.totalNoticeAmount, 'to month', monthKey);
           }
         });
-        
+
         console.log('Final projection data:', projectionData);
         return projectionData;
       })(),
@@ -340,7 +340,7 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
 
 export async function getFinesAnalytics(params: any): Promise<any> {
   try {
-    const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName } = params;
+    const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName, employeeId, employeeName } = params;
 
     // Build base filters for filtered data
     const filters: any = {};
@@ -358,6 +358,8 @@ export async function getFinesAnalytics(params: any): Promise<any> {
     if (municipality) filters.municipality = { contains: municipality };
     if (origin) filters.origin = { contains: origin };
     if (operationId) filters.operationId = operationId;
+    if (employeeId) filters.employeeId = { contains: employeeId };
+    if (employeeName) filters.employeeName = { contains: employeeName };
 
     // Get filtered fines for KPIs and charts that need filtering
     const filteredFines = await prisma.fines.findMany({
@@ -409,11 +411,11 @@ export async function getFinesAnalytics(params: any): Promise<any> {
 
     // Optimized query for monthly revenue (all paid fines, not filtered)
     const monthlyRevenueData = await prisma.$queryRaw`
-      SELECT 
+      SELECT
         strftime('%Y-%m', startDate) as month,
         SUM(totalAmount) as totalAmount
-      FROM fines 
-      WHERE fineStatus = 'PAGADA' 
+      FROM fines
+      WHERE fineStatus = 'PAGADA'
         AND startDate IS NOT NULL
       GROUP BY strftime('%Y-%m', startDate)
       ORDER BY month DESC
@@ -520,10 +522,14 @@ export async function getFines(params: any): Promise<any> {
       dniRtn,
       operationId,
       companyName,
+      employeeId,
+      employeeName,
       paginated = false, // Default is false if not provided
       page = 1,
       limit = 100, // Default limit is 100 if paginated is true
     } = params;
+
+        console.log('Received params for fines analytics:', params);
 
     // Build dynamic filters
     const filters: any = {};
@@ -568,6 +574,16 @@ export async function getFines(params: any): Promise<any> {
     }
     if (operationId) {
       filters.operationId = operationId;
+    }
+    if (employeeId) {
+      filters.employeeId = {
+        contains: employeeId
+      };
+    }
+    if (employeeName) {
+      filters.employeeName = {
+        contains: employeeName
+      };
     }
 
     // Apply pagination if paginated is true
