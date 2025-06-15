@@ -15,15 +15,15 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false
   },
   auth: {
-    user: '',
-    pass: ''
+    user: 'no-reply@transporte.gob.hn',
+    pass: "aiv9GEAKTySEdga'(Xt"
   }
 });
 
 // Utility function to send mail
 async function sendMail(subject: string, text: string): Promise<void> {
   const mailOptions = {
-    from: `"Temp Tables Notifier" <vehiculos.ihtt@transporte.gob.hn>`,
+    from: `"Temp Tables Notifier" <no-reply@transporte.gob.hn>`,
     to: "aajuria@transporte.gob.hn",
     subject,
     text,
@@ -75,7 +75,9 @@ async function saveFinesToSQLite(data: any[]): Promise<void> {
           totalAmount REAL NULL,
           department TEXT NULL,
           municipality TEXT NULL,
-          place TEXT NULL
+          place TEXT NULL,
+          employeeId TEXT NULL,
+          employeeName TEXT NULL
         )
       `, (err) => {
         if (err) {
@@ -91,8 +93,8 @@ async function saveFinesToSQLite(data: any[]): Promise<void> {
         INSERT INTO fines (
           fineId, operationId, fineStatus, origin, plate, startDate, companyName,
           dniRtn, phone, email, certificate, region, systemDate, noticeCode,
-          totalAmount, department, municipality, place
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          totalAmount, department, municipality, place, employeeId, employeeName
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       data.forEach((row) => {
@@ -152,7 +154,9 @@ async function getFinesAndSave(): Promise<void> {
         AD.Monto AS totalAmount,
         D.DESC_Departamento AS department,
         M.DESC_Municipio AS municipality,
-        OP.Lugar AS place
+        OP.Lugar AS place,
+        MU.ID_Empleado as employeeId,
+        CONCAT(emp.Nombres, ' ', emp.Apellidos) as employeeName
       FROM
         IHTT_MULTAS.dbo.TB_Multas AS MU
         LEFT OUTER JOIN IHTT_MULTAS.dbo.TB_Reinicidencias AS RE ON MU.[ID_Multa] = RE.[ID_Multa]
@@ -166,6 +170,7 @@ async function getFinesAndSave(): Promise<void> {
         INNER JOIN IHTT_Webservice.dbo.TB_AvisoCobroDET AS AD ON AV.codigoAvisoCobro = AD.codigoAvisoCobro
         INNER JOIN IHTT_MULTAS.dbo.TB_Municipios AS M ON OP.ID_Municipio = M.ID_Municipio
         INNER JOIN IHTT_MULTAS.dbo.TB_Departamentos AS D ON D.ID_Departamento = M.ID_Departamento
+        INNER JOIN IHTT_RRHH.dbo.TB_Empleados AS emp ON MU.ID_Empleado = emp.ID_Empleado
       WHERE
         MU.ID_Multa NOT IN (
           SELECT [Expediente_Actual]
