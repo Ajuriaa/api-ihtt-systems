@@ -358,7 +358,7 @@ export async function getFinesAnalytics(params: any): Promise<any> {
     if (municipality) filters.municipality = { contains: municipality };
     if (origin) filters.origin = { contains: origin };
     if (operationId) filters.operationId = operationId;
-    if (employeeId) filters.employeeId = { contains: employeeId };
+    if (employeeId) filters.employeeId = employeeId;
     if (employeeName) filters.employeeName = { contains: employeeName };
 
     // Get filtered fines for KPIs and charts that need filtering
@@ -576,9 +576,7 @@ export async function getFines(params: any): Promise<any> {
       filters.operationId = operationId;
     }
     if (employeeId) {
-      filters.employeeId = {
-        contains: employeeId
-      };
+      filters.employeeId = employeeId
     }
     if (employeeName) {
       filters.employeeName = {
