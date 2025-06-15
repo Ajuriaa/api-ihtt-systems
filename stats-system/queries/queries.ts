@@ -1019,6 +1019,301 @@ export async function getCertificatesAnalytics(params: any): Promise<any> {
   }
 }
 
+export async function getCertificatesAnalyticsReport(params: any): Promise<any> {
+  try {
+    // Get base analytics data
+    const analyticsData = await getCertificatesAnalytics(params);
+    
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType } = params;
+
+    // Build filters for detailed analysis
+    const filters: any = {};
+    if (areaName) filters.areaName = { contains: areaName };
+    if (modality) filters.modality = modality;
+    if (rtn) filters.concessionaireRtn = { contains: rtn };
+    if (department) filters.department = { contains: department };
+    if (coStatus) filters.coStatus = coStatus;
+    if (noticeStatus) filters.noticeStatusDescription = noticeStatus;
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'certificateExpiration') {
+        filters['certificateExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'permissionExpiration') {
+        filters['permissionExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'payment') {
+        filters['paymentDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Get detailed certificates for insights
+    const filteredCertificates = await prisma.certificates.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastYear = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+    // Top beneficiaries analysis (companies with most certificates)
+    const topBeneficiaries = await prisma.certificates.groupBy({
+      by: ['concessionaireName', 'concessionaireRtn'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalNoticeAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    // Certificate type/modality analysis
+    const modalityAnalysis = await prisma.certificates.groupBy({
+      by: ['modality'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalNoticeAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    // Document type distribution
+    const documentTypeAnalysis = await prisma.certificates.groupBy({
+      by: ['documentType'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalNoticeAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    // Revenue efficiency analysis
+    const revenueAnalysis = {
+      totalIssued: filteredCertificates.length,
+      totalPaid: filteredCertificates.filter(c => c.noticeStatusDescription === 'PAGADO').length,
+      totalActive: filteredCertificates.filter(c => c.noticeStatusDescription === 'ACTIVO').length,
+      totalCancelled: filteredCertificates.filter(c => c.noticeStatusDescription === 'ANULADO').length,
+      totalRevenue: filteredCertificates.filter(c => c.noticeStatusDescription === 'PAGADO').reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0),
+      paymentRate: filteredCertificates.length > 0 ? 
+        (filteredCertificates.filter(c => c.noticeStatusDescription === 'PAGADO').length / filteredCertificates.length) * 100 : 0
+    };
+
+    // Time-based trends
+    const currentMonthCerts = filteredCertificates.filter(cert => 
+      cert.deliveryDate && new Date(cert.deliveryDate) >= currentMonth
+    );
+    const lastMonthCerts = filteredCertificates.filter(cert => 
+      cert.deliveryDate && 
+      new Date(cert.deliveryDate) >= lastMonth && 
+      new Date(cert.deliveryDate) < currentMonth
+    );
+    const lastYearCerts = await prisma.certificates.findMany({
+      where: {
+        ...filters,
+        deliveryDate: {
+          gte: new Date(lastYear.getFullYear(), lastYear.getMonth(), 1).toISOString(),
+          lte: new Date(lastYear.getFullYear(), lastYear.getMonth() + 1, 0).toISOString()
+        }
+      },
+      distinct: ['noticeCode']
+    });
+
+    const trends = {
+      monthOverMonth: {
+        current: currentMonthCerts.length,
+        previous: lastMonthCerts.length,
+        change: lastMonthCerts.length > 0 ? 
+          ((currentMonthCerts.length - lastMonthCerts.length) / lastMonthCerts.length) * 100 : 0,
+        revenue: {
+          current: currentMonthCerts.reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0),
+          previous: lastMonthCerts.reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0)
+        }
+      },
+      yearOverYear: {
+        current: currentMonthCerts.length,
+        previous: lastYearCerts.length,
+        change: lastYearCerts.length > 0 ? 
+          ((currentMonthCerts.length - lastYearCerts.length) / lastYearCerts.length) * 100 : 0
+      }
+    };
+
+    // Expiration analysis (certificates expiring soon)
+    const expirationAnalysis = {
+      expiringSoon: filteredCertificates.filter(c => {
+        if (!c.certificateExpirationDate) return false;
+        const expDate = new Date(c.certificateExpirationDate);
+        const daysToExpire = (expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        return daysToExpire > 0 && daysToExpire <= 30;
+      }),
+      expiredRecently: filteredCertificates.filter(c => {
+        if (!c.certificateExpirationDate) return false;
+        const expDate = new Date(c.certificateExpirationDate);
+        const daysSinceExpired = (now.getTime() - expDate.getTime()) / (1000 * 60 * 60 * 24);
+        return daysSinceExpired > 0 && daysSinceExpired <= 90;
+      }),
+      validCertificates: filteredCertificates.filter(c => {
+        if (!c.certificateExpirationDate) return false;
+        const expDate = new Date(c.certificateExpirationDate);
+        return expDate.getTime() > now.getTime();
+      })
+    };
+
+    // Area/department performance analysis
+    const departmentPerformance = await prisma.certificates.groupBy({
+      by: ['department', 'areaName'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalNoticeAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    // Generate insights and recommendations
+    const insights: string[] = [];
+    const recommendations: string[] = [];
+
+    // Payment rate insights
+    if (revenueAnalysis.paymentRate < 70) {
+      insights.push("Tasa de pago por debajo del objetivo institucional (70%)");
+      recommendations.push("Implementar recordatorios automáticos para pagos pendientes");
+    } else if (revenueAnalysis.paymentRate > 90) {
+      insights.push("Excelente tasa de pago, superando estándares institucionales");
+    }
+
+    // Trend insights
+    if (trends.monthOverMonth.change > 15) {
+      insights.push(`Incremento significativo del ${trends.monthOverMonth.change.toFixed(1)}% en certificados este mes`);
+      recommendations.push("Evaluar capacidad operativa para mantener calidad de servicio");
+    } else if (trends.monthOverMonth.change < -15) {
+      insights.push(`Disminución significativa del ${Math.abs(trends.monthOverMonth.change).toFixed(1)}% en certificados este mes`);
+      recommendations.push("Analizar factores que pueden estar afectando la demanda");
+    }
+
+    // Expiration insights
+    const expiringSoon = expirationAnalysis.expiringSoon.length;
+    if (expiringSoon > 50) {
+      insights.push(`${expiringSoon} certificados vencerán en los próximos 30 días`);
+      recommendations.push("Implementar sistema de notificaciones preventivas para renovaciones");
+    }
+
+    const expiredRecently = expirationAnalysis.expiredRecently.length;
+    if (expiredRecently > 20) {
+      insights.push(`${expiredRecently} certificados vencieron en los últimos 90 días`);
+      recommendations.push("Contactar empresas con certificados vencidos para facilitar renovación");
+    }
+
+    // Top modality insights
+    const topModality = modalityAnalysis[0];
+    if (topModality && topModality._count.id > filteredCertificates.length * 0.4) {
+      insights.push(`${topModality.modality} representa el ${((topModality._count.id / filteredCertificates.length) * 100).toFixed(1)}% de todos los certificados`);
+    }
+
+    return {
+      ...analyticsData,
+      reportAnalysis: {
+        executiveSummary: {
+          totalCertificates: filteredCertificates.length,
+          totalRevenue: revenueAnalysis.totalRevenue,
+          paymentRate: revenueAnalysis.paymentRate,
+          validCertificates: expirationAnalysis.validCertificates.length,
+          expiringSoon: expirationAnalysis.expiringSoon.length,
+          periodCovered: { startDate, endDate }
+        },
+        revenueAnalysis,
+        trends,
+        topBeneficiaries: topBeneficiaries.map(tb => ({
+          companyName: tb.concessionaireName || 'N/A',
+          rtn: tb.concessionaireRtn || 'N/A',
+          certificateCount: tb._count.id,
+          totalAmount: tb._sum.totalNoticeAmount || 0
+        })),
+        modalityAnalysis: modalityAnalysis.map(ma => ({
+          modality: ma.modality || 'No especificado',
+          count: ma._count.id,
+          totalAmount: ma._sum.totalNoticeAmount || 0,
+          percentage: (ma._count.id / filteredCertificates.length) * 100
+        })),
+        documentTypeAnalysis: documentTypeAnalysis.map(dta => ({
+          documentType: dta.documentType || 'No especificado',
+          count: dta._count.id,
+          totalAmount: dta._sum.totalNoticeAmount || 0,
+          percentage: (dta._count.id / filteredCertificates.length) * 100
+        })),
+        expirationAnalysis: {
+          expiringSoon: {
+            count: expirationAnalysis.expiringSoon.length,
+            certificates: expirationAnalysis.expiringSoon.slice(0, 10).map(c => ({
+              certificateNumber: c.certificateNumber,
+              companyName: c.concessionaireName,
+              expirationDate: c.certificateExpirationDate,
+              daysToExpire: c.certificateExpirationDate ? 
+                Math.ceil((new Date(c.certificateExpirationDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0
+            }))
+          },
+          expiredRecently: {
+            count: expirationAnalysis.expiredRecently.length,
+            amount: expirationAnalysis.expiredRecently.reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0)
+          },
+          validCertificates: {
+            count: expirationAnalysis.validCertificates.length,
+            amount: expirationAnalysis.validCertificates.reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0)
+          }
+        },
+        departmentPerformance: departmentPerformance.map(dp => ({
+          department: dp.department || 'N/A',
+          areaName: dp.areaName || 'N/A',
+          certificatesIssued: dp._count.id,
+          totalAmount: dp._sum.totalNoticeAmount || 0
+        })),
+        insights,
+        recommendations,
+        sampleCertificates: filteredCertificates.slice(0, 50) // Include sample for supporting data
+      }
+    };
+  } catch (error: any) {
+    console.error('Error generating certificates analytics report:', error);
+    throw error.message;
+  }
+}
+
 export async function getPermitsAnalytics(params: any): Promise<any> {
   try {
     const { startDate, endDate, region } = params;
