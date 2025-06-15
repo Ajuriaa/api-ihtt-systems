@@ -509,6 +509,252 @@ export async function getFinesAnalytics(params: any): Promise<any> {
   }
 }
 
+export async function getFinesAnalyticsReport(params: any): Promise<any> {
+  try {
+    // Get base analytics data
+    const analyticsData = await getFinesAnalytics(params);
+    
+    const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName, employeeId, employeeName } = params;
+
+    // Build filters for detailed analysis
+    const filters: any = {};
+    if (startDate && endDate) {
+      filters.startDate = {
+        gte: new Date(startDate).toISOString(),
+        lte: new Date(endDate).toISOString(),
+      };
+    }
+    if (status) filters.fineStatus = status;
+    if (companyName) filters.companyName = { contains: companyName };
+    if (dniRtn) filters.dniRtn = { contains: dniRtn };
+    if (region) filters.region = { contains: region };
+    if (department) filters.department = { contains: department };
+    if (municipality) filters.municipality = { contains: municipality };
+    if (origin) filters.origin = { contains: origin };
+    if (operationId) filters.operationId = operationId;
+    if (employeeId) filters.employeeId = employeeId;
+    if (employeeName) filters.employeeName = { contains: employeeName };
+
+    // Get detailed fines for insights
+    const filteredFines = await prisma.fines.findMany({
+      where: filters,
+    });
+
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastYear = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+    // Top violators analysis
+    const topViolators = await prisma.fines.groupBy({
+      by: ['companyName', 'dniRtn'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    // Violation type analysis
+    const violationTypes = await prisma.fines.groupBy({
+      by: ['origin'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    // Collection efficiency analysis
+    const collectionAnalysis = {
+      totalIssued: filteredFines.length,
+      totalCollected: filteredFines.filter(f => f.fineStatus === 'PAGADA').length,
+      totalPending: filteredFines.filter(f => f.fineStatus === 'ACTIVA').length,
+      totalCancelled: filteredFines.filter(f => f.fineStatus === 'ANULADA').length,
+      collectionRate: filteredFines.length > 0 ? 
+        (filteredFines.filter(f => f.fineStatus === 'PAGADA').length / filteredFines.length) * 100 : 0
+    };
+
+    // Time-based trends
+    const currentMonthFines = filteredFines.filter(fine => 
+      fine.startDate && new Date(fine.startDate) >= currentMonth
+    );
+    const lastMonthFines = filteredFines.filter(fine => 
+      fine.startDate && 
+      new Date(fine.startDate) >= lastMonth && 
+      new Date(fine.startDate) < currentMonth
+    );
+    const lastYearFines = await prisma.fines.findMany({
+      where: {
+        ...filters,
+        startDate: {
+          gte: new Date(lastYear.getFullYear(), lastYear.getMonth(), 1).toISOString(),
+          lte: new Date(lastYear.getFullYear(), lastYear.getMonth() + 1, 0).toISOString()
+        }
+      }
+    });
+
+    const trends = {
+      monthOverMonth: {
+        current: currentMonthFines.length,
+        previous: lastMonthFines.length,
+        change: lastMonthFines.length > 0 ? 
+          ((currentMonthFines.length - lastMonthFines.length) / lastMonthFines.length) * 100 : 0,
+        revenue: {
+          current: currentMonthFines.reduce((sum, f) => sum + (f.totalAmount || 0), 0),
+          previous: lastMonthFines.reduce((sum, f) => sum + (f.totalAmount || 0), 0)
+        }
+      },
+      yearOverYear: {
+        current: currentMonthFines.length,
+        previous: lastYearFines.length,
+        change: lastYearFines.length > 0 ? 
+          ((currentMonthFines.length - lastYearFines.length) / lastYearFines.length) * 100 : 0
+      }
+    };
+
+    // Employee performance analysis
+    const employeePerformance = await prisma.fines.groupBy({
+      by: ['employeeId', 'employeeName'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        totalAmount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    // Outstanding debt aging analysis
+    const currentDate = new Date();
+    const debtAging = {
+      current: filteredFines.filter(f => 
+        f.fineStatus === 'ACTIVA' && f.startDate && 
+        (currentDate.getTime() - new Date(f.startDate).getTime()) <= (30 * 24 * 60 * 60 * 1000)
+      ),
+      thirtyDays: filteredFines.filter(f => 
+        f.fineStatus === 'ACTIVA' && f.startDate && 
+        (currentDate.getTime() - new Date(f.startDate).getTime()) > (30 * 24 * 60 * 60 * 1000) &&
+        (currentDate.getTime() - new Date(f.startDate).getTime()) <= (60 * 24 * 60 * 60 * 1000)
+      ),
+      sixtyDays: filteredFines.filter(f => 
+        f.fineStatus === 'ACTIVA' && f.startDate && 
+        (currentDate.getTime() - new Date(f.startDate).getTime()) > (60 * 24 * 60 * 60 * 1000) &&
+        (currentDate.getTime() - new Date(f.startDate).getTime()) <= (90 * 24 * 60 * 60 * 1000)
+      ),
+      ninetyDaysPlus: filteredFines.filter(f => 
+        f.fineStatus === 'ACTIVA' && f.startDate && 
+        (currentDate.getTime() - new Date(f.startDate).getTime()) > (90 * 24 * 60 * 60 * 1000)
+      )
+    };
+
+    // Generate insights and recommendations
+    const insights: string[] = [];
+    const recommendations: string[] = [];
+
+    // Collection rate insights
+    if (collectionAnalysis.collectionRate < 60) {
+      insights.push("Tasa de cobro por debajo del objetivo institucional (60%)");
+      recommendations.push("Implementar estrategias de cobro más agresivas para multas pendientes");
+    } else if (collectionAnalysis.collectionRate > 80) {
+      insights.push("Excelente tasa de cobro, superando estándares institucionales");
+    }
+
+    // Trend insights
+    if (trends.monthOverMonth.change > 20) {
+      insights.push(`Incremento significativo del ${trends.monthOverMonth.change.toFixed(1)}% en multas este mes`);
+      recommendations.push("Analizar factores que causaron el incremento en infracciones");
+    } else if (trends.monthOverMonth.change < -20) {
+      insights.push(`Disminución significativa del ${Math.abs(trends.monthOverMonth.change).toFixed(1)}% en multas este mes`);
+    }
+
+    // Debt aging insights
+    const oldDebt = debtAging.ninetyDaysPlus.length;
+    if (oldDebt > 0) {
+      const oldDebtAmount = debtAging.ninetyDaysPlus.reduce((sum, f) => sum + (f.totalAmount || 0), 0);
+      insights.push(`${oldDebt} multas con más de 90 días sin cobrar por L. ${oldDebtAmount.toLocaleString()}`);
+      recommendations.push("Priorizar cobro de multas con más de 90 días de antigüedad");
+    }
+
+    return {
+      ...analyticsData,
+      reportAnalysis: {
+        executiveSummary: {
+          totalFines: filteredFines.length,
+          totalRevenue: filteredFines.filter(f => f.fineStatus === 'PAGADA').reduce((sum, f) => sum + (f.totalAmount || 0), 0),
+          outstandingDebt: filteredFines.filter(f => f.fineStatus === 'ACTIVA').reduce((sum, f) => sum + (f.totalAmount || 0), 0),
+          collectionRate: collectionAnalysis.collectionRate,
+          periodCovered: { startDate, endDate }
+        },
+        collectionAnalysis,
+        trends,
+        topViolators: topViolators.map(tv => ({
+          companyName: tv.companyName || 'N/A',
+          dniRtn: tv.dniRtn || 'N/A',
+          violationCount: tv._count.id,
+          totalAmount: tv._sum.totalAmount || 0
+        })),
+        violationTypes: violationTypes.map(vt => ({
+          type: vt.origin || 'No especificado',
+          count: vt._count.id,
+          totalAmount: vt._sum.totalAmount || 0
+        })),
+        employeePerformance: employeePerformance.map(ep => ({
+          employeeId: ep.employeeId || 'N/A',
+          employeeName: ep.employeeName || 'N/A',
+          finesIssued: ep._count.id,
+          totalAmount: ep._sum.totalAmount || 0
+        })),
+        debtAging: {
+          current: {
+            count: debtAging.current.length,
+            amount: debtAging.current.reduce((sum, f) => sum + (f.totalAmount || 0), 0)
+          },
+          thirtyDays: {
+            count: debtAging.thirtyDays.length,
+            amount: debtAging.thirtyDays.reduce((sum, f) => sum + (f.totalAmount || 0), 0)
+          },
+          sixtyDays: {
+            count: debtAging.sixtyDays.length,
+            amount: debtAging.sixtyDays.reduce((sum, f) => sum + (f.totalAmount || 0), 0)
+          },
+          ninetyDaysPlus: {
+            count: debtAging.ninetyDaysPlus.length,
+            amount: debtAging.ninetyDaysPlus.reduce((sum, f) => sum + (f.totalAmount || 0), 0)
+          }
+        },
+        insights,
+        recommendations,
+        sampleFines: filteredFines.slice(0, 50) // Include sample for supporting data
+      }
+    };
+  } catch (error: any) {
+    console.error('Error generating fines analytics report:', error);
+    throw error.message;
+  }
+}
+
 export async function getFines(params: any): Promise<any> {
   try {
     const {
