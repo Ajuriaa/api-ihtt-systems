@@ -327,6 +327,178 @@ async function saveStatsToSQLite(data: any[]): Promise<void> {
   });
 }
 
+async function saveEventualPermitsToSQLite(data: any[]): Promise<void> {
+  const dbPath = './stats.sqlite';
+  const db = new sqlite3.Database(dbPath);
+  console.log(`${formatDateForLog()} ---Saving eventual permits to SQLite...`);
+
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      // Drop the eventual_permits table if it exists
+      db.run(`DROP TABLE IF EXISTS eventual_permits`, (err) => {
+        if (err) {
+          console.error("Error dropping eventual_permits table:", err);
+          reject(err);
+          return;
+        }
+        console.log(`${formatDateForLog()} ---Dropped existing eventual_permits table.`);
+      });
+
+      // Create the eventual_permits table
+      db.run(`
+        CREATE TABLE eventual_permits (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          permitCode TEXT NULL,
+          permitTypeCode TEXT NULL,
+          driverCode TEXT NULL,
+          permitStatusCode TEXT NULL,
+          permitStatus TEXT NULL,
+          censusCode TEXT NULL,
+          rtn TEXT NULL,
+          applicantName TEXT NULL,
+          plate TEXT NULL,
+          validationCode TEXT NULL,
+          systemUser TEXT NULL,
+          employeeName TEXT NULL,
+          regionalOffice TEXT NULL,
+          systemDate TEXT NULL,
+          creationYear INTEGER NULL,
+          creationMonth INTEGER NULL,
+          creationMonthName TEXT NULL,
+          serviceTypeCode TEXT NULL,
+          serviceTypeDescription TEXT NULL,
+          signatureType TEXT NULL,
+          petiType TEXT NULL,
+          noticeCode TEXT NULL,
+          amount REAL NULL,
+          creationOrigin TEXT NULL
+        )
+      `, (err) => {
+        if (err) {
+          console.error("Error creating eventual_permits table:", err);
+          reject(err);
+          return;
+        }
+        console.log(`${formatDateForLog()} ---Created eventual_permits table.`);
+      });
+
+      // Insert new data
+      const stmt = db.prepare(`
+        INSERT INTO eventual_permits (
+          permitCode, permitTypeCode, driverCode, permitStatusCode, permitStatus,
+          censusCode, rtn, applicantName, plate, validationCode, systemUser,
+          employeeName, regionalOffice, systemDate, creationYear, creationMonth,
+          creationMonthName, serviceTypeCode, serviceTypeDescription, signatureType,
+          petiType, noticeCode, amount, creationOrigin
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      data.forEach((row) => {
+        stmt.run([
+          row.permitCode,
+          row.permitTypeCode,
+          row.driverCode,
+          row.permitStatusCode,
+          row.permitStatus,
+          row.censusCode,
+          row.rtn,
+          row.applicantName,
+          row.plate,
+          row.validationCode,
+          row.systemUser,
+          row.employeeName,
+          row.regionalOffice,
+          new Date(row.systemDate).toISOString(),
+          row.creationYear,
+          row.creationMonth,
+          row.creationMonthName,
+          row.serviceTypeCode,
+          row.serviceTypeDescription,
+          row.signatureType,
+          row.petiType,
+          row.noticeCode,
+          parseFloat(row.amount) || 0,
+          row.creationOrigin
+        ]);
+      });
+
+      stmt.finalize((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(`${formatDateForLog()} ---Eventual permits successfully saved to SQLite.`);
+          resolve();
+        }
+      });
+    });
+  });
+}
+
+// Function to retrieve eventual permits and save them to SQLite
+async function getEventualPermitsAndSave(): Promise<void> {
+  try {
+    const data: any[] = await prisma.$queryRaw`
+      SELECT TOP (100) PERCENT
+        p.PermisoCodigo AS permitCode,
+        p.PermisoTipoCodigo AS permitTypeCode,
+        p.ConductorCodigo AS driverCode,
+        p.Permiso_Estado_Codigo AS permitStatusCode,
+        pes.Permiso_Estado AS permitStatus,
+        p.CodigoCenso AS censusCode,
+        CASE WHEN c.RTN IS NOT NULL
+                      THEN c.RTN WHEN certificadoPubli.RTN_Concesionario IS NOT NULL THEN certificadoPubli.RTN_Concesionario WHEN unidad.RTNTransportista IS NOT NULL
+                      THEN unidad.RTNTransportista WHEN especial.RTN_Concesionario IS NOT NULL THEN especial.RTN_Concesionario END AS rtn,
+        CASE WHEN c.Nombre IS NOT NULL
+                      THEN c.Nombre WHEN certificadoPubli.NombreSolicitante IS NOT NULL THEN certificadoPubli.NombreSolicitante WHEN unidad.NombreTransportista IS NOT NULL
+                      THEN unidad.NombreTransportista WHEN especial.NombreSolicitante IS NOT NULL THEN especial.NombreSolicitante END AS applicantName,
+        CASE WHEN c.placa IS NOT NULL THEN c.placa WHEN certificadoPubli.id_placa IS NOT NULL
+                      THEN certificadoPubli.id_placa WHEN unidad.placa IS NOT NULL THEN unidad.placa WHEN especial.id_placa IS NOT NULL THEN especial.id_placa END AS plate,
+        p.CodigoValidacion AS validationCode,
+        p.SistemaUsuario AS systemUser,
+        ISNULL(CASE emp.Nombres + ' ' + emp.Apellidos WHEN '' THEN NULL ELSE emp.Nombres + ' ' + emp.Apellidos END, 'Creado desde portal') AS employeeName,
+        ISNULL(CASE emp.DESC_Ciudad WHEN '' THEN NULL
+                      ELSE emp.DESC_Ciudad END, 'Creado desde portal') AS regionalOffice,
+        p.SistemaFecha AS systemDate,
+        YEAR(p.SistemaFecha) AS creationYear,
+        MONTH(p.SistemaFecha) AS creationMonth,
+        DATENAME(MONTH, p.SistemaFecha) AS creationMonthName,
+        ISNULL(CASE p.[codigo_tipo_servicio] WHEN '' THEN NULL ELSE p.[codigo_tipo_servicio] END, '0') AS serviceTypeCode,
+        ISNULL(CASE pt.descripcion_tipo_servicio WHEN '' THEN NULL ELSE pt.descripcion_tipo_servicio END,
+                      'No Especificado') AS serviceTypeDescription,
+        CASE WHEN Isnull(CASE p.[codigo_tipo_servicio] WHEN '' THEN NULL ELSE p.[codigo_tipo_servicio] END, '0') = 2 OR
+                      Isnull(CASE p.[codigo_tipo_servicio] WHEN '' THEN NULL ELSE p.[codigo_tipo_servicio] END, '0')
+                      = 0 THEN 'Con Firma Digital' ELSE CASE WHEN Codigo_Tipo_Firma = 0 THEN 'Valido Solo con firma Fisica' ELSE 'Con Firma Digital' END END AS signatureType,
+        CASE WHEN Isnull(CASE p.[codigo_tipo_servicio] WHEN '' THEN NULL
+                      ELSE p.[codigo_tipo_servicio] END, '0') = 2 OR
+                      Isnull(CASE p.[codigo_tipo_servicio] WHEN '' THEN NULL ELSE p.[codigo_tipo_servicio] END, '0')
+                      = 0 THEN 'No Aplica' ELSE CASE WHEN codigo_tipo_firma = 0 THEN 'TRANSPORTE DE MIGRANTES' ELSE 'BUS INTERNACIONAL CON DESTINO/SALIDA HONDURAS' END END AS petiType,
+        ISNULL(CASE avc.[CodigoAvisoCobro] WHEN '' THEN NULL ELSE avc.CodigoAvisoCobro END, '0') AS noticeCode,
+        acd.Monto AS amount,
+        origenCreacion.OrigenCreacion AS creationOrigin
+      FROM
+        IHTT_Portales.dbo.TB_Permiso AS p INNER JOIN
+        HTT_Portales.dbo.TB_Permiso_Estado AS pes ON pes.Permiso_Estado_Codigo = p.Permiso_Estado_Codigo LEFT OUTER JOIN
+        HTT_Portales.dbo.TB_Permiso_Tipo_Servicio AS pt ON pt.Codigo_Tipo_Servicio = p.Codigo_Tipo_Servicio LEFT OUTER JOIN
+        HTT_Portales.dbo.v_DatosCenso AS c ON c.CodigoCenso = p.CodigoCenso LEFT OUTER JOIN
+        HTT_SGCERP.dbo.v_solicitud_x_certificado AS certificadoPubli ON certificadoPubli.N_Certificado = p.CodigoCenso LEFT OUTER JOIN
+        HTT_Portales.dbo.TB_PermisoRegistroUnidadSinCenso AS unidad ON CONVERT(varchar, unidad.CodigoPermisoTransporteEspecial) = p.CodigoCenso LEFT OUTER JOIN
+        HTT_SGCERP.dbo.v_Permiso_Especial_Pasajero AS especial ON especial.N_Permiso_Especial_Pas = p.CodigoCenso LEFT OUTER JOIN
+        HTT_Portales.dbo.v_Empleados AS emp ON emp.Usuario_Nombre = p.SistemaUsuario LEFT OUTER JOIN
+        HTT_Webservice.dbo.TB_AvisoCobroEnc AS avc ON avc.ID_Solicitud = p.PermisoCodigo LEFT OUTER JOIN
+        HTT_Webservice.dbo.TB_AvisoCobroDET AS acd ON acd.CodigoAvisoCobro = avc.CodigoAvisoCobro INNER JOIN
+        HTT_Portales.dbo.TB_PermisoOrigenCreacion AS origenCreacion ON origenCreacion.CodigoOrigenCreacion = p.CodigoOrigenCreacion
+      WHERE  (p.Permiso_Estado_Codigo IN (1, 2, 3))
+      ORDER BY p.SistemaFecha
+    `;
+
+    await saveEventualPermitsToSQLite(data);
+    await sendMail("Eventual Permits Saved", "Eventual permits have been successfully retrieved and saved to SQLite.");
+  } catch (error: any) {
+    console.error("Error retrieving eventual permits:", error);
+    await sendMail("Eventual Permits Retrieval Failed", `Error: ${error}`);
+  }
+}
+
 // Function to retrieve and save stats
 export async function getStatsAndSave(): Promise<void> {
   try {
@@ -455,6 +627,7 @@ export async function createTempTables(): Promise<void> {
     // Retrieve and save stats
     await getStatsAndSave();
     await getFinesAndSave();
+    await getEventualPermitsAndSave();
   } catch (error) {
     console.error("Error creating temp tables:", error);
     await sendMail("Temp Tables Creation Failed", `Error: ${error}`);
