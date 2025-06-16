@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics } from './queries';
+import { getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics } from './queries';
 
 export const router = express.Router();
 
@@ -60,6 +60,18 @@ router.get('/permits-analytics', async (req, res: Response) => {
 
 router.get('/revenue-analytics', async (req, res: Response) => {
   getRevenueAnalytics(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/eventual-permits', async (req, res: Response) => {
+  getEventualPermits(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/eventual-permits-analytics', async (req, res: Response) => {
+  getEventualPermitsAnalytics(req.query).then((data) => {
     res.json(data);
   });
 });

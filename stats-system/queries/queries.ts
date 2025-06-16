@@ -1494,3 +1494,181 @@ export async function getRevenueAnalytics(params: any): Promise<any> {
     throw error.message;
   }
 }
+
+export async function getEventualPermits(params: any): Promise<any> {
+  try {
+    // Extract filters and pagination parameters
+    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, paginated, dateType } = params;
+
+    // Determine pagination values
+    let page = 0;
+    let limit = 0;
+    if (paginated === 'true') {
+      page = parseInt(params.page || '1', 10);
+      limit = parseInt(params.limit || '100', 10);
+    }
+
+    // Build filters dynamically
+    const filters: any = {};
+
+    if (permitStatus) {
+      filters.permitStatus = permitStatus;
+    }
+
+    if (serviceType) {
+      filters.serviceTypeDescription = { contains: serviceType };
+    }
+
+    if (rtn) {
+      filters.rtn = { contains: rtn };
+    }
+
+    if (applicantName) {
+      filters.applicantName = { contains: applicantName };
+    }
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'system') {
+        filters['systemDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Use distinct to get unique records by noticeCode at database level
+    const data = await prisma.eventual_permits.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+      skip: paginated === 'true' ? (page - 1) * limit : undefined,
+      take: paginated === 'true' ? limit : undefined,
+    });
+
+    // Count total unique records for pagination
+    const totalUniqueRecords = await prisma.eventual_permits.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+      select: { id: true }
+    });
+    const total = paginated === 'true' ? totalUniqueRecords.length : data.length;
+
+    // Return the response
+    return {
+      data,
+      total,
+      page: paginated === 'true' ? page : undefined,
+      pages: paginated === 'true' ? Math.ceil(total / limit) : undefined,
+    };
+  } catch (error: any) {
+    console.error('Error retrieving eventual permits:', error);
+    throw error.message;
+  }
+}
+
+export async function getEventualPermitsAnalytics(params: any): Promise<any> {
+  try {
+    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, dateType } = params;
+
+    // Build base filters
+    const filters: any = {};
+
+    if (permitStatus) filters.permitStatus = permitStatus;
+    if (serviceType) filters.serviceTypeDescription = { contains: serviceType };
+    if (rtn) filters.rtn = { contains: rtn };
+    if (applicantName) filters.applicantName = { contains: applicantName };
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'system') {
+        filters['systemDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Get filtered permits using distinct noticeCode
+    const permits = await prisma.eventual_permits.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
+
+    // Deduplicate using noticeCode
+    const uniqueNoticeCodes = new Map();
+    permits.forEach(permit => {
+      if (permit.noticeCode && !uniqueNoticeCodes.has(permit.noticeCode)) {
+        uniqueNoticeCodes.set(permit.noticeCode, permit);
+      }
+    });
+
+    const uniquePermits = Array.from(uniqueNoticeCodes.values());
+
+    // Calculate KPIs
+    const kpis = {
+      totalPermits: uniquePermits.length,
+      totalRevenue: uniquePermits.reduce((sum, permit) => sum + (permit.amount || 0), 0),
+      activePermits: uniquePermits.filter(permit => permit.permitStatus === 'ACTIVO').length,
+      processedPermits: uniquePermits.filter(permit => permit.permitStatus === 'PROCESADO').length,
+      cancelledPermits: uniquePermits.filter(permit => permit.permitStatus === 'ANULADO').length,
+    };
+
+    // Monthly revenue data using SQL for better performance
+    const monthlyRevenueData = await prisma.$queryRaw`
+      SELECT
+        strftime('%Y-%m', systemDate) as month,
+        SUM(amount) as totalAmount
+      FROM (
+        SELECT DISTINCT noticeCode, amount, systemDate
+        FROM eventual_permits
+        WHERE systemDate IS NOT NULL
+          AND noticeCode IS NOT NULL
+      )
+      GROUP BY strftime('%Y-%m', systemDate)
+      ORDER BY month DESC
+      LIMIT 24
+    `;
+
+    // Calculate chart data using unique permits
+    const chartData = {
+      statusDistribution: uniquePermits.reduce((acc: any, permit) => {
+        const status = permit.permitStatus || "NO DEFINIDO";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {}),
+
+      revenueByStatus: uniquePermits.reduce((acc: any, permit) => {
+        const status = permit.permitStatus || "NO DEFINIDO";
+        acc[status] = (acc[status] || 0) + (permit.amount || 0);
+        return acc;
+      }, {}),
+
+      serviceTypeDistribution: uniquePermits.reduce((acc: any, permit) => {
+        const serviceType = permit.serviceTypeDescription || "NO DEFINIDO";
+        acc[serviceType] = (acc[serviceType] || 0) + 1;
+        return acc;
+      }, {}),
+
+      monthlyRevenue: (monthlyRevenueData as any[]).reduce((acc: any, row: any) => {
+        acc[row.month] = Number(row.totalAmount) || 0;
+        return acc;
+      }, {}),
+
+      regionalOfficeDistribution: uniquePermits.reduce((acc: any, permit) => {
+        const office = permit.regionalOffice || "NO DEFINIDO";
+        acc[office] = (acc[office] || 0) + 1;
+        return acc;
+      }, {}),
+    };
+
+    return {
+      kpis,
+      chartData,
+      total: uniquePermits.length
+    };
+  } catch (error: any) {
+    console.error('Error retrieving eventual permits analytics:', error);
+    throw error.message;
+  }
+}
