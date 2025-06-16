@@ -513,7 +513,7 @@ export async function getFinesAnalyticsReport(params: any): Promise<any> {
   try {
     // Get base analytics data
     const analyticsData = await getFinesAnalytics(params);
-    
+
     const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName, employeeId, employeeName } = params;
 
     // Build filters for detailed analysis
@@ -586,17 +586,17 @@ export async function getFinesAnalyticsReport(params: any): Promise<any> {
       totalCollected: filteredFines.filter(f => f.fineStatus === 'PAGADA').length,
       totalPending: filteredFines.filter(f => f.fineStatus === 'ACTIVA').length,
       totalCancelled: filteredFines.filter(f => f.fineStatus === 'ANULADA').length,
-      collectionRate: filteredFines.length > 0 ? 
+      collectionRate: filteredFines.length > 0 ?
         (filteredFines.filter(f => f.fineStatus === 'PAGADA').length / filteredFines.length) * 100 : 0
     };
 
     // Time-based trends
-    const currentMonthFines = filteredFines.filter(fine => 
+    const currentMonthFines = filteredFines.filter(fine =>
       fine.startDate && new Date(fine.startDate) >= currentMonth
     );
-    const lastMonthFines = filteredFines.filter(fine => 
-      fine.startDate && 
-      new Date(fine.startDate) >= lastMonth && 
+    const lastMonthFines = filteredFines.filter(fine =>
+      fine.startDate &&
+      new Date(fine.startDate) >= lastMonth &&
       new Date(fine.startDate) < currentMonth
     );
     const lastYearFines = await prisma.fines.findMany({
@@ -613,7 +613,7 @@ export async function getFinesAnalyticsReport(params: any): Promise<any> {
       monthOverMonth: {
         current: currentMonthFines.length,
         previous: lastMonthFines.length,
-        change: lastMonthFines.length > 0 ? 
+        change: lastMonthFines.length > 0 ?
           ((currentMonthFines.length - lastMonthFines.length) / lastMonthFines.length) * 100 : 0,
         revenue: {
           current: currentMonthFines.reduce((sum, f) => sum + (f.totalAmount || 0), 0),
@@ -623,7 +623,7 @@ export async function getFinesAnalyticsReport(params: any): Promise<any> {
       yearOverYear: {
         current: currentMonthFines.length,
         previous: lastYearFines.length,
-        change: lastYearFines.length > 0 ? 
+        change: lastYearFines.length > 0 ?
           ((currentMonthFines.length - lastYearFines.length) / lastYearFines.length) * 100 : 0
       }
     };
@@ -649,22 +649,22 @@ export async function getFinesAnalyticsReport(params: any): Promise<any> {
     // Outstanding debt aging analysis
     const currentDate = new Date();
     const debtAging = {
-      current: filteredFines.filter(f => 
-        f.fineStatus === 'ACTIVA' && f.startDate && 
+      current: filteredFines.filter(f =>
+        f.fineStatus === 'ACTIVA' && f.startDate &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) <= (30 * 24 * 60 * 60 * 1000)
       ),
-      thirtyDays: filteredFines.filter(f => 
-        f.fineStatus === 'ACTIVA' && f.startDate && 
+      thirtyDays: filteredFines.filter(f =>
+        f.fineStatus === 'ACTIVA' && f.startDate &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) > (30 * 24 * 60 * 60 * 1000) &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) <= (60 * 24 * 60 * 60 * 1000)
       ),
-      sixtyDays: filteredFines.filter(f => 
-        f.fineStatus === 'ACTIVA' && f.startDate && 
+      sixtyDays: filteredFines.filter(f =>
+        f.fineStatus === 'ACTIVA' && f.startDate &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) > (60 * 24 * 60 * 60 * 1000) &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) <= (90 * 24 * 60 * 60 * 1000)
       ),
-      ninetyDaysPlus: filteredFines.filter(f => 
-        f.fineStatus === 'ACTIVA' && f.startDate && 
+      ninetyDaysPlus: filteredFines.filter(f =>
+        f.fineStatus === 'ACTIVA' && f.startDate &&
         (currentDate.getTime() - new Date(f.startDate).getTime()) > (90 * 24 * 60 * 60 * 1000)
       )
     };
@@ -1023,7 +1023,7 @@ export async function getCertificatesAnalyticsReport(params: any): Promise<any> 
   try {
     // Get base analytics data
     const analyticsData = await getCertificatesAnalytics(params);
-    
+
     const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType } = params;
 
     // Build filters for detailed analysis
@@ -1124,17 +1124,17 @@ export async function getCertificatesAnalyticsReport(params: any): Promise<any> 
       totalActive: filteredCertificates.filter(c => c.noticeStatusDescription === 'ACTIVO').length,
       totalCancelled: filteredCertificates.filter(c => c.noticeStatusDescription === 'ANULADO').length,
       totalRevenue: filteredCertificates.filter(c => c.noticeStatusDescription === 'PAGADO').reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0),
-      paymentRate: filteredCertificates.length > 0 ? 
+      paymentRate: filteredCertificates.length > 0 ?
         (filteredCertificates.filter(c => c.noticeStatusDescription === 'PAGADO').length / filteredCertificates.length) * 100 : 0
     };
 
     // Time-based trends
-    const currentMonthCerts = filteredCertificates.filter(cert => 
+    const currentMonthCerts = filteredCertificates.filter(cert =>
       cert.deliveryDate && new Date(cert.deliveryDate) >= currentMonth
     );
-    const lastMonthCerts = filteredCertificates.filter(cert => 
-      cert.deliveryDate && 
-      new Date(cert.deliveryDate) >= lastMonth && 
+    const lastMonthCerts = filteredCertificates.filter(cert =>
+      cert.deliveryDate &&
+      new Date(cert.deliveryDate) >= lastMonth &&
       new Date(cert.deliveryDate) < currentMonth
     );
     const lastYearCerts = await prisma.certificates.findMany({
@@ -1152,7 +1152,7 @@ export async function getCertificatesAnalyticsReport(params: any): Promise<any> 
       monthOverMonth: {
         current: currentMonthCerts.length,
         previous: lastMonthCerts.length,
-        change: lastMonthCerts.length > 0 ? 
+        change: lastMonthCerts.length > 0 ?
           ((currentMonthCerts.length - lastMonthCerts.length) / lastMonthCerts.length) * 100 : 0,
         revenue: {
           current: currentMonthCerts.reduce((sum, c) => sum + (c.totalNoticeAmount || 0), 0),
@@ -1162,7 +1162,7 @@ export async function getCertificatesAnalyticsReport(params: any): Promise<any> 
       yearOverYear: {
         current: currentMonthCerts.length,
         previous: lastYearCerts.length,
-        change: lastYearCerts.length > 0 ? 
+        change: lastYearCerts.length > 0 ?
           ((currentMonthCerts.length - lastYearCerts.length) / lastYearCerts.length) * 100 : 0
       }
     };
@@ -1284,7 +1284,7 @@ export async function getCertificatesAnalyticsReport(params: any): Promise<any> 
               certificateNumber: c.certificateNumber,
               companyName: c.concessionaireName,
               expirationDate: c.certificateExpirationDate,
-              daysToExpire: c.certificateExpirationDate ? 
+              daysToExpire: c.certificateExpirationDate ?
                 Math.ceil((new Date(c.certificateExpirationDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0
             }))
           },

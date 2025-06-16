@@ -69,3 +69,31 @@ model fines {
   employeeId   String?
   employeeName String?
 }
+
+model eventual_permits {
+  id           Int     @id @default(autoincrement())
+  permitCode             String?
+  permitTypeCode         String?
+  driverCode             String?
+  permitStatusCode       String?
+  permitStatus           String?
+  censusCode             String?
+  rtn                    String?
+  applicantName          String?
+  plate                  String?
+  validationCode         String?
+  systemUser             String?
+  employeeName           String?
+  regionalOffice         String?
+  systemDate             String?
+  creationYear           Int?
+  creationMonth          Int?
+  creationMonthName      String?
+  serviceTypeCode        String?
+  serviceTypeDescription String?
+  signatureType          String?
+  petiType               String?
+  noticeCode             String?
+  amount                 Float?
+  creationOrigin         String?
+}

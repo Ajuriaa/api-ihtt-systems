@@ -477,16 +477,16 @@ async function getEventualPermitsAndSave(): Promise<void> {
         origenCreacion.OrigenCreacion AS creationOrigin
       FROM
         IHTT_Portales.dbo.TB_Permiso AS p INNER JOIN
-        HTT_Portales.dbo.TB_Permiso_Estado AS pes ON pes.Permiso_Estado_Codigo = p.Permiso_Estado_Codigo LEFT OUTER JOIN
-        HTT_Portales.dbo.TB_Permiso_Tipo_Servicio AS pt ON pt.Codigo_Tipo_Servicio = p.Codigo_Tipo_Servicio LEFT OUTER JOIN
-        HTT_Portales.dbo.v_DatosCenso AS c ON c.CodigoCenso = p.CodigoCenso LEFT OUTER JOIN
-        HTT_SGCERP.dbo.v_solicitud_x_certificado AS certificadoPubli ON certificadoPubli.N_Certificado = p.CodigoCenso LEFT OUTER JOIN
-        HTT_Portales.dbo.TB_PermisoRegistroUnidadSinCenso AS unidad ON CONVERT(varchar, unidad.CodigoPermisoTransporteEspecial) = p.CodigoCenso LEFT OUTER JOIN
-        HTT_SGCERP.dbo.v_Permiso_Especial_Pasajero AS especial ON especial.N_Permiso_Especial_Pas = p.CodigoCenso LEFT OUTER JOIN
-        HTT_Portales.dbo.v_Empleados AS emp ON emp.Usuario_Nombre = p.SistemaUsuario LEFT OUTER JOIN
-        HTT_Webservice.dbo.TB_AvisoCobroEnc AS avc ON avc.ID_Solicitud = p.PermisoCodigo LEFT OUTER JOIN
-        HTT_Webservice.dbo.TB_AvisoCobroDET AS acd ON acd.CodigoAvisoCobro = avc.CodigoAvisoCobro INNER JOIN
-        HTT_Portales.dbo.TB_PermisoOrigenCreacion AS origenCreacion ON origenCreacion.CodigoOrigenCreacion = p.CodigoOrigenCreacion
+        IHTT_Portales.dbo.TB_Permiso_Estado AS pes ON pes.Permiso_Estado_Codigo = p.Permiso_Estado_Codigo LEFT OUTER JOIN
+        IHTT_Portales.dbo.TB_Permiso_Tipo_Servicio AS pt ON pt.Codigo_Tipo_Servicio = p.Codigo_Tipo_Servicio LEFT OUTER JOIN
+        IHTT_Portales.dbo.v_DatosCenso AS c ON c.CodigoCenso = p.CodigoCenso LEFT OUTER JOIN
+        IHTT_SGCERP.dbo.v_solicitud_x_certificado AS certificadoPubli ON certificadoPubli.N_Certificado = p.CodigoCenso LEFT OUTER JOIN
+        IHTT_Portales.dbo.TB_PermisoRegistroUnidadSinCenso AS unidad ON CONVERT(varchar, unidad.CodigoPermisoTransporteEspecial) = p.CodigoCenso LEFT OUTER JOIN
+        IHTT_SGCERP.dbo.v_Permiso_Especial_Pasajero AS especial ON especial.N_Permiso_Especial_Pas = p.CodigoCenso LEFT OUTER JOIN
+        IHTT_Portales.dbo.v_Empleados AS emp ON emp.Usuario_Nombre = p.SistemaUsuario LEFT OUTER JOIN
+        IHTT_Webservice.dbo.TB_AvisoCobroEnc AS avc ON avc.ID_Solicitud = p.PermisoCodigo LEFT OUTER JOIN
+        IHTT_Webservice.dbo.TB_AvisoCobroDET AS acd ON acd.CodigoAvisoCobro = avc.CodigoAvisoCobro INNER JOIN
+        IHTT_Portales.dbo.TB_PermisoOrigenCreacion AS origenCreacion ON origenCreacion.CodigoOrigenCreacion = p.CodigoOrigenCreacion
       WHERE  (p.Permiso_Estado_Codigo IN (1, 2, 3))
       ORDER BY p.SistemaFecha
     `;
