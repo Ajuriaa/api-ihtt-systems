@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export async function getCertificates(params: any): Promise<any> {
   try {
     // Extract filters and pagination parameters
-    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated, modality, dateType } = params;
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, paginated, modality, dateType, isAutomaticRenewal } = params;
 
     // Determine pagination values
     let page = 0;
@@ -17,6 +17,12 @@ export async function getCertificates(params: any): Promise<any> {
 
     // Build filters dynamically
     const filters: any = {};
+
+    if (isAutomaticRenewal) {
+      console.log('isAutomaticRenewal:', isAutomaticRenewal);
+      filters.isAutomaticRenewal = parseInt(isAutomaticRenewal, 10);
+      console.log('Parsed isAutomaticRenewal:', filters.isAutomaticRenewal);
+    }
 
     if (areaName) {
       filters.areaName = { contains: areaName };
@@ -93,10 +99,14 @@ export async function getCertificates(params: any): Promise<any> {
 
 export async function getDashboardAnalytics(params: any): Promise<any> {
   try {
-    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType } = params;
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType, isAutomaticRenewal } = params;
 
     // Build base filters
     const filters: any = {};
+
+    if (isAutomaticRenewal) {
+      filters.isAutomaticRenewal = parseInt(isAutomaticRenewal, 10);
+    }
 
     if (areaName) filters.areaName = { contains: areaName };
     if (modality) filters.modality = modality;
