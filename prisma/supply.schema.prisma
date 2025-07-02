@@ -17,6 +17,7 @@ model Entry {
   systemUser    String?        @map("Sistema_Usuario") @db.VarChar(100)
   systemDate    DateTime?      @default(now(), map: "DF_TB_Entradas_Sistema_Fecha") @map("Sistema_Fecha") @db.DateTime
   invoiceNumber String         @default("0", map: "DF__TB_Entrad__Numer__7908F585") @map("Numero_Factura") @db.VarChar(100)
+  editLogs      EntryEditLog[]
   supplier      Supplier       @relation(fields: [supplierId], references: [id], onUpdate: NoAction, map: "FK__TB_Entrad__ID_Pr__00DF2177")
   batches       Batch[]
   productsEntry ProductEntry[]
@@ -159,4 +160,18 @@ model ProductEntry {
   product         Product?  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__TB_Produc__ID_Pr__55BFB948")
 
   @@map("TB_Productos_Entrada")
+}
+
+model EntryEditLog {
+  id            Int       @id(map: "PK__TB_Bitac__1D88869D08535992") @default(autoincrement()) @map("ID_Bitacora")
+  entryId       Int       @map("ID_Entrada")
+  systemUser    String    @map("Sistema_Usuario") @db.NVarChar(255)
+  systemDate    DateTime? @default(now(), map: "DF__TB_Bitaco__Siste__0E04126B") @map("Sistema_Fecha") @db.DateTime
+  fieldChanged  String    @map("Campo_Cambiado") @db.NVarChar(100)
+  oldValue      String?   @map("Valor_Anterior") @db.Text
+  newValue      String?   @map("Valor_Nuevo") @db.Text
+  notes         String?   @map("Notas") @db.Text
+  entry         Entry     @relation(fields: [entryId], references: [id], onUpdate: NoAction, map: "FK_Bitacora_Entrada")
+
+  @@map("TB_Bitacora_Entrada")
 }

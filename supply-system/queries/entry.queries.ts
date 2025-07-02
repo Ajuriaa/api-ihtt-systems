@@ -13,3 +13,24 @@ export async function getEntryInvoices(): Promise<{ invoiceNumber: string, invoi
     throw error;
   }
 }
+
+export async function getEntryByInvoiceNumber(invoiceNumber: string) {
+  try {
+    const entry = await prisma.entry.findFirst({
+      where: { invoiceNumber },
+      select: {
+        id: true,
+        invoiceNumber: true,
+        invoiceUrl: true,
+        date: true,
+        supplier: {
+          select: { name: true }
+        }
+      }
+    });
+    return entry;
+  } catch (error: any) {
+    console.error('Error retrieving entry by invoice number:', error);
+    throw error;
+  }
+}

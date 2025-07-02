@@ -5,7 +5,7 @@ import {
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
   generateReport, getYearlyStats, getDashboardInfo,
-  getEntryInvoices
+  getEntryInvoices, getEntryByInvoiceNumber
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -13,7 +13,8 @@ import {
   deleteProduct, deleteSupplier, finishRequisition,
   printRequisition, updateProduct, updateProductsRequisition,
   updateRequisitionFile, updateSupplier, createOutput,
-  acceptRequisition, getBossRequisitions, getMyRequisitions
+  acceptRequisition, getBossRequisitions, getMyRequisitions,
+  updateEntryInvoice
 } from './mutations';
 
 export const router = express.Router();
@@ -213,6 +214,19 @@ router.post('/update-requisition', async (req, res) => {
 
 router.post('/upload-requisition-file', async (req, res) => {
   updateRequisitionFile(req.body.id, req.body.file).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/entry-by-invoice/:invoiceNumber', async (req, res) => {
+  getEntryByInvoiceNumber(req.params.invoiceNumber).then((data) => {
+    res.json(data);
+  });
+});
+
+router.post('/update-entry-invoice', async (req, res) => {
+  const { originalInvoiceNumber, newInvoiceNumber, newInvoiceUrl, systemUser } = req.body;
+  updateEntryInvoice(originalInvoiceNumber, newInvoiceNumber, newInvoiceUrl, systemUser).then((data) => {
     res.json(data);
   });
 });
