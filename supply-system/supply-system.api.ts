@@ -5,7 +5,7 @@ import {
   getProductGroups, getProducts, getRequisition,
   getRequisitions, getSupplier, getSuppliers,
   generateReport, getYearlyStats, getDashboardInfo,
-  getEntryInvoices, getEntryByInvoiceNumber
+  getEntryInvoices, getEntryByInvoiceNumber, getEntryEditLogs
 } from './queries';
 import {
   cancelRequisition, createEntries, createGroup,
@@ -227,6 +227,12 @@ router.get('/entry-by-invoice/:invoiceNumber', async (req, res) => {
 router.post('/update-entry-invoice', async (req, res) => {
   const { originalInvoiceNumber, newInvoiceNumber, newInvoiceUrl, systemUser } = req.body;
   updateEntryInvoice(originalInvoiceNumber, newInvoiceNumber, newInvoiceUrl, systemUser).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/entry-logs', async (req, res) => {
+  getEntryEditLogs().then((data) => {
     res.json(data);
   });
 });

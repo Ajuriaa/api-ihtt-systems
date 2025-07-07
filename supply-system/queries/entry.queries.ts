@@ -34,3 +34,33 @@ export async function getEntryByInvoiceNumber(invoiceNumber: string) {
     throw error;
   }
 }
+
+export async function getEntryEditLogs() {
+  try {
+    const logs = await prisma.entryEditLog.findMany({
+      select: {
+        id: true,
+        entryId: true,
+        systemUser: true,
+        systemDate: true,
+        fieldChanged: true,
+        oldValue: true,
+        newValue: true,
+        notes: true,
+        entry: {
+          select: {
+            invoiceNumber: true,
+            supplier: {
+              select: { name: true }
+            }
+          }
+        }
+      },
+      orderBy: { systemDate: 'desc' }
+    });
+    return logs;
+  } catch (error: any) {
+    console.error('Error retrieving entry edit logs:', error);
+    throw error;
+  }
+}
