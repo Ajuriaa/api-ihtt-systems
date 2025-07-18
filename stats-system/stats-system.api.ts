@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics } from './queries';
+import { getApplications, getApplicationsAnalytics, getApplicationsAnalyticsReport, getApplicationsDashboard, getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics } from './queries';
 
 export const router = express.Router();
 
@@ -75,3 +75,29 @@ router.get('/eventual-permits-analytics', async (req, res: Response) => {
     res.json(data);
   });
 });
+
+// Applications endpoints
+router.get('/applications', async (req, res: Response) => {
+  getApplications(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/applications-analytics', async (req, res: Response) => {
+  getApplicationsAnalytics(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/applications-analytics-report', async (req, res: Response) => {
+  getApplicationsAnalyticsReport(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/applications-dashboard', async (req, res: Response) => {
+  getApplicationsDashboard(req.query).then((data) => {
+    res.json(data);
+  });
+});
+

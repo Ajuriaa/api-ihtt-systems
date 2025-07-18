@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "bunx prisma generate --schema prisma/stats.schema.prisma && bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma && bunx prisma generate --schema prisma/supply.schema.prisma  && bunx prisma generate --schema prisma/ihtt.schema.prisma",
+    "generate": "bunx prisma generate --schema prisma/stats.schema.prisma && bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma && bunx prisma generate --schema prisma/supply.schema.prisma  && bunx prisma generate --schema prisma/ihtt.schema.prisma && bunx prisma generate --schema prisma/stats_db.schema.prisma",
     "lint": "bunx eslint . --fix",
     "dev": "nodemon api.ts",
     "start": "nodemon --watch package.json --exec 'npm run i && npm run start -- --host 0.0.0.0'"
@@ -20,6 +20,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.15",
     "cors": "^2.8.5",
+    "csv-writer": "^1.6.0",
     "express": "^4.18.3",
     "fs-extra": "^11.2.0",
     "handlebars": "^4.7.8",
@@ -27,7 +28,7 @@
     "jspdf-autotable": "^3.8.2",
     "moment": "^2.30.1",
     "moment-business-days": "^1.2.0",
-    "mssql": "^10.0.2",
+    "mssql": "^11.0.1",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",

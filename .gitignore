@@ -3,6 +3,9 @@
 #environment variables
 .env
 
+# Info CSV files
+jobs/*.csv
+
 # Compiled output
 /dist
 /tmp

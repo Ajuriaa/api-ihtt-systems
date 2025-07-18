@@ -97,3 +97,46 @@ model eventual_permits {
   amount                 Float?
   creationOrigin         String?
 }
+
+model applications {
+  id                       Int     @id @default(autoincrement())
+  applicationCode          String?
+  applicationId            String  @unique
+  applicantId              String?
+  fileId                   String?
+  currentFile              String?
+  applicantName            String?
+  companyName              String?
+  folio                    Int?
+  receivedDate             String?
+  preform                  String?
+  plateId                  String?
+  enteredPlate             String?
+  multiplePlatesFile       String?
+  effectivePlate           String?
+  operationPermit          String?
+  operationCertificate     String?
+  observation              String?
+  legalRepresentativeId    Int?
+  legalRepresentativeName  String?
+  phone                    String?
+  email                    String?
+  procedureId              String?
+  categoryId               String?
+  categoryDescription      String?
+  procedureClassDescription String?
+  procedureTypeDescription String?
+  modalityDescription      String?
+  systemUser               String?
+  cityCode                 String?
+  systemDate               String?
+  source                   String?
+  geaId                    String?
+  censusUnit               String?
+  vin                      String?
+  serviceClassId           String?
+  serviceClassDescription  String?
+  fileStatus               String?
+  isAutomaticRenewal       Int?
+  village                  String?
+}
