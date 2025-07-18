@@ -39,10 +39,10 @@ model certificates {
   noticeCode                   Int?
   noticeStatusDescription      String?
   totalNoticeAmount            Float?
+  paymentDate                  String?
   systemUser                   String?
   inventoryDate                String?
   certificateExpirationDate    String?
-  paymentDate                  String?
   permissionExpirationDate     String?
 }
 
@@ -71,7 +71,7 @@ model fines {
 }
 
 model eventual_permits {
-  id           Int     @id @default(autoincrement())
+  id                     Int     @id @default(autoincrement())
   permitCode             String?
   permitTypeCode         String?
   driverCode             String?
@@ -99,44 +99,44 @@ model eventual_permits {
 }
 
 model applications {
-  id                       Int     @id @default(autoincrement())
-  applicationCode          String?
-  applicationId            String  @unique
-  applicantId              String?
-  fileId                   String?
-  currentFile              String?
-  applicantName            String?
-  companyName              String?
-  folio                    Int?
-  receivedDate             String?
-  preform                  String?
-  plateId                  String?
-  enteredPlate             String?
-  multiplePlatesFile       String?
-  effectivePlate           String?
-  operationPermit          String?
-  operationCertificate     String?
-  observation              String?
-  legalRepresentativeId    Int?
-  legalRepresentativeName  String?
-  phone                    String?
-  email                    String?
-  procedureId              String?
-  categoryId               String?
-  categoryDescription      String?
+  id                        Int     @id @default(autoincrement())
+  applicationCode           String?
+  applicationId             String?
+  applicantId               String?
+  fileId                    String?
+  currentFile               String?
+  applicantName             String?
+  companyName               String?
+  folio                     Int?
+  receivedDate              String?
+  preform                   String?
+  plateId                   String?
+  enteredPlate              String?
+  multiplePlatesFile        String?
+  effectivePlate            String?
+  operationPermit           String?
+  operationCertificate      String?
+  observation               String?
+  legalRepresentativeId     String?
+  legalRepresentativeName   String?
+  phone                     String?
+  email                     String?
+  procedureId               String?
+  categoryId                String?
+  categoryDescription       String?
   procedureClassDescription String?
-  procedureTypeDescription String?
-  modalityDescription      String?
-  systemUser               String?
-  cityCode                 String?
-  systemDate               String?
-  source                   String?
-  geaId                    String?
-  censusUnit               String?
-  vin                      String?
-  serviceClassId           String?
-  serviceClassDescription  String?
-  fileStatus               String?
-  isAutomaticRenewal       Int?
-  village                  String?
+  procedureTypeDescription  String?
+  modalityDescription       String?
+  systemUser                String?
+  cityCode                  String?
+  systemDate                String?
+  source                    String?
+  geaId                     String?
+  censusUnit                String?
+  vin                       String?
+  serviceClassId            String?
+  serviceClassDescription   String?
+  fileStatus                String?
+  isAutomaticRenewal        String?
+  village                   String?
 }

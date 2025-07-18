@@ -84,9 +84,9 @@ export async function exportEventualPermits(): Promise<JobResult> {
       const pool = await mssql.connect(sqlConfig);
       const result = await pool.request().query(QUERY);
       console.log(`Registros obtenidos: ${result.recordset.length}`);
-      
+
       const recordsObtained = result.recordset.length;
-      
+
       if (recordsObtained === 0) {
         resolve({
           tableName: 'Permisos Eventuales',
@@ -150,7 +150,7 @@ export async function exportEventualPermits(): Promise<JobResult> {
         const sqliteProcess = spawn('sqlite3', [sqlitePath]);
         sqliteProcess.stdin.write(`.mode csv\n`);
         sqliteProcess.stdin.write(`.nullvalue null\n`);
-        sqliteProcess.stdin.write(`.import ${csvPath} eventual_permits_raw\n`);
+        sqliteProcess.stdin.write(`.import --skip 1 ${csvPath} eventual_permits_raw\n`);
         sqliteProcess.stdin.end();
 
         sqliteProcess.stdout.on('data', (data) => {

@@ -247,7 +247,7 @@ export async function exportCertificates(): Promise<JobResult> {
         const sqliteProcess = spawn('sqlite3', [sqlitePath]);
         sqliteProcess.stdin.write(`.mode csv\n`);
         sqliteProcess.stdin.write(`.nullvalue null\n`);
-        sqliteProcess.stdin.write(`.import ${csvPath} certificates_raw\n`);
+        sqliteProcess.stdin.write(`.import --skip 1 ${csvPath} certificates_raw\n`);
         sqliteProcess.stdin.end();
 
         sqliteProcess.stdout.on('data', (data) => {

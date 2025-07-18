@@ -84,9 +84,9 @@ export async function exportFines(): Promise<JobResult> {
       const pool = await mssql.connect(sqlConfig);
       const result = await pool.request().query(QUERY);
       console.log(`Registros obtenidos: ${result.recordset.length}`);
-      
+
       const recordsObtained = result.recordset.length;
-      
+
       if (recordsObtained === 0) {
         resolve({
           tableName: 'Multas',
@@ -148,7 +148,7 @@ export async function exportFines(): Promise<JobResult> {
         const sqliteProcess = spawn('sqlite3', [sqlitePath]);
         sqliteProcess.stdin.write(`.mode csv\n`);
         sqliteProcess.stdin.write(`.nullvalue null\n`);
-        sqliteProcess.stdin.write(`.import ${csvPath} fines_raw\n`);
+        sqliteProcess.stdin.write(`.import --skip 1 ${csvPath} fines_raw\n`);
         sqliteProcess.stdin.end();
 
         sqliteProcess.stdout.on('data', (data) => {
