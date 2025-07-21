@@ -3,6 +3,7 @@ import { exportApplications } from './applications';
 import { exportFines } from './fines';
 import { exportCertificates } from './certificates';
 import { exportEventualPermits } from './eventual_permits';
+import { exportSchoolCertificates } from './school_certificates';
 
 interface JobResult {
   tableName: string;
@@ -81,6 +82,12 @@ async function runAllJobs(): Promise<void> {
     const eventualPermitsResult = await exportEventualPermits();
     results.push(eventualPermitsResult);
     console.log(`Eventual Permits: ${eventualPermitsResult.success ? 'SUCCESS' : 'FAILED'}`);
+
+    // Run school certificates export
+    console.log("\n=== Running School Certificates Export ===");
+    const schoolCertificatesResult = await exportSchoolCertificates();
+    results.push(schoolCertificatesResult);
+    console.log(`School Certificates: ${schoolCertificatesResult.success ? 'SUCCESS' : 'FAILED'}`);
 
     // Generate comprehensive report
     const endTime = new Date();

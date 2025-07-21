@@ -140,3 +140,20 @@ model applications {
   isAutomaticRenewal        String?
   village                   String?
 }
+model school_certificates {
+  id                  Int     @id @default(autoincrement())
+  preRegistrationCode String?
+  preRegistrationDate String?
+  dealerRtn           String?
+  dealerName          String?
+  paymentNoticeCode   Int?
+  amount              Float?
+  noticeStatus        String?
+  paidCancelledDate   String?
+  transportType       String?
+  categoryDescription String?
+  type                String?
+  certificateCode     String?
+  issueDate           String?
+  deliveryDate        String?
+}
