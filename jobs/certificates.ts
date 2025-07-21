@@ -99,7 +99,7 @@ const QUERY = `
     a.nombre_area AS areaName,
     COALESCE(d.estado_documento, '') AS documentStatus,
     COALESCE(co.Estado, '') AS coStatus,
-    COALESCE(co.fecha_entrega, '') AS deliveryDate,
+    COALESCE(CONVERT(varchar, co.fecha_entrega, 127), '') AS deliveryDate,
     COALESCE(e.num_estante, '') AS shelfNumber,
     COALESCE(f.num_fila, '') AS rowNumber,
     COALESCE(an.num_anillo, '') AS ringNumber,
@@ -130,11 +130,11 @@ const QUERY = `
     COALESCE(act.codigoavisocobro, 0) AS noticeCode,
     COALESCE(act.desc_estadoaviso, 'NO TIENE') AS noticeStatusDescription,
     COALESCE(act.Total_Aviso, 0) AS totalNoticeAmount,
-    act.Fecha_Pagado_Anulado AS paymentDate,
+    CONVERT(varchar, act.Fecha_Pagado_Anulado, 127) AS paymentDate,
     COALESCE(d.sistema_usuario, '') AS systemUser,
-    COALESCE(d.sistema_fecha, '') AS inventoryDate,
-    COALESCE(ct.[Fecha_Vencimiento_Certificado], '') AS certificateExpirationDate,
-    COALESCE(ct.[Fecha_Vencimiento_Permiso], '') AS permissionExpirationDate
+    COALESCE(CONVERT(varchar, d.sistema_fecha, 127), '') AS inventoryDate,
+    COALESCE(CONVERT(varchar, ct.[Fecha_Vencimiento_Certificado], 127), '') AS certificateExpirationDate,
+    COALESCE(CONVERT(varchar, ct.[Fecha_Vencimiento_Permiso], 127), '') AS permissionExpirationDate
   FROM IHTT_ARCHIVO_ENTREGA.dbo.tb_ubicacion_documentos_scd AS d
   INNER JOIN IHTT_ARCHIVO_ENTREGA.dbo.tb_areas_scd AS a ON a.cod_area = d.cod_area
   INNER JOIN IHTT_ARCHIVO_ENTREGA.dbo.tb_estantes_scd AS e ON e.cod_estante = d.cod_estante

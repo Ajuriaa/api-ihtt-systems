@@ -1546,6 +1546,23 @@ export async function getEventualPermits(params: any): Promise<any> {
       }
     }
 
+    // Filter out records with noticeCode '0' or null amounts to prevent API crashes
+    filters.AND = [
+      {
+        OR: [
+          { noticeCode: { not: '0' } },
+          { noticeCode: null }
+        ]
+      },
+      {
+        OR: [
+          { amount: { not: null } },
+          { noticeCode: null },
+          { noticeCode: '0' }
+        ]
+      }
+    ];
+
     // Use distinct to get unique records by noticeCode at database level
     const data = await prisma.eventual_permits.findMany({
       where: filters,
@@ -1596,6 +1613,23 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
       }
     }
 
+    // Filter out records with noticeCode '0' or null amounts to prevent API crashes
+    filters.AND = [
+      {
+        OR: [
+          { noticeCode: { not: '0' } },
+          { noticeCode: null }
+        ]
+      },
+      {
+        OR: [
+          { amount: { not: null } },
+          { noticeCode: null },
+          { noticeCode: '0' }
+        ]
+      }
+    ];
+
     // Get filtered permits using distinct noticeCode
     const permits = await prisma.eventual_permits.findMany({
       where: filters,
@@ -1634,6 +1668,8 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
         FROM eventual_permits
         WHERE systemDate IS NOT NULL
           AND noticeCode IS NOT NULL
+          AND noticeCode != '0'
+          AND amount IS NOT NULL
       )
       GROUP BY strftime('%Y-%m', systemDate)
       ORDER BY month DESC

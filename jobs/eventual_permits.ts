@@ -37,7 +37,7 @@ const QUERY = `
     ISNULL(CASE emp.Nombres + ' ' + emp.Apellidos WHEN '' THEN NULL ELSE emp.Nombres + ' ' + emp.Apellidos END, 'Creado desde portal') AS employeeName,
     ISNULL(CASE emp.DESC_Ciudad WHEN '' THEN NULL
                   ELSE emp.DESC_Ciudad END, 'Creado desde portal') AS regionalOffice,
-    p.SistemaFecha AS systemDate,
+    CONVERT(varchar, p.SistemaFecha, 127) AS systemDate,
     YEAR(p.SistemaFecha) AS creationYear,
     MONTH(p.SistemaFecha) AS creationMonth,
     DATENAME(MONTH, p.SistemaFecha) AS creationMonthName,

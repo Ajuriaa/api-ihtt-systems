@@ -53,7 +53,7 @@ export async function getApplications(params: any): Promise<any> {
     }
 
     if (isAutomaticRenewal !== undefined) {
-      filters.isAutomaticRenewal = isAutomaticRenewal ? 1 : 0;
+      filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
     }
 
     if (cityCode) {
@@ -63,8 +63,8 @@ export async function getApplications(params: any): Promise<any> {
     // Date filtering using receivedDate only
     if (startDate && endDate) {
       filters['receivedDate'] = {
-        gte: new Date(startDate).toISOString(),
-        lte: new Date(endDate).toISOString(),
+        gte: startDate,
+        lte: endDate,
       };
     }
 
@@ -128,14 +128,14 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
     if (procedureType) filters.procedureTypeDescription = { contains: procedureType };
     if (categoryId) filters.categoryId = categoryId;
     if (plateId) filters.plateId = { contains: plateId };
-    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = isAutomaticRenewal ? 1 : 0;
+    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
     if (cityCode) filters.cityCode = cityCode;
 
     // Date filtering using receivedDate only
     if (startDate && endDate) {
       filters['receivedDate'] = {
-        gte: new Date(startDate).toISOString(),
-        lte: new Date(endDate).toISOString(),
+        gte: startDate,
+        lte: endDate,
       };
     }
 
@@ -154,8 +154,8 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       approvedApplications: applications.filter(app => app.fileStatus === 'APROBADO').length,
       rejectedApplications: applications.filter(app => app.fileStatus === 'RECHAZADO').length,
       inProcessApplications: applications.filter(app => app.fileStatus === 'EN PROCESO').length,
-      automaticRenewals: applications.filter(app => app.isAutomaticRenewal === 1).length,
-      manualApplications: applications.filter(app => app.isAutomaticRenewal === 0).length,
+      automaticRenewals: applications.filter(app => app.isAutomaticRenewal === '1').length,
+      manualApplications: applications.filter(app => app.isAutomaticRenewal === '0').length,
     };
 
     // Monthly applications data using SQLite query
@@ -196,8 +196,8 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       }, {}),
 
       renewalTypeDistribution: {
-        'AUTOMATICA': applications.filter(app => app.isAutomaticRenewal === 1).length,
-        'MANUAL': applications.filter(app => app.isAutomaticRenewal === 0).length,
+        'AUTOMATICA': applications.filter(app => app.isAutomaticRenewal === '1').length,
+        'MANUAL': applications.filter(app => app.isAutomaticRenewal === '0').length,
       },
 
       cityDistribution: applications.reduce((acc: any, app) => {
@@ -252,13 +252,13 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
     if (procedureType) filters.procedureTypeDescription = { contains: procedureType };
     if (categoryId) filters.categoryId = categoryId;
     if (plateId) filters.plateId = { contains: plateId };
-    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = isAutomaticRenewal ? 1 : 0;
+    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
     if (cityCode) filters.cityCode = cityCode;
 
     if (startDate && endDate) {
       filters['receivedDate'] = {
-        gte: new Date(startDate).toISOString(),
-        lte: new Date(endDate).toISOString(),
+        gte: startDate,
+        lte: endDate,
       };
     }
 
@@ -327,8 +327,8 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       where: {
         ...filters,
         receivedDate: {
-          gte: new Date(lastYear.getFullYear(), lastYear.getMonth(), 1).toISOString(),
-          lte: new Date(lastYear.getFullYear(), lastYear.getMonth() + 1, 0).toISOString()
+          gte: new Date(lastYear.getFullYear(), lastYear.getMonth(), 1).toISOString().split('T')[0],
+          lte: new Date(lastYear.getFullYear(), lastYear.getMonth() + 1, 0).toISOString().split('T')[0]
         }
       }
     });
@@ -350,10 +350,10 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
 
     // Renewal type analysis
     const renewalAnalysis = {
-      automaticRenewals: filteredApplications.filter(app => app.isAutomaticRenewal === 1).length,
-      manualApplications: filteredApplications.filter(app => app.isAutomaticRenewal === 0).length,
+      automaticRenewals: filteredApplications.filter(app => app.isAutomaticRenewal === '1').length,
+      manualApplications: filteredApplications.filter(app => app.isAutomaticRenewal === '0').length,
       automaticRenewalRate: filteredApplications.length > 0 ?
-        (filteredApplications.filter(app => app.isAutomaticRenewal === 1).length / filteredApplications.length) * 100 : 0
+        (filteredApplications.filter(app => app.isAutomaticRenewal === '1').length / filteredApplications.length) * 100 : 0
     };
 
     // City/regional distribution analysis
@@ -473,7 +473,7 @@ export async function getApplicationsDashboard(params: any): Promise<any> {
       approvedApplications: allApplications.filter(app => app.fileStatus === 'APROBADO').length,
       rejectedApplications: allApplications.filter(app => app.fileStatus === 'RECHAZADO').length,
       stalledApplications: stalledApplications.length,
-      automaticRenewals: allApplications.filter(app => app.isAutomaticRenewal === 1).length,
+      automaticRenewals: allApplications.filter(app => app.isAutomaticRenewal === '1').length,
       averageProcessingTime: 0 // Could be calculated based on receivedDate vs systemDate
     };
 
