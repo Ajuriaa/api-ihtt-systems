@@ -11,8 +11,9 @@ export async function getApplications(params: any): Promise<any> {
       startDate,
       endDate,
       fileStatus,
-      procedureType,
-      categoryId,
+      procedureTypeDescription,
+      procedureClassDescription,
+      categoryDescription,
       plateId,
       isAutomaticRenewal,
       cityCode,
@@ -40,12 +41,16 @@ export async function getApplications(params: any): Promise<any> {
       filters.fileStatus = fileStatus;
     }
 
-    if (procedureType) {
-      filters.procedureTypeDescription = { contains: procedureType };
+    if (procedureTypeDescription) {
+      filters.procedureTypeDescription = { contains: procedureTypeDescription };
+    }
+    
+    if (procedureClassDescription) {
+      filters.procedureClassDescription = { contains: procedureClassDescription };
     }
 
-    if (categoryId) {
-      filters.categoryId = categoryId;
+    if (categoryDescription) {
+      filters.categoryDescription = { contains: categoryDescription };
     }
 
     if (plateId) {
@@ -83,7 +88,7 @@ export async function getApplications(params: any): Promise<any> {
       }
     });
 
-    // Get total count for pagination
+    // Get total count for pagination - this is for applications list (all records)
     const totalUniqueRecords = await prisma.applications.findMany({
       where: filters,
       select: { id: true }
@@ -111,8 +116,9 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       startDate,
       endDate,
       fileStatus,
-      procedureType,
-      categoryId,
+      procedureTypeDescription,
+      procedureClassDescription,
+      categoryDescription,
       plateId,
       isAutomaticRenewal,
       cityCode
@@ -125,8 +131,9 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
     if (applicantName) filters.applicantName = { contains: applicantName };
     if (companyName) filters.companyName = { contains: companyName };
     if (fileStatus) filters.fileStatus = fileStatus;
-    if (procedureType) filters.procedureTypeDescription = { contains: procedureType };
-    if (categoryId) filters.categoryId = categoryId;
+    if (procedureTypeDescription) filters.procedureTypeDescription = { contains: procedureTypeDescription };
+    if (procedureClassDescription) filters.procedureClassDescription = { contains: procedureClassDescription };
+    if (categoryDescription) filters.categoryDescription = { contains: categoryDescription };
     if (plateId) filters.plateId = { contains: plateId };
     if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
     if (cityCode) filters.cityCode = cityCode;
@@ -139,52 +146,64 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       };
     }
 
-    // Get filtered applications from SQLite table
-    const applications = await prisma.applications.findMany({
+    // Get ALL filtered applications from SQLite table (for procedures count)
+    const allApplicationRecords = await prisma.applications.findMany({
       where: filters,
+    });
+
+    // Get UNIQUE applications from SQLite table (for applications count and money calculations)
+    const uniqueApplications = await prisma.applications.findMany({
+      where: filters,
+      distinct: ['applicationCode'],
     });
 
     const now = new Date();
     const twelveMonthsAgo = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
 
-    // Calculate KPIs
+    // Calculate KPIs - Use UNIQUE applications for application counts (avoid double counting)
     const kpis = {
-      totalApplications: applications.length,
-      pendingApplications: applications.filter(app => app.fileStatus === 'PENDIENTE').length,
-      approvedApplications: applications.filter(app => app.fileStatus === 'APROBADO').length,
-      rejectedApplications: applications.filter(app => app.fileStatus === 'RECHAZADO').length,
-      inProcessApplications: applications.filter(app => app.fileStatus === 'EN PROCESO').length,
-      automaticRenewals: applications.filter(app => app.isAutomaticRenewal === '1').length,
-      manualApplications: applications.filter(app => app.isAutomaticRenewal === '0').length,
+      totalApplications: uniqueApplications.length,
+      activeApplications: uniqueApplications.filter(app => app.fileStatus === 'ACTIVO').length,
+      finalizedApplications: uniqueApplications.filter(app => app.fileStatus === 'FINALIZADO').length,
+      inactiveApplications: uniqueApplications.filter(app => app.fileStatus === 'INACTIVO').length,
+      errorApplications: uniqueApplications.filter(app => app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO').length,
+      estado020Applications: uniqueApplications.filter(app => app.fileStatus === 'ESTADO-020').length,
+      automaticRenewals: uniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
+      manualApplications: uniqueApplications.filter(app => app.isAutomaticRenewal === '0').length,
+      // Additional KPIs for procedures (use all records)
+      totalProcedures: allApplicationRecords.length,
     };
 
-    // Monthly applications data using SQLite query
+    // Monthly applications data using SQLite query - COUNT unique applications only (last 6 months)
     const monthlyApplicationsData = await prisma.$queryRaw`
       SELECT
         strftime('%Y-%m', receivedDate) as month,
-        COUNT(*) as totalApplications
+        COUNT(DISTINCT applicationCode) as totalApplications
       FROM applications
       WHERE receivedDate IS NOT NULL
-        AND applicationId IS NOT NULL
+        AND applicationCode IS NOT NULL
+        AND receivedDate >= date('now', '-6 months')
       GROUP BY strftime('%Y-%m', receivedDate)
-      ORDER BY month DESC
+      ORDER BY month ASC
     `;
 
-    // Calculate chart data
+    // Calculate chart data - Use unique applications for application-level metrics
     const chartData = {
-      statusDistribution: applications.reduce((acc: any, app) => {
+      statusDistribution: uniqueApplications.reduce((acc: any, app) => {
         const status = app.fileStatus || "NO DEFINIDO";
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {}),
 
-      procedureTypeDistribution: applications.reduce((acc: any, app) => {
+      // Procedure distribution uses ALL records (includes duplicates by design)
+      procedureTypeDistribution: allApplicationRecords.reduce((acc: any, app) => {
         const procedureType = app.procedureTypeDescription || "NO DEFINIDO";
         acc[procedureType] = (acc[procedureType] || 0) + 1;
         return acc;
       }, {}),
 
-      categoryDistribution: applications.reduce((acc: any, app) => {
+      // Category distribution uses unique applications
+      categoryDistribution: uniqueApplications.reduce((acc: any, app) => {
         const category = app.categoryDescription || "NO DEFINIDO";
         acc[category] = (acc[category] || 0) + 1;
         return acc;
@@ -196,19 +215,26 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       }, {}),
 
       renewalTypeDistribution: {
-        'AUTOMATICA': applications.filter(app => app.isAutomaticRenewal === '1').length,
-        'MANUAL': applications.filter(app => app.isAutomaticRenewal === '0').length,
+        'AUTOMATICA': uniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
+        'MANUAL': uniqueApplications.filter(app => app.isAutomaticRenewal === '0').length,
       },
 
-      cityDistribution: applications.reduce((acc: any, app) => {
+      cityDistribution: uniqueApplications.reduce((acc: any, app) => {
         const city = app.cityCode || "NO DEFINIDO";
         acc[city] = (acc[city] || 0) + 1;
         return acc;
       }, {}),
 
-      serviceClassDistribution: applications.reduce((acc: any, app) => {
+      serviceClassDistribution: uniqueApplications.reduce((acc: any, app) => {
         const serviceClass = app.serviceClassDescription || "NO DEFINIDO";
         acc[serviceClass] = (acc[serviceClass] || 0) + 1;
+        return acc;
+      }, {}),
+
+      // Additional procedure-level analytics 
+      procedureClassDistribution: allApplicationRecords.reduce((acc: any, app) => {
+        const procedureClass = app.procedureClassDescription || "NO DEFINIDO";
+        acc[procedureClass] = (acc[procedureClass] || 0) + 1;
         return acc;
       }, {}),
     };
@@ -216,7 +242,8 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
     return {
       kpis,
       chartData,
-      total: applications.length
+      total: uniqueApplications.length, // Return unique applications count
+      totalProcedures: allApplicationRecords.length // Also provide procedures count
     };
   } catch (error: any) {
     console.error('Error retrieving applications analytics:', error);
@@ -236,8 +263,9 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       startDate,
       endDate,
       fileStatus,
-      procedureType,
-      categoryId,
+      procedureTypeDescription,
+      procedureClassDescription,
+      categoryDescription,
       plateId,
       isAutomaticRenewal,
       cityCode
@@ -249,8 +277,9 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
     if (applicantName) filters.applicantName = { contains: applicantName };
     if (companyName) filters.companyName = { contains: companyName };
     if (fileStatus) filters.fileStatus = fileStatus;
-    if (procedureType) filters.procedureTypeDescription = { contains: procedureType };
-    if (categoryId) filters.categoryId = categoryId;
+    if (procedureTypeDescription) filters.procedureTypeDescription = { contains: procedureTypeDescription };
+    if (procedureClassDescription) filters.procedureClassDescription = { contains: procedureClassDescription };
+    if (categoryDescription) filters.categoryDescription = { contains: categoryDescription };
     if (plateId) filters.plateId = { contains: plateId };
     if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
     if (cityCode) filters.cityCode = cityCode;
@@ -262,9 +291,15 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       };
     }
 
-    // Get detailed applications for insights
-    const filteredApplications = await prisma.applications.findMany({
+    // Get ALL detailed applications for procedures analysis
+    const allFilteredApplications = await prisma.applications.findMany({
       where: filters
+    });
+
+    // Get UNIQUE applications for application-level analysis
+    const uniqueFilteredApplications = await prisma.applications.findMany({
+      where: filters,
+      distinct: ['applicationCode']
     });
 
     const now = new Date();
@@ -272,22 +307,34 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastYear = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
 
-    // Top applicants analysis
-    const topApplicants = await prisma.applications.groupBy({
-      by: ['applicantName', 'companyName'],
+    // Top applicants analysis - Group by applicant but count unique applications
+    const topApplicantsRaw = await prisma.applications.groupBy({
+      by: ['applicantName', 'companyName', 'applicationCode'],
       where: filters,
       _count: {
         id: true
-      },
-      orderBy: {
-        _count: {
-          id: 'desc'
-        }
-      },
-      take: 10
+      }
     });
+    
+    // Consolidate by applicant
+    const applicantMap = new Map();
+    topApplicantsRaw.forEach(item => {
+      const key = `${item.applicantName || 'N/A'}-${item.companyName || 'N/A'}`;
+      if (!applicantMap.has(key)) {
+        applicantMap.set(key, {
+          applicantName: item.applicantName,
+          companyName: item.companyName,
+          count: 0
+        });
+      }
+      applicantMap.get(key).count += 1;
+    });
+    
+    const topApplicants = Array.from(applicantMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
 
-    // Procedure type analysis
+    // Procedure type analysis - Count ALL procedures (not unique applications)
     const procedureTypeAnalysis = await prisma.applications.groupBy({
       by: ['procedureTypeDescription'],
       where: filters,
@@ -301,24 +348,26 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       }
     });
 
-    // Processing efficiency analysis
+    // Processing efficiency analysis - Use UNIQUE applications for rates
     const processingAnalysis = {
-      totalApplications: filteredApplications.length,
-      pendingApplications: filteredApplications.filter(app => app.fileStatus === 'PENDIENTE').length,
-      approvedApplications: filteredApplications.filter(app => app.fileStatus === 'APROBADO').length,
-      rejectedApplications: filteredApplications.filter(app => app.fileStatus === 'RECHAZADO').length,
-      inProcessApplications: filteredApplications.filter(app => app.fileStatus === 'EN PROCESO').length,
-      approvalRate: filteredApplications.length > 0 ?
-        (filteredApplications.filter(app => app.fileStatus === 'APROBADO').length / filteredApplications.length) * 100 : 0,
-      rejectionRate: filteredApplications.length > 0 ?
-        (filteredApplications.filter(app => app.fileStatus === 'RECHAZADO').length / filteredApplications.length) * 100 : 0
+      totalApplications: uniqueFilteredApplications.length,
+      activeApplications: uniqueFilteredApplications.filter(app => app.fileStatus === 'ACTIVO').length,
+      finalizedApplications: uniqueFilteredApplications.filter(app => app.fileStatus === 'FINALIZADO').length,
+      inactiveApplications: uniqueFilteredApplications.filter(app => app.fileStatus === 'INACTIVO').length,
+      errorApplications: uniqueFilteredApplications.filter(app => app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO').length,
+      estado020Applications: uniqueFilteredApplications.filter(app => app.fileStatus === 'ESTADO-020').length,
+      activeRate: uniqueFilteredApplications.length > 0 ?
+        (uniqueFilteredApplications.filter(app => app.fileStatus === 'ACTIVO').length / uniqueFilteredApplications.length) * 100 : 0,
+      finalizedRate: uniqueFilteredApplications.length > 0 ?
+        (uniqueFilteredApplications.filter(app => app.fileStatus === 'FINALIZADO').length / uniqueFilteredApplications.length) * 100 : 0,
+      totalProcedures: allFilteredApplications.length
     };
 
-    // Time-based trends
-    const currentMonthApplications = filteredApplications.filter(app =>
+    // Time-based trends - Use UNIQUE applications for trend analysis
+    const currentMonthApplications = uniqueFilteredApplications.filter(app =>
       app.receivedDate && new Date(app.receivedDate) >= currentMonth
     );
-    const lastMonthApplications = filteredApplications.filter(app =>
+    const lastMonthApplications = uniqueFilteredApplications.filter(app =>
       app.receivedDate &&
       new Date(app.receivedDate) >= lastMonth &&
       new Date(app.receivedDate) < currentMonth
@@ -348,39 +397,47 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       }
     };
 
-    // Renewal type analysis
+    // Renewal type analysis - Use UNIQUE applications for renewal rates
     const renewalAnalysis = {
-      automaticRenewals: filteredApplications.filter(app => app.isAutomaticRenewal === '1').length,
-      manualApplications: filteredApplications.filter(app => app.isAutomaticRenewal === '0').length,
-      automaticRenewalRate: filteredApplications.length > 0 ?
-        (filteredApplications.filter(app => app.isAutomaticRenewal === '1').length / filteredApplications.length) * 100 : 0
+      automaticRenewals: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '1').length,
+      manualApplications: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '0').length,
+      automaticRenewalRate: uniqueFilteredApplications.length > 0 ?
+        (uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '1').length / uniqueFilteredApplications.length) * 100 : 0
     };
 
-    // City/regional distribution analysis
-    const cityPerformance = await prisma.applications.groupBy({
-      by: ['cityCode'],
+    // City/regional distribution analysis - Use unique applications by city
+    const cityPerformanceRaw = await prisma.applications.groupBy({
+      by: ['cityCode', 'applicationCode'],
       where: filters,
       _count: {
         id: true
-      },
-      orderBy: {
-        _count: {
-          id: 'desc'
-        }
-      },
-      take: 10
+      }
     });
+    
+    // Consolidate by city (count unique applications per city)
+    const cityMap = new Map();
+    cityPerformanceRaw.forEach(item => {
+      const city = item.cityCode || 'N/A';
+      if (!cityMap.has(city)) {
+        cityMap.set(city, { cityCode: city, count: 0 });
+      }
+      cityMap.get(city).count += 1;
+    });
+    
+    const cityPerformance = Array.from(cityMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
 
     // Generate insights and recommendations
     const insights: string[] = [];
     const recommendations: string[] = [];
 
-    // Approval rate insights
-    if (processingAnalysis.approvalRate < 70) {
-      insights.push("Tasa de aprobación por debajo del objetivo institucional (70%)");
-      recommendations.push("Revisar criterios de aprobación y proporcionar mejor orientación a solicitantes");
-    } else if (processingAnalysis.approvalRate > 90) {
-      insights.push("Excelente tasa de aprobación, superando estándares institucionales");
+    // Active rate insights
+    if (processingAnalysis.activeRate < 70) {
+      insights.push("Tasa de solicitudes activas por debajo del objetivo institucional (70%)");
+      recommendations.push("Revisar procesos para aumentar el número de solicitudes activas");
+    } else if (processingAnalysis.activeRate > 90) {
+      insights.push("Excelente tasa de solicitudes activas, superando estándares institucionales");
     }
 
     // Trend insights
@@ -392,11 +449,18 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       recommendations.push("Analizar factores que pueden estar afectando el volumen de solicitudes");
     }
 
-    // Pending applications insights
-    const pendingApplications = processingAnalysis.pendingApplications;
-    if (pendingApplications > 100) {
-      insights.push(`${pendingApplications} solicitudes pendientes de procesamiento`);
-      recommendations.push("Priorizar el procesamiento de solicitudes pendientes para mejorar tiempo de respuesta");
+    // Inactive applications insights
+    const inactiveApplications = processingAnalysis.inactiveApplications;
+    if (inactiveApplications > 100) {
+      insights.push(`${inactiveApplications} solicitudes inactivas identificadas`);
+      recommendations.push("Analizar causas de inactividad y considerar medidas de reactivación");
+    }
+    
+    // Error applications insights
+    const errorApplications = processingAnalysis.errorApplications;
+    if (errorApplications > 0) {
+      insights.push(`${errorApplications} solicitudes con errores de usuario detectadas`);
+      recommendations.push("Mejorar capacitación de usuarios para reducir errores en el sistema");
     }
 
     // Renewal type insights
@@ -409,10 +473,11 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       ...analyticsData,
       reportAnalysis: {
         executiveSummary: {
-          totalApplications: filteredApplications.length,
-          approvalRate: processingAnalysis.approvalRate,
-          rejectionRate: processingAnalysis.rejectionRate,
-          pendingApplications: processingAnalysis.pendingApplications,
+          totalApplications: uniqueFilteredApplications.length,
+          totalProcedures: allFilteredApplications.length,
+          activeRate: processingAnalysis.activeRate,
+          finalizedRate: processingAnalysis.finalizedRate,
+          activeApplications: processingAnalysis.activeApplications,
           automaticRenewalRate: renewalAnalysis.automaticRenewalRate,
           periodCovered: { startDate, endDate }
         },
@@ -422,21 +487,21 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
         topApplicants: topApplicants.map(ta => ({
           applicantName: ta.applicantName || 'N/A',
           companyName: ta.companyName || 'N/A',
-          applicationCount: ta._count.id
+          applicationCount: ta.count
         })),
         procedureTypeAnalysis: procedureTypeAnalysis.map(pta => ({
           procedureType: pta.procedureTypeDescription || 'No especificado',
           count: pta._count.id,
-          percentage: (pta._count.id / filteredApplications.length) * 100
+          percentage: (pta._count.id / allFilteredApplications.length) * 100
         })),
         cityPerformance: cityPerformance.map(cp => ({
           cityCode: cp.cityCode || 'N/A',
-          applicationsCount: cp._count.id,
-          percentage: (cp._count.id / filteredApplications.length) * 100
+          applicationsCount: cp.count,
+          percentage: (cp.count / uniqueFilteredApplications.length) * 100
         })),
         insights,
         recommendations,
-        sampleApplications: filteredApplications.slice(0, 50) // Include sample for supporting data
+        sampleApplications: allFilteredApplications.slice(0, 50) // Include sample for supporting data
       }
     };
   } catch (error: any) {
@@ -447,51 +512,62 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
 
 export async function getApplicationsDashboard(params: any): Promise<any> {
   try {
-    // Get all applications for dashboard KPIs (no filtering)
-    const allApplications = await prisma.applications.findMany();
+    // Get ALL application records for procedures analytics
+    const allApplicationRecords = await prisma.applications.findMany();
+    
+    // Get UNIQUE applications for application-level KPIs
+    const allUniqueApplications = await prisma.applications.findMany({
+      distinct: ['applicationCode']
+    });
 
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
     const ninetyDaysAgo = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
 
-    // Recent applications (last 30 days)
-    const recentApplications = allApplications.filter(app =>
+    // Recent applications (last 30 days) - Use unique applications
+    const recentApplications = allUniqueApplications.filter(app =>
       app.receivedDate && new Date(app.receivedDate) >= thirtyDaysAgo
     );
 
-    // Applications requiring attention (pending > 30 days)
-    const stalledApplications = allApplications.filter(app =>
-      app.fileStatus === 'PENDIENTE' &&
+    // Applications requiring attention (old inactive or error applications) - Use unique applications
+    const stalledApplications = allUniqueApplications.filter(app =>
+      (app.fileStatus === 'INACTIVO' || app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO') &&
       app.receivedDate && new Date(app.receivedDate) < thirtyDaysAgo
     );
 
-    // Dashboard KPIs
+    // Dashboard KPIs - Use unique applications for application-level metrics
     const dashboardKpis = {
-      totalApplications: allApplications.length,
+      totalApplications: allUniqueApplications.length,
+      totalProcedures: allApplicationRecords.length,
       recentApplications: recentApplications.length,
-      pendingApplications: allApplications.filter(app => app.fileStatus === 'PENDIENTE').length,
-      approvedApplications: allApplications.filter(app => app.fileStatus === 'APROBADO').length,
-      rejectedApplications: allApplications.filter(app => app.fileStatus === 'RECHAZADO').length,
+      activeApplications: allUniqueApplications.filter(app => app.fileStatus === 'ACTIVO').length,
+      finalizedApplications: allUniqueApplications.filter(app => app.fileStatus === 'FINALIZADO').length,
+      inactiveApplications: allUniqueApplications.filter(app => app.fileStatus === 'INACTIVO').length,
+      errorApplications: allUniqueApplications.filter(app => app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO').length,
+      estado020Applications: allUniqueApplications.filter(app => app.fileStatus === 'ESTADO-020').length,
       stalledApplications: stalledApplications.length,
-      automaticRenewals: allApplications.filter(app => app.isAutomaticRenewal === '1').length,
+      automaticRenewals: allUniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
       averageProcessingTime: 0 // Could be calculated based on receivedDate vs systemDate
     };
 
     // Quick stats for dashboard charts
     const quickStats = {
-      statusBreakdown: allApplications.reduce((acc: any, app) => {
+      // Status breakdown uses unique applications
+      statusBreakdown: allUniqueApplications.reduce((acc: any, app) => {
         const status = app.fileStatus || "NO DEFINIDO";
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {}),
 
+      // Recent trend uses unique applications
       recentTrend: recentApplications.reduce((acc: any, app) => {
         const date = app.receivedDate ? new Date(app.receivedDate).toISOString().split('T')[0] : 'Sin fecha';
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       }, {}),
 
-      topProcedureTypes: allApplications.reduce((acc: any, app) => {
+      // Procedure types use ALL records (procedure-level metric)
+      topProcedureTypes: allApplicationRecords.reduce((acc: any, app) => {
         const procedureType = app.procedureTypeDescription || "NO DEFINIDO";
         acc[procedureType] = (acc[procedureType] || 0) + 1;
         return acc;
@@ -503,7 +579,8 @@ export async function getApplicationsDashboard(params: any): Promise<any> {
       quickStats,
       recentApplications: recentApplications.slice(0, 10), // Latest 10 applications
       stalledApplications: stalledApplications.slice(0, 10), // 10 applications needing attention
-      total: allApplications.length
+      total: allUniqueApplications.length,
+      totalProcedures: allApplicationRecords.length
     };
   } catch (error: any) {
     console.error('Error retrieving applications dashboard:', error);
