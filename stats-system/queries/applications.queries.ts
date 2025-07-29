@@ -44,7 +44,7 @@ export async function getApplications(params: any): Promise<any> {
     if (procedureTypeDescription) {
       filters.procedureTypeDescription = { contains: procedureTypeDescription };
     }
-    
+
     if (procedureClassDescription) {
       filters.procedureClassDescription = { contains: procedureClassDescription };
     }
@@ -135,7 +135,7 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
     if (procedureClassDescription) filters.procedureClassDescription = { contains: procedureClassDescription };
     if (categoryDescription) filters.categoryDescription = { contains: categoryDescription };
     if (plateId) filters.plateId = { contains: plateId };
-    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
+    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? 'true' : 'false';
     if (cityCode) filters.cityCode = cityCode;
 
     // Date filtering using receivedDate only
@@ -168,8 +168,8 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       inactiveApplications: uniqueApplications.filter(app => app.fileStatus === 'INACTIVO').length,
       errorApplications: uniqueApplications.filter(app => app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO').length,
       estado020Applications: uniqueApplications.filter(app => app.fileStatus === 'ESTADO-020').length,
-      automaticRenewals: uniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
-      manualApplications: uniqueApplications.filter(app => app.isAutomaticRenewal === '0').length,
+      automaticRenewals: uniqueApplications.filter(app => app.isAutomaticRenewal === 'true').length,
+      manualApplications: uniqueApplications.filter(app => app.isAutomaticRenewal === 'false').length,
       // Additional KPIs for procedures (use all records)
       totalProcedures: allApplicationRecords.length,
     };
@@ -215,8 +215,8 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
       }, {}),
 
       renewalTypeDistribution: {
-        'AUTOMATICA': uniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
-        'MANUAL': uniqueApplications.filter(app => app.isAutomaticRenewal === '0').length,
+        'AUTOMATICA': uniqueApplications.filter(app => app.isAutomaticRenewal === 'true').length,
+        'MANUAL': uniqueApplications.filter(app => app.isAutomaticRenewal === 'false').length,
       },
 
       cityDistribution: uniqueApplications.reduce((acc: any, app) => {
@@ -231,7 +231,7 @@ export async function getApplicationsAnalytics(params: any): Promise<any> {
         return acc;
       }, {}),
 
-      // Additional procedure-level analytics 
+      // Additional procedure-level analytics
       procedureClassDistribution: allApplicationRecords.reduce((acc: any, app) => {
         const procedureClass = app.procedureClassDescription || "NO DEFINIDO";
         acc[procedureClass] = (acc[procedureClass] || 0) + 1;
@@ -281,7 +281,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
     if (procedureClassDescription) filters.procedureClassDescription = { contains: procedureClassDescription };
     if (categoryDescription) filters.categoryDescription = { contains: categoryDescription };
     if (plateId) filters.plateId = { contains: plateId };
-    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? '1' : '0';
+    if (isAutomaticRenewal !== undefined) filters.isAutomaticRenewal = (String(isAutomaticRenewal) === 'true' || isAutomaticRenewal === true) ? 'true' : 'false';
     if (cityCode) filters.cityCode = cityCode;
 
     if (startDate && endDate) {
@@ -315,7 +315,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
         id: true
       }
     });
-    
+
     // Consolidate by applicant
     const applicantMap = new Map();
     topApplicantsRaw.forEach(item => {
@@ -329,7 +329,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       }
       applicantMap.get(key).count += 1;
     });
-    
+
     const topApplicants = Array.from(applicantMap.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -399,10 +399,10 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
 
     // Renewal type analysis - Use UNIQUE applications for renewal rates
     const renewalAnalysis = {
-      automaticRenewals: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '1').length,
-      manualApplications: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '0').length,
+      automaticRenewals: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === 'true').length,
+      manualApplications: uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === 'false').length,
       automaticRenewalRate: uniqueFilteredApplications.length > 0 ?
-        (uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === '1').length / uniqueFilteredApplications.length) * 100 : 0
+        (uniqueFilteredApplications.filter(app => app.isAutomaticRenewal === 'true').length / uniqueFilteredApplications.length) * 100 : 0
     };
 
     // City/regional distribution analysis - Use unique applications by city
@@ -413,7 +413,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
         id: true
       }
     });
-    
+
     // Consolidate by city (count unique applications per city)
     const cityMap = new Map();
     cityPerformanceRaw.forEach(item => {
@@ -423,7 +423,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       }
       cityMap.get(city).count += 1;
     });
-    
+
     const cityPerformance = Array.from(cityMap.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -455,7 +455,7 @@ export async function getApplicationsAnalyticsReport(params: any): Promise<any> 
       insights.push(`${inactiveApplications} solicitudes inactivas identificadas`);
       recommendations.push("Analizar causas de inactividad y considerar medidas de reactivación");
     }
-    
+
     // Error applications insights
     const errorApplications = processingAnalysis.errorApplications;
     if (errorApplications > 0) {
@@ -514,7 +514,7 @@ export async function getApplicationsDashboard(params: any): Promise<any> {
   try {
     // Get ALL application records for procedures analytics
     const allApplicationRecords = await prisma.applications.findMany();
-    
+
     // Get UNIQUE applications for application-level KPIs
     const allUniqueApplications = await prisma.applications.findMany({
       distinct: ['applicationCode']
@@ -546,7 +546,7 @@ export async function getApplicationsDashboard(params: any): Promise<any> {
       errorApplications: allUniqueApplications.filter(app => app.fileStatus === 'RETROTRAIDO POR ERROR DE USUARIO').length,
       estado020Applications: allUniqueApplications.filter(app => app.fileStatus === 'ESTADO-020').length,
       stalledApplications: stalledApplications.length,
-      automaticRenewals: allUniqueApplications.filter(app => app.isAutomaticRenewal === '1').length,
+      automaticRenewals: allUniqueApplications.filter(app => app.isAutomaticRenewal === 'true').length,
       averageProcessingTime: 0 // Could be calculated based on receivedDate vs systemDate
     };
 

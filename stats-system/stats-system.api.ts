@@ -1,5 +1,6 @@
 import express, { Response } from 'express';
 import { getApplications, getApplicationsAnalytics, getApplicationsAnalyticsReport, getApplicationsDashboard, getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics } from './queries';
+import { getSchoolCertificates, getSchoolCertificatesAnalytics, getSchoolCertificatesAnalyticsReport } from './queries/school.queries';
 
 export const router = express.Router();
 
@@ -97,6 +98,25 @@ router.get('/applications-analytics-report', async (req, res: Response) => {
 
 router.get('/applications-dashboard', async (req, res: Response) => {
   getApplicationsDashboard(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+// School Certificates endpoints
+router.get('/school-certificates', async (req, res: Response) => {
+  getSchoolCertificates(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/school-certificates-analytics', async (req, res: Response) => {
+  getSchoolCertificatesAnalytics(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/school-certificates-analytics-report', async (req, res: Response) => {
+  getSchoolCertificatesAnalyticsReport(req.query).then((data) => {
     res.json(data);
   });
 });
