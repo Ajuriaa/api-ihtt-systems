@@ -1546,19 +1546,29 @@ export async function getEventualPermits(params: any): Promise<any> {
       }
     }
 
-    // Filter out records with noticeCode '0' or null amounts to prevent API crashes
+    // Add new filters based on fields_ep_filtrables.txt
+    if (params.regionalOffice) {
+      filters.regionalOffice = params.regionalOffice;
+    }
+
+    if (params.signatureType) {
+      filters.signatureType = params.signatureType;
+    }
+
+    if (params.petiType) {
+      filters.petiType = params.petiType;
+    }
+
+    if (params.creationOrigin) {
+      filters.creationOrigin = params.creationOrigin;
+    }
+
+    // Filter out records with noticeCode '0' only - keep it simple
     filters.AND = [
       {
         OR: [
           { noticeCode: { not: '0' } },
           { noticeCode: null }
-        ]
-      },
-      {
-        OR: [
-          { amount: { not: null } },
-          { noticeCode: null },
-          { noticeCode: '0' }
         ]
       }
     ];
@@ -1594,7 +1604,7 @@ export async function getEventualPermits(params: any): Promise<any> {
 
 export async function getEventualPermitsAnalytics(params: any): Promise<any> {
   try {
-    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, dateType } = params;
+    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, dateType, regionalOffice, signatureType, petiType, creationOrigin } = params;
 
     // Build base filters
     const filters: any = {};
@@ -1603,6 +1613,10 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
     if (serviceType) filters.serviceTypeDescription = { contains: serviceType };
     if (rtn) filters.rtn = { contains: rtn };
     if (applicantName) filters.applicantName = { contains: applicantName };
+    if (regionalOffice) filters.regionalOffice = regionalOffice;
+    if (signatureType) filters.signatureType = signatureType;
+    if (petiType) filters.petiType = petiType;
+    if (creationOrigin) filters.creationOrigin = creationOrigin;
 
     if (startDate && endDate && dateType) {
       if (dateType === 'system') {
@@ -1613,25 +1627,18 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
       }
     }
 
-    // Filter out records with noticeCode '0' or null amounts to prevent API crashes
+    // Filter out records with noticeCode '0' only - keep it simple
     filters.AND = [
       {
         OR: [
           { noticeCode: { not: '0' } },
           { noticeCode: null }
         ]
-      },
-      {
-        OR: [
-          { amount: { not: null } },
-          { noticeCode: null },
-          { noticeCode: '0' }
-        ]
       }
     ];
 
     // Get filtered permits using distinct noticeCode
-    const permits = await prisma.eventual_permits.findMany({
+    const filteredPermits = await prisma.eventual_permits.findMany({
       where: filters,
       distinct: ['noticeCode'],
     });
@@ -1639,23 +1646,65 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
     const now = new Date();
     const twelveMonthsAgo = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000));
 
-    // Deduplicate using noticeCode
+    // Get ALL permits for global KPIs (no filters)
+    const globalAllPermits = await prisma.eventual_permits.findMany({
+      where: {
+        AND: [
+          {
+            OR: [
+              { noticeCode: { not: '0' } },
+              { noticeCode: null }
+            ]
+          }
+        ]
+      },
+      distinct: ['noticeCode']
+    });
+
+    // Deduplicate filtered permits using noticeCode
     const uniqueNoticeCodes = new Map();
-    permits.forEach(permit => {
+    filteredPermits.forEach(permit => {
       if (permit.noticeCode && !uniqueNoticeCodes.has(permit.noticeCode)) {
         uniqueNoticeCodes.set(permit.noticeCode, permit);
       }
     });
+    const uniqueFilteredPermits = Array.from(uniqueNoticeCodes.values());
 
-    const uniquePermits = Array.from(uniqueNoticeCodes.values());
+    // Deduplicate global permits using noticeCode
+    const globalUniqueNoticeCodes = new Map();
+    globalAllPermits.forEach(permit => {
+      if (permit.noticeCode && !globalUniqueNoticeCodes.has(permit.noticeCode)) {
+        globalUniqueNoticeCodes.set(permit.noticeCode, permit);
+      }
+    });
+    const globalUniquePermits = Array.from(globalUniqueNoticeCodes.values());
 
-    // Calculate KPIs
+    // Calculate KPIs - both filtered and global
     const kpis = {
-      totalPermits: uniquePermits.length,
-      totalRevenue: uniquePermits.reduce((sum, permit) => sum + (permit.amount || 0), 0),
-      activePermits: uniquePermits.filter(permit => permit.permitStatus === 'ACTIVO').length,
-      processedPermits: uniquePermits.filter(permit => permit.permitStatus === 'PROCESADO').length,
-      cancelledPermits: uniquePermits.filter(permit => permit.permitStatus === 'ANULADO').length,
+      // Filtered KPIs (based on user filters)
+      filtered: {
+        totalPermits: uniqueFilteredPermits.length,
+        totalRevenue: uniqueFilteredPermits.reduce((sum, permit) => sum + (permit.amount || 0), 0),
+        totalOwed: uniqueFilteredPermits
+          .filter(permit => permit.permitStatus === 'ACTIVO' || permit.permitStatus === 'Pendiente Pago en Banco')
+          .reduce((sum, permit) => sum + (permit.amount || 0), 0),
+        activePermits: uniqueFilteredPermits.filter(permit => permit.permitStatus === 'ACTIVO').length,
+        processedPermits: uniqueFilteredPermits.filter(permit => permit.permitStatus === 'PROCESADO').length,
+        cancelledPermits: uniqueFilteredPermits.filter(permit => permit.permitStatus === 'ANULADO').length,
+        deliveredPermits: uniqueFilteredPermits.filter(permit => permit.permitStatus === 'Entregado').length,
+        pendingPermits: uniqueFilteredPermits.filter(permit => permit.permitStatus === 'Pendiente Pago en Banco').length
+      },
+      // Global KPIs (all permits, no filters)
+      global: {
+        totalPermits: globalUniquePermits.length,
+        totalRevenue: globalUniquePermits.reduce((sum, permit) => sum + (permit.amount || 0), 0),
+        totalOwed: globalUniquePermits
+          .filter(permit => permit.permitStatus === 'ACTIVO' || permit.permitStatus === 'Pendiente Pago en Banco')
+          .reduce((sum, permit) => sum + (permit.amount || 0), 0),
+        activePermits: globalUniquePermits.filter(permit => permit.permitStatus === 'ACTIVO').length,
+        processedPermits: globalUniquePermits.filter(permit => permit.permitStatus === 'PROCESADO').length,
+        deliveredPermits: globalUniquePermits.filter(permit => permit.permitStatus === 'Entregado').length
+      }
     };
 
     // Monthly revenue data using SQL for better performance
@@ -1676,21 +1725,21 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
       LIMIT 24
     `;
 
-    // Calculate chart data using unique permits
+    // Calculate chart data using filtered permits
     const chartData = {
-      statusDistribution: uniquePermits.reduce((acc: any, permit) => {
+      statusDistribution: uniqueFilteredPermits.reduce((acc: any, permit) => {
         const status = permit.permitStatus || "NO DEFINIDO";
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {}),
 
-      revenueByStatus: uniquePermits.reduce((acc: any, permit) => {
+      revenueByStatus: uniqueFilteredPermits.reduce((acc: any, permit) => {
         const status = permit.permitStatus || "NO DEFINIDO";
         acc[status] = (acc[status] || 0) + (permit.amount || 0);
         return acc;
       }, {}),
 
-      serviceTypeDistribution: uniquePermits.reduce((acc: any, permit) => {
+      serviceTypeDistribution: uniqueFilteredPermits.reduce((acc: any, permit) => {
         const serviceType = permit.serviceTypeDescription || "NO DEFINIDO";
         acc[serviceType] = (acc[serviceType] || 0) + 1;
         return acc;
@@ -1701,7 +1750,26 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
         return acc;
       }, {}),
 
-      regionalOfficeDistribution: uniquePermits.reduce((acc: any, permit) => {
+      regionalOfficeDistribution: uniqueFilteredPermits.reduce((acc: any, permit) => {
+        const office = permit.regionalOffice || "NO DEFINIDO";
+        acc[office] = (acc[office] || 0) + 1;
+        return acc;
+      }, {}),
+
+      // Global chart data for comparison
+      globalStatusDistribution: globalUniquePermits.reduce((acc: any, permit) => {
+        const status = permit.permitStatus || "NO DEFINIDO";
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {}),
+
+      globalServiceTypeDistribution: globalUniquePermits.reduce((acc: any, permit) => {
+        const serviceType = permit.serviceTypeDescription || "NO DEFINIDO";
+        acc[serviceType] = (acc[serviceType] || 0) + 1;
+        return acc;
+      }, {}),
+
+      globalRegionalOfficeDistribution: globalUniquePermits.reduce((acc: any, permit) => {
         const office = permit.regionalOffice || "NO DEFINIDO";
         acc[office] = (acc[office] || 0) + 1;
         return acc;
@@ -1711,10 +1779,241 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
     return {
       kpis,
       chartData,
-      total: uniquePermits.length
+      total: uniqueFilteredPermits.length
     };
   } catch (error: any) {
     console.error('Error retrieving eventual permits analytics:', error);
+    throw error.message;
+  }
+}
+
+export async function getEventualPermitsAnalyticsReport(params: any): Promise<any> {
+  try {
+    // Get base analytics data
+    const analyticsData = await getEventualPermitsAnalytics(params);
+
+    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, dateType, regionalOffice, signatureType, petiType, creationOrigin } = params;
+
+    // Build filters for detailed analysis
+    const filters: any = {};
+
+    if (permitStatus) filters.permitStatus = permitStatus;
+    if (serviceType) filters.serviceTypeDescription = { contains: serviceType };
+    if (rtn) filters.rtn = { contains: rtn };
+    if (applicantName) filters.applicantName = { contains: applicantName };
+    if (regionalOffice) filters.regionalOffice = regionalOffice;
+    if (signatureType) filters.signatureType = signatureType;
+    if (petiType) filters.petiType = petiType;
+    if (creationOrigin) filters.creationOrigin = creationOrigin;
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'system') {
+        filters['systemDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Filter out records with noticeCode '0' only - keep it simple
+    filters.AND = [
+      {
+        OR: [
+          { noticeCode: { not: '0' } },
+          { noticeCode: null }
+        ]
+      }
+    ];
+
+    // Get detailed permits for insights
+    const filteredPermits = await prisma.eventual_permits.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastYear = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+    // Top applicants analysis
+    const topApplicants = await prisma.eventual_permits.groupBy({
+      by: ['applicantName', 'rtn'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        amount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    // Service type analysis
+    const serviceTypeAnalysis = await prisma.eventual_permits.groupBy({
+      by: ['serviceTypeDescription'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        amount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    // Regional office performance analysis
+    const regionalOfficePerformance = await prisma.eventual_permits.groupBy({
+      by: ['regionalOffice'],
+      where: filters,
+      _count: {
+        id: true
+      },
+      _sum: {
+        amount: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      }
+    });
+
+    // Processing efficiency analysis
+    const processingAnalysis = {
+      totalSubmitted: filteredPermits.length,
+      totalProcessed: filteredPermits.filter(p => p.permitStatus === 'PROCESADO').length,
+      totalActive: filteredPermits.filter(p => p.permitStatus === 'ACTIVO').length,
+      totalCancelled: filteredPermits.filter(p => p.permitStatus === 'ANULADO').length,
+      processingRate: filteredPermits.length > 0 ?
+        (filteredPermits.filter(p => p.permitStatus === 'PROCESADO').length / filteredPermits.length) * 100 : 0
+    };
+
+    // Time-based trends
+    const currentMonthPermits = filteredPermits.filter(permit =>
+      permit.systemDate && new Date(permit.systemDate) >= currentMonth
+    );
+    const lastMonthPermits = filteredPermits.filter(permit =>
+      permit.systemDate &&
+      new Date(permit.systemDate) >= lastMonth &&
+      new Date(permit.systemDate) < currentMonth
+    );
+    const lastYearPermits = await prisma.eventual_permits.findMany({
+      where: {
+        ...filters,
+        systemDate: {
+          gte: new Date(lastYear.getFullYear(), lastYear.getMonth(), 1).toISOString(),
+          lte: new Date(lastYear.getFullYear(), lastYear.getMonth() + 1, 0).toISOString()
+        }
+      },
+      distinct: ['noticeCode']
+    });
+
+    const trends = {
+      monthOverMonth: {
+        current: currentMonthPermits.length,
+        previous: lastMonthPermits.length,
+        change: lastMonthPermits.length > 0 ?
+          ((currentMonthPermits.length - lastMonthPermits.length) / lastMonthPermits.length) * 100 : 0,
+        revenue: {
+          current: currentMonthPermits.reduce((sum, p) => sum + (p.amount || 0), 0),
+          previous: lastMonthPermits.reduce((sum, p) => sum + (p.amount || 0), 0)
+        }
+      },
+      yearOverYear: {
+        current: currentMonthPermits.length,
+        previous: lastYearPermits.length,
+        change: lastYearPermits.length > 0 ?
+          ((currentMonthPermits.length - lastYearPermits.length) / lastYearPermits.length) * 100 : 0
+      }
+    };
+
+    // Generate insights and recommendations
+    const insights: string[] = [];
+    const recommendations: string[] = [];
+
+    // Processing rate insights
+    if (processingAnalysis.processingRate < 85) {
+      insights.push("Tasa de procesamiento por debajo del objetivo institucional (85%)");
+      recommendations.push("Implementar mejoras en el flujo de procesamiento de permisos eventuales");
+    } else if (processingAnalysis.processingRate > 95) {
+      insights.push("Excelente tasa de procesamiento, superando estándares institucionales");
+    }
+
+    // Trend insights
+    if (trends.monthOverMonth.change > 25) {
+      insights.push(`Incremento significativo del ${trends.monthOverMonth.change.toFixed(1)}% en permisos este mes`);
+      recommendations.push("Evaluar capacidad operativa para mantener tiempos de respuesta óptimos");
+    } else if (trends.monthOverMonth.change < -25) {
+      insights.push(`Disminución significativa del ${Math.abs(trends.monthOverMonth.change).toFixed(1)}% en permisos este mes`);
+      recommendations.push("Analizar factores que pueden estar afectando la demanda de permisos");
+    }
+
+    // Service type insights
+    const topServiceType = serviceTypeAnalysis[0];
+    if (topServiceType && topServiceType._count.id > filteredPermits.length * 0.6) {
+      insights.push(`${topServiceType.serviceTypeDescription} representa el ${((topServiceType._count.id / filteredPermits.length) * 100).toFixed(1)}% de todos los permisos`);
+      recommendations.push("Considerar especialización de procesos para el tipo de servicio dominante");
+    }
+
+    // Regional performance insights
+    const topRegionalOffice = regionalOfficePerformance[0];
+    if (topRegionalOffice && regionalOfficePerformance.length > 1) {
+      const secondOffice = regionalOfficePerformance[1];
+      const performanceDiff = ((topRegionalOffice._count.id - secondOffice._count.id) / secondOffice._count.id) * 100;
+      if (performanceDiff > 50) {
+        insights.push(`La oficina ${topRegionalOffice.regionalOffice} procesa ${performanceDiff.toFixed(1)}% más permisos que otras oficinas`);
+        recommendations.push("Revisar procesos y capacidad en oficinas regionales con menor productividad");
+      }
+    }
+
+    return {
+      ...analyticsData,
+      reportAnalysis: {
+        executiveSummary: {
+          totalPermits: filteredPermits.length,
+          totalRevenue: filteredPermits.reduce((sum, p) => sum + (p.amount || 0), 0),
+          processingRate: processingAnalysis.processingRate,
+          activePermits: processingAnalysis.totalActive,
+          processedPermits: processingAnalysis.totalProcessed,
+          periodCovered: { startDate, endDate }
+        },
+        processingAnalysis,
+        trends,
+        topApplicants: topApplicants.map(ta => ({
+          applicantName: ta.applicantName || 'N/A',
+          rtn: ta.rtn || 'N/A',
+          permitCount: ta._count.id,
+          totalAmount: ta._sum.amount || 0
+        })),
+        serviceTypeAnalysis: serviceTypeAnalysis.map(sta => ({
+          serviceType: sta.serviceTypeDescription || 'No especificado',
+          count: sta._count.id,
+          totalAmount: sta._sum.amount || 0,
+          percentage: (sta._count.id / filteredPermits.length) * 100
+        })),
+        regionalOfficePerformance: regionalOfficePerformance.map(rop => ({
+          regionalOffice: rop.regionalOffice || 'No especificado',
+          permitsProcessed: rop._count.id,
+          totalAmount: rop._sum.amount || 0,
+          percentage: (rop._count.id / filteredPermits.length) * 100
+        })),
+        insights,
+        recommendations,
+        samplePermits: filteredPermits.slice(0, 50) // Include sample for supporting data
+      }
+    };
+  } catch (error: any) {
+    console.error('Error generating eventual permits analytics report:', error);
     throw error.message;
   }
 }

@@ -97,6 +97,13 @@ export async function exportEventualPermits(): Promise<JobResult> {
         return;
       }
 
+      const cleanedRecords = result.recordset.map(record => {
+        if (record.amount === '' || record.amount === null || record.amount === undefined) {
+          record.amount = 0;
+        }
+        return record;
+      });
+
       const csvWriter = createObjectCsvWriter({
         path: path.resolve(__dirname, 'eventual_permits.csv'),
         header: Object.keys(result.recordset[0]).map((key) => ({ id: key, title: key })),
@@ -104,7 +111,7 @@ export async function exportEventualPermits(): Promise<JobResult> {
         headerIdDelimiter: '.'
       });
 
-      await csvWriter.writeRecords(result.recordset);
+      await csvWriter.writeRecords(cleanedRecords);
       console.log('CSV generado como eventual_permits.csv');
       const sqlitePath = path.resolve(__dirname, '../stats.sqlite');
       const csvPath = path.resolve(__dirname, 'eventual_permits.csv');

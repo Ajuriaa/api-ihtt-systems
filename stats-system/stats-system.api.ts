@@ -1,5 +1,5 @@
 import express, { Response } from 'express';
-import { getApplications, getApplicationsAnalytics, getApplicationsAnalyticsReport, getApplicationsDashboard, getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics } from './queries';
+import { getApplications, getApplicationsAnalytics, getApplicationsAnalyticsReport, getApplicationsDashboard, getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics, getEventualPermitsAnalyticsReport } from './queries';
 import { getSchoolCertificates, getSchoolCertificatesAnalytics, getSchoolCertificatesAnalyticsReport } from './queries/school.queries';
 
 export const router = express.Router();
@@ -73,6 +73,12 @@ router.get('/eventual-permits', async (req, res: Response) => {
 
 router.get('/eventual-permits-analytics', async (req, res: Response) => {
   getEventualPermitsAnalytics(req.query).then((data) => {
+    res.json(data);
+  });
+});
+
+router.get('/eventual-permits-analytics-report', async (req, res: Response) => {
+  getEventualPermitsAnalyticsReport(req.query).then((data) => {
     res.json(data);
   });
 });
