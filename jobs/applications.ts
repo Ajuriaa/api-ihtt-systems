@@ -76,6 +76,13 @@ export async function exportApplications(): Promise<JobResult> {
       const result = await pool.request().query(QUERY);
       console.log(`Registros obtenidos: ${result.recordset.length}`);
 
+      // Clean folio values: replace null/undefined/empty with 0
+      result.recordset.forEach(record => {
+        if (record.folio === null || record.folio === undefined || record.folio === '') {
+          record.folio = 0;
+        }
+      });
+
       const recordsObtained = result.recordset.length;
 
       if (recordsObtained === 0) {
