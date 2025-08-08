@@ -53,7 +53,9 @@ const QUERY = `
                   = 0 THEN 'No Aplica' ELSE CASE WHEN codigo_tipo_firma = 0 THEN 'TRANSPORTE DE MIGRANTES' ELSE 'BUS INTERNACIONAL CON DESTINO/SALIDA HONDURAS' END END AS petiType,
     ISNULL(CASE avc.[CodigoAvisoCobro] WHEN '' THEN NULL ELSE avc.CodigoAvisoCobro END, '0') AS noticeCode,
     acd.Monto AS amount,
-    origenCreacion.OrigenCreacion AS creationOrigin
+    origenCreacion.OrigenCreacion AS creationOrigin,
+    COALESCE(avc.CodigoBanco, '') AS bankCode,
+    COALESCE(tb.DESC_Banco, '') AS bankDescription
   FROM
     IHTT_Portales.dbo.TB_Permiso AS p INNER JOIN
     IHTT_Portales.dbo.TB_Permiso_Estado AS pes ON pes.Permiso_Estado_Codigo = p.Permiso_Estado_Codigo LEFT OUTER JOIN
@@ -65,7 +67,8 @@ const QUERY = `
     IHTT_Portales.dbo.v_Empleados AS emp ON emp.Usuario_Nombre = p.SistemaUsuario LEFT OUTER JOIN
     IHTT_Webservice.dbo.TB_AvisoCobroEnc AS avc ON avc.ID_Solicitud = p.PermisoCodigo LEFT OUTER JOIN
     IHTT_Webservice.dbo.TB_AvisoCobroDET AS acd ON acd.CodigoAvisoCobro = avc.CodigoAvisoCobro INNER JOIN
-    IHTT_Portales.dbo.TB_PermisoOrigenCreacion AS origenCreacion ON origenCreacion.CodigoOrigenCreacion = p.CodigoOrigenCreacion
+    IHTT_Portales.dbo.TB_PermisoOrigenCreacion AS origenCreacion ON origenCreacion.CodigoOrigenCreacion = p.CodigoOrigenCreacion LEFT OUTER JOIN
+    IHTT_Webservice.dbo.TB_Bancos AS tb ON avc.CodigoBanco = tb.ID_Banco
   WHERE  (p.Permiso_Estado_Codigo IN (1, 2, 3))
   ORDER BY p.SistemaFecha
 `;
@@ -124,7 +127,8 @@ export async function exportEventualPermits(): Promise<JobResult> {
           validationCode TEXT, systemUser TEXT, employeeName TEXT, regionalOffice TEXT,
           systemDate TEXT, creationYear INTEGER, creationMonth INTEGER, creationMonthName TEXT,
           serviceTypeCode TEXT, serviceTypeDescription TEXT, signatureType TEXT,
-          petiType TEXT, noticeCode TEXT, amount REAL, creationOrigin TEXT
+          petiType TEXT, noticeCode TEXT, amount REAL, creationOrigin TEXT,
+          bankCode TEXT, bankDescription TEXT
         );
       `;
 
@@ -136,7 +140,8 @@ export async function exportEventualPermits(): Promise<JobResult> {
           validationCode TEXT, systemUser TEXT, employeeName TEXT, regionalOffice TEXT,
           systemDate TEXT, creationYear INTEGER, creationMonth INTEGER, creationMonthName TEXT,
           serviceTypeCode TEXT, serviceTypeDescription TEXT, signatureType TEXT,
-          petiType TEXT, noticeCode TEXT, amount REAL, creationOrigin TEXT
+          petiType TEXT, noticeCode TEXT, amount REAL, creationOrigin TEXT,
+          bankCode TEXT, bankDescription TEXT
         );
       `;
 

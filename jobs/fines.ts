@@ -37,7 +37,9 @@ const QUERY = `
     M.DESC_Municipio AS municipality,
     OP.Lugar AS place,
     MU.ID_Empleado as employeeId,
-    CONCAT(emp.Nombres, ' ', emp.Apellidos) as employeeName
+    CONCAT(emp.Nombres, ' ', emp.Apellidos) as employeeName,
+    COALESCE(AV.CodigoBanco, '') AS bankCode,
+    COALESCE(TB.DESC_Banco, '') AS bankDescription
   FROM
     IHTT_MULTAS.dbo.TB_Multas AS MU
     LEFT OUTER JOIN IHTT_MULTAS.dbo.TB_Reinicidencias AS RE ON MU.[ID_Multa] = RE.[ID_Multa]
@@ -52,6 +54,7 @@ const QUERY = `
     INNER JOIN IHTT_MULTAS.dbo.TB_Municipios AS M ON OP.ID_Municipio = M.ID_Municipio
     INNER JOIN IHTT_MULTAS.dbo.TB_Departamentos AS D ON D.ID_Departamento = M.ID_Departamento
     INNER JOIN IHTT_RRHH.dbo.TB_Empleados AS emp ON MU.ID_Empleado = emp.ID_Empleado
+    LEFT JOIN IHTT_Webservice.dbo.TB_Bancos AS TB ON AV.CodigoBanco = TB.ID_Banco
   WHERE
     MU.ID_Multa NOT IN (
       SELECT [Expediente_Actual]
@@ -116,7 +119,7 @@ export async function exportFines(): Promise<JobResult> {
           startDate TEXT, companyName TEXT, dniRtn TEXT, phone TEXT, email TEXT,
           certificate TEXT, region TEXT, systemDate TEXT, noticeCode INTEGER,
           totalAmount REAL, department TEXT, municipality TEXT, place TEXT,
-          employeeId TEXT, employeeName TEXT
+          employeeId TEXT, employeeName TEXT, bankCode TEXT, bankDescription TEXT
         );
       `;
 
@@ -127,7 +130,7 @@ export async function exportFines(): Promise<JobResult> {
           startDate TEXT, companyName TEXT, dniRtn TEXT, phone TEXT, email TEXT,
           certificate TEXT, region TEXT, systemDate TEXT, noticeCode INTEGER,
           totalAmount REAL, department TEXT, municipality TEXT, place TEXT,
-          employeeId TEXT, employeeName TEXT
+          employeeId TEXT, employeeName TEXT, bankCode TEXT, bankDescription TEXT
         );
       `;
 

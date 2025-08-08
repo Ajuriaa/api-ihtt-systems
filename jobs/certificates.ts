@@ -134,7 +134,9 @@ const QUERY = `
     COALESCE(d.sistema_usuario, '') AS systemUser,
     COALESCE(CONVERT(varchar, d.sistema_fecha, 127), '') AS inventoryDate,
     COALESCE(CONVERT(varchar, ct.[Fecha_Vencimiento_Certificado], 127), '') AS certificateExpirationDate,
-    COALESCE(CONVERT(varchar, ct.[Fecha_Vencimiento_Permiso], 127), '') AS permissionExpirationDate
+    COALESCE(CONVERT(varchar, ct.[Fecha_Vencimiento_Permiso], 127), '') AS permissionExpirationDate,
+    COALESCE(ave.CodigoBanco, '') AS bankCode,
+    COALESCE(tb.DESC_Banco, '') AS bankDescription
   FROM IHTT_ARCHIVO_ENTREGA.dbo.tb_ubicacion_documentos_scd AS d
   INNER JOIN IHTT_ARCHIVO_ENTREGA.dbo.tb_areas_scd AS a ON a.cod_area = d.cod_area
   INNER JOIN IHTT_ARCHIVO_ENTREGA.dbo.tb_estantes_scd AS e ON e.cod_estante = d.cod_estante
@@ -148,6 +150,8 @@ const QUERY = `
   LEFT JOIN [IHTT_DB].dbo.tb_expediente_x_apoderado AS epa ON epa.id_solicitud = et.ID_Solicitud
   LEFT JOIN [IHTT_DB].dbo.tb_apoderado_legal AS apo ON apo.id_colegiacionapl = epa.id_colegiacionapl
   LEFT JOIN IHTT_ARCHIVO_ENTREGA.dbo.tempAvisosCobro AS act ON d.expediente = act.expediente
+  LEFT JOIN [IHTT_Webservice].dbo.TB_AvisoCobroEnc AS ave ON act.codigoavisocobro = ave.CodigoAvisoCobro
+  LEFT JOIN [IHTT_Webservice].dbo.TB_Bancos AS tb ON ave.CodigoBanco = tb.ID_Banco
 `;
 
 interface JobResult {
@@ -208,7 +212,7 @@ export async function exportCertificates(): Promise<JobResult> {
           legalRepresentativePhone TEXT, unifiedRequirement TEXT, noticeCode INTEGER,
           noticeStatusDescription TEXT, totalNoticeAmount REAL, paymentDate TEXT,
           systemUser TEXT, inventoryDate TEXT, certificateExpirationDate TEXT,
-          permissionExpirationDate TEXT
+          permissionExpirationDate TEXT, bankCode TEXT, bankDescription TEXT
         );
       `;
 
@@ -225,7 +229,7 @@ export async function exportCertificates(): Promise<JobResult> {
           legalRepresentativePhone TEXT, unifiedRequirement TEXT, noticeCode INTEGER,
           noticeStatusDescription TEXT, totalNoticeAmount REAL, paymentDate TEXT,
           systemUser TEXT, inventoryDate TEXT, certificateExpirationDate TEXT,
-          permissionExpirationDate TEXT
+          permissionExpirationDate TEXT, bankCode TEXT, bankDescription TEXT
         );
       `;
 
