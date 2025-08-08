@@ -31,13 +31,19 @@ router.get('/dashboard-analytics', async (req, res: Response) => {
 });
 
 router.get('/update', async (req, res: Response) => {
+  // Responder inmediatamente al cliente
+  res.send('Iniciando actualización...');
+
+  // Ejecutar el script en segundo plano
   exec('/var/www/Jajuria/DEPLOY/update_stats.sh', (err, stdout, stderr) => {
     if (err) {
       console.error(`Error: ${err}`);
-      return res.status(500).send(`Error al ejecutar el script: ${stderr}`);
+      return;
     }
+
+    // Imprimir los resultados para monitoreo
     console.log(`Output: ${stdout}`);
-    return res.send('Script ejecutado con éxito');
+    console.error(`Error (stderr): ${stderr}`);
   });
 });
 
