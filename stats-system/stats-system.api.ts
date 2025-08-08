@@ -1,6 +1,7 @@
 import express, { Response } from 'express';
 import { getApplications, getApplicationsAnalytics, getApplicationsAnalyticsReport, getApplicationsDashboard, getCertificates, getFines, getDashboardAnalytics, getFinesAnalytics, getFinesAnalyticsReport, getCertificatesAnalytics, getCertificatesAnalyticsReport, getPermitsAnalytics, getRevenueAnalytics, getEventualPermits, getEventualPermitsAnalytics, getEventualPermitsAnalyticsReport } from './queries';
 import { getSchoolCertificates, getSchoolCertificatesAnalytics, getSchoolCertificatesAnalyticsReport } from './queries/school.queries';
+import { exec } from 'child_process';
 
 export const router = express.Router();
 
@@ -26,6 +27,17 @@ router.get('/fines', async (req, res: Response) => {
 router.get('/dashboard-analytics', async (req, res: Response) => {
   getDashboardAnalytics(req.query).then((data) => {
     res.json(data);
+  });
+});
+
+router.get('/update', async (req, res: Response) => {
+  exec('/var/www/Jajuria/DEPLOY/update_stats.sh', (err, stdout, stderr) => {
+    if (err) {
+      console.error(`Error: ${err}`);
+      return res.status(500).send(`Error al ejecutar el script: ${stderr}`);
+    }
+    console.log(`Output: ${stdout}`);
+    return res.send('Script ejecutado con éxito');
   });
 });
 
