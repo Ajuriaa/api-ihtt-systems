@@ -44,30 +44,34 @@ model certificates {
   inventoryDate                String?
   certificateExpirationDate    String?
   permissionExpirationDate     String?
+  bankCode                     String?
+  bankDescription              String?
 }
 
 model fines {
-  id           Int     @id @default(autoincrement())
-  fineId       String?
-  operationId  String?
-  fineStatus   String?
-  origin       String?
-  plate        String?
-  startDate    String?
-  companyName  String?
-  dniRtn       String?
-  phone        String?
-  email        String?
-  certificate  String?
-  region       String?
-  systemDate   String?
-  noticeCode   Int?
-  totalAmount  Float?
-  department   String?
-  municipality String?
-  place        String?
-  employeeId   String?
-  employeeName String?
+  id              Int     @id @default(autoincrement())
+  fineId          String?
+  operationId     String?
+  fineStatus      String?
+  origin          String?
+  plate           String?
+  startDate       String?
+  companyName     String?
+  dniRtn          String?
+  phone           String?
+  email           String?
+  certificate     String?
+  region          String?
+  systemDate      String?
+  noticeCode      Int?
+  totalAmount     Float?
+  department      String?
+  municipality    String?
+  place           String?
+  employeeId      String?
+  employeeName    String?
+  bankCode        String?
+  bankDescription String?
 }
 
 model eventual_permits {
@@ -96,6 +100,8 @@ model eventual_permits {
   noticeCode             String?
   amount                 Float?
   creationOrigin         String?
+  bankCode               String?
+  bankDescription        String?
 }
 
 model applications {
@@ -140,6 +146,7 @@ model applications {
   isAutomaticRenewal        String?
   village                   String?
 }
+
 model school_certificates {
   id                  Int     @id @default(autoincrement())
   preRegistrationCode String?

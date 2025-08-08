@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "bunx prisma generate --schema prisma/stats.schema.prisma && bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma && bunx prisma generate --schema prisma/supply.schema.prisma  && bunx prisma generate --schema prisma/ihtt.schema.prisma && bunx prisma generate --schema prisma/stats_db.schema.prisma",
+    "generate": "bunx prisma generate --schema prisma/stats.schema.prisma && bunx prisma generate --schema prisma/vehicle.schema.prisma && bunx prisma generate --schema prisma/rrhh.schema.prisma && bunx prisma generate --schema prisma/supply.schema.prisma  && bunx prisma generate --schema prisma/ihtt.schema.prisma",
     "lint": "bunx eslint . --fix",
     "dev": "nodemon api.ts",
     "start": "nodemon --watch package.json --exec 'npm run i && npm run start -- --host 0.0.0.0'"

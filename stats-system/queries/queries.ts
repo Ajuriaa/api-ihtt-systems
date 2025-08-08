@@ -337,9 +337,15 @@ export async function getDashboardAnalytics(params: any): Promise<any> {
       }, {})
     };
 
+    // Get bank distribution
+    const bankDistribution = await getBankDistributionCertificates(params);
+
     return {
       kpis,
-      chartData,
+      chartData: {
+        ...chartData,
+        bankDistribution
+      },
       total: uniqueCertificates.length
     };
   } catch (error: any) {
@@ -508,9 +514,15 @@ export async function getFinesAnalytics(params: any): Promise<any> {
         }, {})
     };
 
+    // Get bank distribution
+    const bankDistribution = await getBankDistributionFines(params);
+
     return {
       kpis,
-      chartData,
+      chartData: {
+        ...chartData,
+        bankDistribution
+      },
       total: filteredFines.length
     };
   } catch (error: any) {
@@ -868,6 +880,201 @@ export async function getFines(params: any): Promise<any> {
     };
   } catch (error: any) {
     console.error('Error retrieving fines:', error);
+    throw error.message;
+  }
+}
+
+// Bank distribution queries
+export async function getBankDistributionCertificates(params: any): Promise<any> {
+  try {
+    const { areaName, department, startDate, endDate, coStatus, noticeStatus, rtn, modality, dateType, isAutomaticRenewal } = params;
+
+    // Build filters
+    const filters: any = {};
+    if (isAutomaticRenewal) {
+      filters.isAutomaticRenewal = parseInt(isAutomaticRenewal, 10);
+    }
+    if (areaName) filters.areaName = { contains: areaName };
+    if (modality) filters.modality = modality;
+    if (rtn) filters.concessionaireRtn = { contains: rtn };
+    if (department) filters.department = { contains: department };
+    if (coStatus) filters.coStatus = coStatus;
+    if (noticeStatus) filters.noticeStatusDescription = noticeStatus;
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'certificateExpiration') {
+        filters['certificateExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'permissionExpiration') {
+        filters['permissionExpirationDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      } else if (dateType === 'payment') {
+        filters['paymentDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Only get records with valid bank information (not null/empty)
+    filters.AND = [
+      ...(filters.AND || []),
+      {
+        bankDescription: {
+          not: null
+        }
+      },
+      {
+        bankDescription: {
+          not: ''
+        }
+      }
+    ];
+
+    const certificates = await prisma.certificates.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    // Group by bank and sum totalNoticeAmount
+    const bankDistribution = certificates.reduce((acc: any, cert) => {
+      const bank = cert.bankDescription || '';
+      if (bank.trim() !== '') {
+        acc[bank] = (acc[bank] || 0) + (cert.totalNoticeAmount || 0);
+      }
+      return acc;
+    }, {});
+
+    return bankDistribution;
+  } catch (error: any) {
+    console.error('Error retrieving bank distribution for certificates:', error);
+    throw error.message;
+  }
+}
+
+export async function getBankDistributionFines(params: any): Promise<any> {
+  try {
+    const { startDate, endDate, region, status, department, municipality, origin, dniRtn, operationId, companyName, employeeId, employeeName } = params;
+
+    // Build filters
+    const filters: any = {};
+    if (startDate && endDate) {
+      filters.startDate = {
+        gte: new Date(startDate).toISOString(),
+        lte: new Date(endDate).toISOString(),
+      };
+    }
+    if (status) filters.fineStatus = status;
+    if (companyName) filters.companyName = { contains: companyName };
+    if (dniRtn) filters.dniRtn = { contains: dniRtn };
+    if (region) filters.region = { contains: region };
+    if (department) filters.department = { contains: department };
+    if (municipality) filters.municipality = { contains: municipality };
+    if (origin) filters.origin = { contains: origin };
+    if (operationId) filters.operationId = operationId;
+    if (employeeId) filters.employeeId = employeeId;
+    if (employeeName) filters.employeeName = { contains: employeeName };
+
+    // Only get records with valid bank information (not null/empty)
+    filters.AND = [
+      ...(filters.AND || []),
+      {
+        bankDescription: {
+          not: null
+        }
+      },
+      {
+        bankDescription: {
+          not: ''
+        }
+      }
+    ];
+
+    const fines = await prisma.fines.findMany({
+      where: filters,
+    });
+
+    // Group by bank and sum totalAmount
+    const bankDistribution = fines.reduce((acc: any, fine) => {
+      const bank = fine.bankDescription || '';
+      if (bank.trim() !== '') {
+        acc[bank] = (acc[bank] || 0) + (fine.totalAmount || 0);
+      }
+      return acc;
+    }, {});
+
+    return bankDistribution;
+  } catch (error: any) {
+    console.error('Error retrieving bank distribution for fines:', error);
+    throw error.message;
+  }
+}
+
+export async function getBankDistributionEventualPermits(params: any): Promise<any> {
+  try {
+    const { permitStatus, serviceType, rtn, applicantName, startDate, endDate, dateType, regionalOffice, signatureType, petiType, creationOrigin } = params;
+
+    // Build filters
+    const filters: any = {};
+    if (permitStatus) filters.permitStatus = permitStatus;
+    if (serviceType) filters.serviceTypeDescription = { contains: serviceType };
+    if (rtn) filters.rtn = { contains: rtn };
+    if (applicantName) filters.applicantName = { contains: applicantName };
+    if (regionalOffice) filters.regionalOffice = regionalOffice;
+    if (signatureType) filters.signatureType = signatureType;
+    if (petiType) filters.petiType = petiType;
+    if (creationOrigin) filters.creationOrigin = creationOrigin;
+
+    if (startDate && endDate && dateType) {
+      if (dateType === 'system') {
+        filters['systemDate'] = {
+          gte: new Date(startDate as string).toISOString(),
+          lte: new Date(endDate as string).toISOString(),
+        };
+      }
+    }
+
+    // Filter out records with noticeCode '0' and only get records with valid bank information
+    filters.AND = [
+      {
+        OR: [
+          { noticeCode: { not: '0' } },
+          { noticeCode: null }
+        ]
+      },
+      {
+        bankDescription: {
+          not: null
+        }
+      },
+      {
+        bankDescription: {
+          not: ''
+        }
+      }
+    ];
+
+    const permits = await prisma.eventual_permits.findMany({
+      where: filters,
+      distinct: ['noticeCode'],
+    });
+
+    // Group by bank and sum amount
+    const bankDistribution = permits.reduce((acc: any, permit) => {
+      const bank = permit.bankDescription || '';
+      if (bank.trim() !== '') {
+        acc[bank] = (acc[bank] || 0) + (permit.amount || 0);
+      }
+      return acc;
+    }, {});
+
+    return bankDistribution;
+  } catch (error: any) {
+    console.error('Error retrieving bank distribution for eventual permits:', error);
     throw error.message;
   }
 }
@@ -1776,9 +1983,15 @@ export async function getEventualPermitsAnalytics(params: any): Promise<any> {
       }, {}),
     };
 
+    // Get bank distribution
+    const bankDistribution = await getBankDistributionEventualPermits(params);
+
     return {
       kpis,
-      chartData,
+      chartData: {
+        ...chartData,
+        bankDistribution
+      },
       total: uniqueFilteredPermits.length
     };
   } catch (error: any) {
