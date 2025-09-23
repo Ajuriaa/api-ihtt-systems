@@ -16,6 +16,7 @@ import {
   acceptRequisition, getBossRequisitions, getMyRequisitions,
   updateEntryInvoice
 } from './mutations';
+import { exec } from 'child_process';
 
 export const router = express.Router();
 
@@ -42,6 +43,20 @@ router.get('/requisition-list/:id', async (req, res) => {
 router.get('/my-requisition-list/:id', async (req, res) => {
   getMyRequisitions(req.params.id).then((data) => {
     res.json(data);
+  });
+});
+
+router.get('/update', async (req, res: Response) => {
+  res.send('Iniciando actualización...');
+
+  exec('/var/www/Jajuria/DEPLOY/update_supply.sh', (err, stdout, stderr) => {
+    if (err) {
+      console.error(`Error: ${err}`);
+      return;
+    }
+
+    console.log(`Output: ${stdout}`);
+    console.error(`Error (stderr): ${stderr}`);
   });
 });
 
