@@ -245,17 +245,26 @@ export async function printRequisition(id: number): Promise<ArrayBuffer> {
     if (!requisition) {
       throw new Error('requisition not found');
     }
-    const department: { Area: string, Nombre: string }[] = await rhPrisma.$queryRaw`
+    
+    let department: { Area: string, Nombre: string }[] = await rhPrisma.$queryRaw`
       SELECT Area, CONCAT(Nombres, ' ', Apellidos) as Nombre
       FROM v_listado_empleados vle
       INNER JOIN TB_Contactos tc ON tc.ID_Empleado = vle.ID_Jefe
       WHERE vle.ID_Empleado = ${requisition.employeeId};
     `;
-
-    if (department) {
-      return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area, department[0].Nombre);
+    
+    // Fallback: si no se encuentra en v_listado_empleados, buscar en V_listado_empleados_general
+    if (!department || department.length === 0) {
+      department = await rhPrisma.$queryRaw`
+        SELECT Area, Nombre_Jefe as Nombre
+        FROM V_listado_empleados_general
+        WHERE ID_Empleado = ${requisition.employeeId};
+      `;
     }
 
+    if (department && department.length > 0 && department[0]) {
+      return pdfHelper.generateRequisitionsPDF(requisition, department[0].Area, department[0].Nombre);
+    }
     return new ArrayBuffer(0);
   } catch (error) {
     console.error('Error printing requisition:', error);
